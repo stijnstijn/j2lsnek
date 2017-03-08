@@ -5,8 +5,11 @@ from datetime import datetime
 from helpers import port_handler, fancy_time
 
 
-## list server statistics
 class stats_handler(port_handler):
+    """
+    Serve server statistics
+    """
+
     def handle_data(self):
         """
         Calculate some list server statistics, show a nicely formatted list and immediately close connection

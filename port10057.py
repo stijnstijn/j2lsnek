@@ -3,8 +3,11 @@ import time
 from helpers import port_handler
 
 
-## ASCII server list
 class ascii_handler(port_handler):
+    """
+    Serve ASCII server list
+    """
+
     def handle_data(self):
         """
         Show a nicely formatted server list and immediately close connection

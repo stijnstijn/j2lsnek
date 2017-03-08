@@ -3,8 +3,11 @@ import time
 from helpers import port_handler
 
 
-## Message of the day
 class motd_handler(port_handler):
+    """
+    Serve Message of the Day
+    """
+
     def handle_data(self):
         """
         Return MOTD and immediately close connection

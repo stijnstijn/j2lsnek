@@ -7,6 +7,7 @@ import math
 def decode_mode(mode):
     """
     JJ2 uses numbers instead of strings, but strings are easier for humans to work with
+
     :param mode: Mode number as sent by the client
     :return: Mode string ("ctf", "treasure", "battle" or "unknown")
     """
@@ -23,6 +24,7 @@ def decode_mode(mode):
 def decode_version(version):
     """
     Not a lot to decode for the version string, but people aren't actually playing 1.21
+
     :param version: Version as sent by the client
     :return: Version string as used by list server
     """

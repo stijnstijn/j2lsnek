@@ -1,8 +1,11 @@
 from helpers import port_handler
 
 
-## Binary server list
 class binary_handler(port_handler):
+    """
+    Serve binary server list
+    """
+
     def handle_data(self):
         """
         Show the binary server list and immediately close connection

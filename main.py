@@ -10,7 +10,7 @@ Main thread -> Port listener 1 -> Client connection handler 1
             -> Port listener 2 -> Client connection handler 1
                                -> etc
 
-All these are in a separate thread. Each port has its own handler class, specified in a separate file, e.g. port10054
+All these are in separate threads. Each port has its own handler class, specified in a separate file, e.g. port10054.py
 contains the handler that processes clients sending data about their servers. These handlers extend a basic handler
 class that can be found in helper.py along with a few other helper functions.
 

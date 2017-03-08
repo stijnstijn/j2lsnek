@@ -4,8 +4,11 @@ from helpers import port_handler, decode_mode, decode_version
 from jj2server import jj2server
 
 
-## Server settings
 class server_handler(port_handler):
+    """
+    Handle server status updates
+    """
+
     def handle_data(self):
         """
         Handle the connection with live servers; update server data and list/delist when needed
@@ -21,7 +24,7 @@ class server_handler(port_handler):
             try:
                 data = self.client.recv(1024)
             except socket.timeout:
-                self.ls.log("Server from %s timed out before being listed" % self.ip)
+                self.ls.log("Server from %s timed out" % self.ip)
                 break
 
             if new and data and len(data) == 42:
@@ -38,12 +41,9 @@ class server_handler(port_handler):
                 new = False
 
                 port = int.from_bytes(data[0:2], byteorder = "little")
-
                 name = data[2:35].decode('ascii')
-
                 players = int(data[35])
                 max = int(data[36])
-
                 flags = int(data[37])
                 version = data[38:]
 
@@ -67,7 +67,7 @@ class server_handler(port_handler):
 
             else:
                 if not new:
-                    self.ls.log("Server delisted from %s" % self.ip)
+                    self.ls.log("Server from %s was delisted; invalid data received" % self.ip)
                 if data:
                     self.error_msg("Invalid data received")  # all valid commands are either 42 or 2 bytes long
                 break
