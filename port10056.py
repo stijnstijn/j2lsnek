@@ -14,6 +14,11 @@ class servernet_handler(port_handler):
         self.client.settimeout(5)  # should really be enough
         loops = 0
 
+        if self.ip not in self.ls.remotes:
+            self.ls.log("Unauthorized ServerNet connection from %s" % self.ip)
+            self.end()
+            return
+
         while True:
             try:
                 self.buffer.extend(self.client.recv(2048))
