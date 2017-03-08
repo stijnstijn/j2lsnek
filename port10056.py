@@ -37,7 +37,7 @@ class servernet_handler(port_handler):
             self.end()
             return
 
-        if not payload.action or payload.data:
+        if not payload.action or not payload.data:
             self.ls.log("ServerNet update received from %s, but JSON was malformed" % self.ip)
             self.end()
             return
@@ -110,3 +110,5 @@ class servernet_handler(port_handler):
 
                 self.ls.broadcast({"action": "ban", "data": payload_data}, [self.ip])
 
+        self.end()
+        return

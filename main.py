@@ -45,6 +45,7 @@ from port10055 import stats_handler
 from port10056 import servernet_handler
 from port10057 import ascii_handler
 from port10058 import motd_handler
+from port10059 import api_handler
 
 
 class listserver():
@@ -76,7 +77,7 @@ class listserver():
             self.remotes = [remote["address"] for remote in remotes]
 
         self.broadcast({"action": "hello"})  # let other list servers know we're live
-        self.listen_to([10053, 10054, 10055, 10056, 10057, 10058])
+        self.listen_to([10053, 10054, 10055, 10056, 10057, 10058, 10059])
 
     def listen_to(self, ports):
         """
@@ -169,6 +170,8 @@ class port_listener(threading.Thread):
                 self.connections[key] = ascii_handler(client=client, address=address, ls=self.ls)
             elif self.port == 10058:
                 self.connections[key] = motd_handler(client=client, address=address, ls=self.ls)
+            elif self.port == 10059:
+                self.connections[key] = api_handler(client=client, address=address, ls=self.ls)
             else:
                 raise NotImplementedError("No handler class available for port %s" % self.port)
             self.connections[key].start()
