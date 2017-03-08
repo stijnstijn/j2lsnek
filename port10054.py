@@ -51,7 +51,7 @@ class server_handler(port_handler):
                 mode = 0 if mode > 3 else mode
 
                 server.set("name", name)
-                server.set("private", 1 if flags & 1 else 0)
+                server.set("private", flags & 1)
                 server.set("ip", self.ip)
                 server.set("port", port)
                 server.set("players", players)
@@ -59,11 +59,21 @@ class server_handler(port_handler):
                 server.set("mode", self.decode_mode(mode))
                 server.set("version", self.decode_version(version))
 
-            elif not new and data and len(data) == 2:
+            elif not new and data and (len(data) == 2 or data[0] == 0x02):
                 # capacity update
                 if data[0] == 0:
                     self.ls.log("Updating player count for server %s" % self.ip)
                     server.set("players", data[1])
+                elif data[0] == 0x02:
+                    self.ls.log("Updating server name for server %s" % self.ip)
+                    name = data[1:].decode("ascii")
+                    server.set("name", name)
+                elif data[0] == 0x03:
+                    self.ls.log("Updating max players for server %s" % self.ip)
+                    server.set("max", data[1])
+                elif data[0] == 0x04:
+                    self.ls.log("Updating public/private for server %s" % self.ip)
+                    server.set("private", data[1] & 1)
 
             else:
                 if not new:
