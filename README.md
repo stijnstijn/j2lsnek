@@ -1,4 +1,4 @@
-j2lsnek
+j2lsnek 🐍
 ===
 
 Jazz Jackrabbit 2 List Server: New Edition: K. See code comments for info on how it works. Run main.py to start serving lists.
