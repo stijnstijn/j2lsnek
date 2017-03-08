@@ -12,7 +12,11 @@ class motd_handler(port_handler):
         """
         Return MOTD and immediately close connection
         """
-        motd = "jj2 aint dead\n"
+        motd = self.db.execute("SELECT value FROM settings WHERE item = ?", ('motd',)).fetchone()
 
-        self.msg(motd)
+        if motd:
+            self.msg(motd)
+        else:
+            self.msg("jj2 aint dead\n")
+
         self.end()

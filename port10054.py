@@ -16,17 +16,18 @@ class server_handler(port_handler):
 
         server = jj2server(self.key)
         new = True  # server is always new when connection is opened
-
         self.client.settimeout(10)  # time out in 10 seconds unless further data is received
-
         self.ls.log("Server connected from %s" % self.key)
-        while True:  # keep connection open until server disconnects (or times out)
+
+        # keep connection open until server disconnects (or times out)
+        while True:
             try:
                 data = self.client.recv(1024)
             except socket.timeout:
                 self.ls.log("Server from %s timed out" % self.key)
                 break
 
+            # new server wants to get listed
             if new and data and len(data) == 42:
                 # check for spamming
                 other = self.db.execute("SELECT COUNT(*) FROM servers WHERE ip = ?", (self.ip,)).fetchone()[0]
@@ -34,7 +35,6 @@ class server_handler(port_handler):
                     self.error_msg("Too many connections from this IP address")
                     break
 
-                # new server
                 self.ls.log("Server listed from %s" % self.key)
                 self.client.settimeout(35)  # should update player count every 30s, allow for a little lag
 
@@ -58,9 +58,13 @@ class server_handler(port_handler):
                 server.set("max", max)
                 server.set("mode", decode_mode(mode))
                 server.set("version", decode_version(version))
+                server.set("origin", self.ls.address)
 
+                self.ls.broadcast({"action": "server", "data": server.data})
+
+            # existing server sending an update
             elif not new and data and (len(data) == 2 or data[0] == 0x02):
-                if data[0] == 0:
+                if data[0] == 0 and server.get("players") != data[1]:
                     self.ls.log("Updating player count for server %s" % self.key)
                     server.set("players", data[1])
                 elif data[0] == 0x02:
@@ -73,6 +77,7 @@ class server_handler(port_handler):
                     self.ls.log("Updating public/private for server %s" % self.key)
                     server.set("private", data[1] & 1)
 
+            # server wants to be delisted, goes offline or sends strange data
             else:
                 if not new:
                     self.ls.log("Server from %s was delisted; invalid data received" % self.key)

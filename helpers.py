@@ -83,6 +83,7 @@ class port_handler(threading.Thread):
 
     dbconn = False
     db = False
+    buffer = bytearray()
 
     def __init__(self, client = None, address = None, ls = None):
         """
