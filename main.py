@@ -49,7 +49,7 @@ class listserver():
         if remotes:
             self.remotes = [remote["address"] for remote in remotes]
 
-        self.broadcast({"action": "hello"})  # let other list servers know we're live
+        self.broadcast({"action": "request"})  # let other list servers know we're live and ask them for the latest
         self.listen_to([10053, 10054, 10055, 10056, 10057, 10058, 10059])
 
     def listen_to(self, ports):
