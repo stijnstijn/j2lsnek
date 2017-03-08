@@ -19,12 +19,12 @@ class server_handler(port_handler):
 
         self.client.settimeout(10)  # time out in 10 seconds unless further data is received
 
-        self.ls.log("Server connected from %s" % self.ip)
+        self.ls.log("Server connected from %s" % self.key)
         while True:  # keep connection open until server disconnects (or times out)
             try:
                 data = self.client.recv(1024)
             except socket.timeout:
-                self.ls.log("Server from %s timed out" % self.ip)
+                self.ls.log("Server from %s timed out" % self.key)
                 break
 
             if new and data and len(data) == 42:
@@ -35,7 +35,7 @@ class server_handler(port_handler):
                     break
 
                 # new server
-                self.ls.log("Server listed from %s" % self.ip)
+                self.ls.log("Server listed from %s" % self.key)
                 self.client.settimeout(35)  # should update player count every 30s, allow for a little lag
 
                 new = False
@@ -56,28 +56,26 @@ class server_handler(port_handler):
                 server.set("port", port)
                 server.set("players", players)
                 server.set("max", max)
-                server.set("mode", self.decode_mode(mode))
-                server.set("version", self.decode_version(version))
+                server.set("mode", decode_mode(mode))
+                server.set("version", decode_version(version))
 
             elif not new and data and (len(data) == 2 or data[0] == 0x02):
-                # capacity update
                 if data[0] == 0:
-                    self.ls.log("Updating player count for server %s" % self.ip)
+                    self.ls.log("Updating player count for server %s" % self.key)
                     server.set("players", data[1])
                 elif data[0] == 0x02:
-                    self.ls.log("Updating server name for server %s" % self.ip)
-                    name = data[1:].decode("ascii")
-                    server.set("name", name)
+                    self.ls.log("Updating server name for server %s" % self.key)
+                    server.set("name", data[1:33].decode("ascii"))
                 elif data[0] == 0x03:
-                    self.ls.log("Updating max players for server %s" % self.ip)
+                    self.ls.log("Updating max players for server %s" % self.key)
                     server.set("max", data[1])
                 elif data[0] == 0x04:
-                    self.ls.log("Updating public/private for server %s" % self.ip)
+                    self.ls.log("Updating public/private for server %s" % self.key)
                     server.set("private", data[1] & 1)
 
             else:
                 if not new:
-                    self.ls.log("Server from %s was delisted; invalid data received" % self.ip)
+                    self.ls.log("Server from %s was delisted; invalid data received" % self.key)
                 if data:
                     self.error_msg("Invalid data received")  # all valid commands are either 42 or 2 bytes long
                 break
