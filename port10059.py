@@ -16,6 +16,9 @@ class api_handler(port_handler):
 
     For security, this API can only be called from localhost, so the front-end should be hosted on the same machine
     as the list server itself (or use some sort of gateway if you really don't want to do that)
+
+    Available commands are add-banlist, delete-banlist, add-remote, delete-remote and motd. See the code below for
+    details and data requirements.
     """
 
     def handle_data(self):
@@ -43,7 +46,7 @@ class api_handler(port_handler):
             except json.JSONDecodeError:
                 pass
 
-            if loops > 12:
+            if loops > 12:  # even our patience knows its limits
                 break
 
         if not payload:  # payload not received or readable for whatever reason, give up

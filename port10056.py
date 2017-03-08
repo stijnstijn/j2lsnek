@@ -29,7 +29,7 @@ class servernet_handler(port_handler):
             except json.JSONDecodeError:
                 pass
 
-            if loops > 12:
+            if loops > 12:  # even our patience knows its limits
                 break
 
         if not payload:  # payload not received or readable for whatever reason, give up
@@ -92,9 +92,19 @@ class servernet_handler(port_handler):
             if server.get("remote") == 1:
                 server.forget()
 
+        # motd updates
+        elif payload.action == "motd":
+            if "motd" not in payload.data:
+                self.ls.log("Received malformed MOTD from ServerNet connection %s" % self.ip)
+                self.end()
+                return
+
+            self.db.execute("UPDATE settings SET value = ? WHERE item = ?", (payload.data["motd"], "motd"))
+
         # sync request: send all data
         elif payload.action == "request":
-            servers = self.db.execute("SELECT * FROM servers WHERE players > 0").fetchall()
+            #servers
+            servers = self.db.execute("SELECT * FROM servers WHERE players > 0 AND origin = ?", (self.ls.address,)).fetchall()
             for server in servers:
                 payload_data = {}
                 for property in server.keys():
@@ -102,6 +112,7 @@ class servernet_handler(port_handler):
 
                 self.ls.broadcast({"action": "server", "data": payload_data}, [self.ip])
 
+            #banlist
             blackwhite = self.db.execute("SELECT * FROM blackwhite WHERE global = 1 AND origin = ?", (self.ls.address,)).fetchall()
             for listing in blackwhite:
                 payload_data = {}
@@ -109,6 +120,11 @@ class servernet_handler(port_handler):
                     payload_data[property] = listing[property]
 
                 self.ls.broadcast({"action": "ban", "data": payload_data}, [self.ip])
+
+            #motd
+            motd = self.db.execute("SELECT value FROM settings WHERE item = ?", ("motd")).fetchone()
+            motd = motd["value"] if motd else "jj2 aint dead\n"
+            self.ls.broadcast({"action": "motd", "data": {"motd": motd}}, [self.ip])
 
         self.end()
         return

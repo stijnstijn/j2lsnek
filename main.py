@@ -30,6 +30,9 @@ server data can easily be serialised and synchronised between servers (and it's 
 separate commands for each updated property any more; rather, when a server's info changes, its full data is broadcast
 by the list server it is listed on, and other list servers replace their database records accordingly. Another new
 feature is that bans, whitelistings and settings like the MOTD can also be synchronised.
+
+Remote administration is available via an API. The API can only be called from localhost; thus any interface should be
+hosted on the same machine as the list server. See port10059.py for API details.
 """
 
 import threading
