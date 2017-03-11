@@ -47,9 +47,14 @@ class stats_handler(port_handler):
         stats += "\n"
         stats += "  Players in servers               : [" + str(players) + "/" + str(max) + "]\n"
         stats += "\n"
-        stats += "  Connected list server mirrors    : not implemented yet ;)\n"
+        stats += "  Connected list server mirrors    : " + str(len(self.ls.remotes)) + " remote list servers\n"
+
+        for remote in self.ls.remotes:
+            stats += "                                     -> " + remote + "\n"
+
         stats += "\n"
         stats += "  Running j2lsnek v" + config.VERSION + " by stijn\n"
+        stats += "  Source available at https://github.com/stijnstijn/j2lsnek\n\n"
         stats += "  Bye!\n\n"
         stats += "+----------------------------------------------------------------------+\n"
 
