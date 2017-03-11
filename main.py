@@ -123,7 +123,7 @@ class port_listener(threading.Thread):
         :return: Nothing
         """
         server = socket.socket()
-        server.bind((socket.gethostname(), self.port))
+        server.bind(("localhost", self.port))
         server.listen(5)
         self.ls.log("Opening socket listening at port %s" % self.port)
 
