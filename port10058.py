@@ -15,7 +15,7 @@ class motd_handler(port_handler):
         motd = self.db.execute("SELECT value FROM settings WHERE item = ?", ('motd',)).fetchone()
 
         if motd:
-            self.msg(motd)
+            self.msg(motd["value"] + "\n")
         else:
             self.msg("jj2 aint dead\n")
 
