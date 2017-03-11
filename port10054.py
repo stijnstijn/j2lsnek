@@ -81,6 +81,9 @@ class server_handler(port_handler):
             else:
                 if not new:
                     self.ls.log("Server from %s was delisted; invalid data received" % self.key)
+                else:
+                    self.ls.log("Server from %s provided faulty listing data: not listed" % self.key)
+
                 if data:
                     self.error_msg("Invalid data received")  # all valid commands are either 42 or 2 bytes long
                 break

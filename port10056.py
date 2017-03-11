@@ -118,8 +118,8 @@ class servernet_handler(port_handler):
                 self.ls.broadcast({"action": "server", "data": payload_data}, [self.ip])
 
             #banlist
-            blackwhite = self.db.execute("SELECT * FROM blackwhite WHERE global = 1 AND origin = ?", (self.ls.address,)).fetchall()
-            for listing in blackwhite:
+            banlist = self.db.execute("SELECT * FROM banlist WHERE global = 1 AND origin = ?", (self.ls.address,)).fetchall()
+            for listing in banlist:
                 payload_data = {}
                 for property in listing.keys():
                     payload_data[property] = listing[property]
