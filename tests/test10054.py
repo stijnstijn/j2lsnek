@@ -4,6 +4,7 @@ ghetto test suite
 import socket
 import random
 import time
+import json
 
 LIST_SERVER = "localhost"
 
@@ -78,6 +79,7 @@ class fake_server():
                     type += 1
 
         return
+
 
 # go!
 server = fake_server()
