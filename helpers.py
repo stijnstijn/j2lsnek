@@ -135,6 +135,14 @@ class port_handler(threading.Thread):
         """
         return self.msg("/!\ GURU MEDITATION /!\ " + string)
 
+    def acknowledge(self):
+        """
+        Just msg() but with a standardised ACK-message
+
+        :return: Return result of self.msg()
+        """
+        return self.msg("ACK")
+
     def end(self):
         """
         End the connection: close the socket
@@ -142,3 +150,7 @@ class port_handler(threading.Thread):
         :return: Return result of socket.close()
         """
         return self.client.close()
+
+    def query(self, query, replacements = tuple()):
+        self.db.execute(query, replacements)
+        self.dbconn.commit()
