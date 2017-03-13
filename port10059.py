@@ -1,4 +1,5 @@
 import socket
+import types
 import json
 
 from helpers import port_handler
@@ -31,6 +32,8 @@ class api_handler(port_handler):
         # accept message
         self.client.settimeout(5)  # should really be enough
         loops = 0
+        payload = None
+        self.buffer = bytearray()
 
         while True:
             try:
@@ -41,7 +44,7 @@ class api_handler(port_handler):
                 break
 
             try:
-                payload = json.loads(self.buffer.encode("UTF-8"))
+                payload = json.loads(self.buffer.decode("ascii"))
                 break
             except json.JSONDecodeError:
                 pass
@@ -51,79 +54,92 @@ class api_handler(port_handler):
 
         if not payload:  # payload not received or readable for whatever reason, give up
             self.ls.log("API call with empty or unavailable payload received")
+            self.error_msg("Malformed API request")
             self.end()
             return
 
-        if not payload.action or not payload.data:
+        if not isinstance(payload, dict) or "action" not in payload or "data" not in payload or not isinstance(payload["data"], dict):
             self.ls.log("API call with malformed payload received")
+            self.error_msg("Malformed API request")
             self.end()
             return
+
 
         # add entry to banlist/whitelist
-        if payload.action == "add-banlist":
-            if "address" not in payload.data or "type" not in payload.data or "origin" not in payload.data or "global" not in payload.data:
+        if payload["action"] == "add-banlist":
+            if "address" not in payload["data"] or "type" not in payload["data"] or "origin" not in payload["data"] or "global" not in payload["data"]:
                 self.ls.log("Malformed API request (add-banlist)")
+                self.error_msg("Malformed API request")
                 self.end()
                 return
-            self.db.execute("INSERT INTO banlist (address, type, origin, global) VALUES (?, ?, ?, ?)",
-                            (payload.data["address"], payload.data["type"], payload.data["origin"], payload.data["global"]))
+            self.query("INSERT INTO banlist (address, type, origin, global) VALUES (?, ?, ?, ?)",
+                            (payload["data"]["address"], payload["data"]["type"], payload["data"]["origin"], payload["data"]["global"]))
 
-            if str(payload.data["global"]) == "1":
-                self.ls.broadcast({"action": "ban", "data": payload.data})
-            self.ls.log("Banlist entry added via API (%s)" % payload.data["address"])
+            if str(payload["data"]["global"]) == "1":
+                self.ls.broadcast({"action": "ban", "data": payload["data"]})
+            self.ls.log("Banlist entry added via API (%s)" % payload["data"]["address"])
+            self.acknowledge()
 
         # remove entry from banlist/whitelist
-        elif payload.action == "delete-banlist":
-            if "address" not in payload.data or "type" not in payload.data or "origin" not in payload.data or "global" not in payload.data:
+        elif payload["action"] == "delete-banlist":
+            if "address" not in payload["data"] or "type" not in payload["data"] or "origin" not in payload["data"] or "global" not in payload["data"]:
                 self.ls.log("Malformed API request (delete-banlist)")
+                self.error_msg("Malformed API request")
                 self.end()
                 return
 
-            self.db.execute("DELETE FROM banlist WHERE address = ? AND type = ? AND origin = ? AND global = ?",
-                            (payload.data["address"], payload.data["type"], payload.data["origin"], payload.data["global"]))
+            self.query("DELETE FROM banlist WHERE address = ? AND type = ? AND origin = ? AND global = ?",
+                            (payload["data"]["address"], payload["data"]["type"], payload["data"]["origin"], payload["data"]["global"]))
 
-            if str(payload.data["global"]) == "1":
-                self.ls.broadcast({"action": "unban", "data": payload.data})
-            self.ls.log("Banlist entry deleted via API (%s)" % payload.data["address"])
+            if str(payload["data"]["global"]) == "1":
+                self.ls.broadcast({"action": "unban", "data": payload["data"]})
+            self.ls.log("Banlist entry deleted via API (%s)" % payload["data"]["address"])
+            self.acknowledge()
 
         # add remote list server
-        elif payload.action == "add-remote":
-            if "name" not in payload.data or "address" not in payload.data:
+        elif payload["action"] == "add-remote":
+            if "name" not in payload["data"] or "address" not in payload["data"]:
                 self.ls.log("Malformed API request (add-remote)")
+                self.error_msg("Malformed API request")
                 self.end()
                 return
 
-            self.db.execute("INSERT INTO remotes (name, address) VALUES (?, ?)",
-                            (payload.data["name"], payload.data["address"]))
+            self.query("INSERT INTO remotes (name, address) VALUES (?, ?)",
+                            (payload["data"]["name"], payload["data"]["address"]))
 
-            self.ls.remotes.append(payload.data["address"])
-            self.ls.log("Remote added via API (%s)" % payload.data["address"])
+            self.ls.remotes.append(payload["data"]["address"])
+            self.ls.log("Remote added via API (%s)" % payload["data"]["address"])
+            self.acknowledge()
 
         # remove remote list server
-        elif payload.action == "delete-remote":
-            if "name" not in payload.data or "address" not in payload.data:
+        elif payload["action"] == "delete-remote":
+            if "name" not in payload["data"] or "address" not in payload["data"]:
                 self.ls.log("Malformed API request (delete-remote)")
+                self.error_msg("Malformed API request")
                 self.end()
                 return
 
-            self.db.execute("DELETE FROM remotes WHERE name = ? AND address = ?",
-                            (payload.data["name"], payload.data["address"]))
+            self.query("DELETE FROM remotes WHERE name = ? AND address = ?",
+                            (payload["data"]["name"], payload["data"]["address"]))
 
-            self.ls.remotes.remove(payload.data["address"])
-            self.ls.log("Remote deleted via API (%s)" % payload.data["address"])
+            self.ls.remotes.remove(payload["data"]["address"])
+            self.ls.log("Remote deleted via API (%s)" % payload["data"]["address"])
+            self.acknowledge()
 
         # update MOTD
-        elif payload.action == "set-motd":
-            if "motd" not in payload.data:
+        elif payload["action"] == "set-motd":
+            if "motd" not in payload["data"]:
                 self.ls.log("Malformed API request (set-motd)")
+                self.error_msg("Malformed API request")
                 self.end()
                 return
 
-            self.db.execute("UPDATE settings SET value = ? WHERE item = ?",
-                            (payload.data["motd"], "motd"))
+            self.query("UPDATE settings SET value = ? WHERE item = ?",
+                            (payload["data"]["motd"], "motd"))
 
-            self.ls.broadcast({"action": "motd", "data": payload.data})
+            self.ls.broadcast({"action": "motd", "data": payload["data"]})
             self.ls.log("MOTD updated via API")
+            self.acknowledge()
 
         self.end()
         return
