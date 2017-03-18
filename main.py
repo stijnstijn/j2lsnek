@@ -41,9 +41,11 @@ class listserver():
         self.start = int(time.time())
         self.address = socket.gethostname()
 
-        self.db.execute("DELETE FROM banlist WHERE origin != ?", (self.address, ))
+        self.prepare_database()
+
+        self.db.execute("DELETE FROM banlist WHERE origin != ?", (self.address,))
         self.db.execute("DELETE FROM servers")  # if this method is run, it means the list server is restarted,
-        self.dbconn.commit()                    # which breaks all open connections, so clear all servers and such
+        self.dbconn.commit()  # which breaks all open connections, so clear all servers and such
 
         remotes = self.db.execute("SELECT * FROM remotes").fetchall()
         if remotes:
@@ -78,7 +80,7 @@ class listserver():
         print(("T=%s " + message) % (int(time.time()) - self.start))  # maybe add logging to file or something later
         return
 
-    def broadcast(self, data, recipient = None):
+    def broadcast(self, data, recipient=None):
         """
         Send data to servers connected via ServerNET
 
@@ -92,6 +94,35 @@ class listserver():
 
         pass  # to be implemented...
 
+    def prepare_database(self):
+        """
+        Creates database tables if they don't exist yet
+
+        :return: result of connection.commit()
+        """
+        try:
+            test = self.db.execute("SELECT * FROM servers")
+        except sqlite3.OperationalError:
+            self.db.execute(
+                "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT)")
+
+        try:
+            test = self.db.execute("SELECT * FROM settings")
+        except sqlite3.OperationalError:
+            self.db.execute("CREATE TABLE settings (item TEXT UNIQUE, value TEXT)")
+
+        try:
+            test = self.db.execute("SELECT * FROM banlist")
+        except sqlite3.OperationalError:
+            self.db.execute("CREATE TABLE banlist (address TEXT, type TEXT, origin TEXT, global INTEGER)")
+
+        try:
+            test = self.db.execute("SELECT * FROM remotes")
+        except sqlite3.OperationalError:
+            self.db.execute("CREATE TABLE remotes (name TEXT, address TEXT)")
+
+        return self.dbconn.commit()
+
 
 class port_listener(threading.Thread):
     """
@@ -100,7 +131,7 @@ class port_listener(threading.Thread):
     """
     connections = {}
 
-    def __init__(self, port = None, ls = None):
+    def __init__(self, port=None, ls=None):
         """
         Check if all data is available and assign object vars
 
@@ -108,7 +139,6 @@ class port_listener(threading.Thread):
         :param ls: List server object, for logging etc
         """
         threading.Thread.__init__(self)
-
 
         if not port or not ls:
             raise TypeError("port_handler expects port and list server object as argument")
@@ -153,7 +183,7 @@ class port_listener(threading.Thread):
 
 
 class servernet_sender(threading.Thread):
-    def __init__(self, ip = None, data = None):
+    def __init__(self, ip=None, data=None):
         threading.Thread.__init__(self)
 
         self.ip = ip
