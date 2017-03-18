@@ -7,18 +7,22 @@ Thanks to DJazz for a reference implementation and zepect for some misc tips.
 
 import threading
 import sqlite3
-import config
 import socket
 import json
 import time
+import sys
 
+import config
+
+sys.path.append('handlers')
 from port10053 import binary_handler
 from port10054 import server_handler
 from port10055 import stats_handler
 from port10056 import servernet_handler
 from port10057 import ascii_handler
-from port10058 import motd_handler
+from handlers.port10058 import motd_handler
 from port10059 import api_handler
+
 
 
 class listserver():
