@@ -12,6 +12,8 @@ class motd_handler(port_handler):
         """
         Return MOTD and immediately close connection
         """
+        self.ls.log("Sending MOTD to %s" % self.ip)
+
         motd = self.db.execute("SELECT value FROM settings WHERE item = ?", ('motd',)).fetchone()
 
         if motd:
