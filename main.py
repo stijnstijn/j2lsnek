@@ -14,14 +14,13 @@ import sys
 
 import config
 
-sys.path.append('handlers')
-from port10053 import binary_handler
-from port10054 import server_handler
-from port10055 import stats_handler
-from port10056 import servernet_handler
-from port10057 import ascii_handler
+from handlers.port10053 import binary_handler
+from handlers.port10054 import server_handler
+from handlers.port10055 import stats_handler
+from handlers.port10056 import servernet_handler
+from handlers.port10057 import ascii_handler
 from handlers.port10058 import motd_handler
-from port10059 import api_handler
+from handlers.port10059 import api_handler
 
 
 
@@ -69,8 +68,8 @@ class listserver():
             self.sockets[port] = port_listener(port=port, ls=self)
             self.sockets[port].start()
 
-        while self.looping:  # always True but could add some mechanism to quit in the future
-            pass
+        #while self.looping:  # always True but could add some mechanism to quit in the future
+        #    pass
 
         return
 
@@ -108,12 +107,13 @@ class listserver():
             test = self.db.execute("SELECT * FROM servers")
         except sqlite3.OperationalError:
             self.db.execute(
-                "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT)")
+                "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, created INTEGER DEFAULT 0, lifesign INTEGER DEFAULT 0, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT)")
 
         try:
             test = self.db.execute("SELECT * FROM settings")
         except sqlite3.OperationalError:
             self.db.execute("CREATE TABLE settings (item TEXT UNIQUE, value TEXT)")
+            self.db.execute("INSERT INTO settings (item, value) VALUES (?, ?)", ("motd", ""))
 
         try:
             test = self.db.execute("SELECT * FROM banlist")
@@ -157,7 +157,8 @@ class port_listener(threading.Thread):
         :return: Nothing
         """
         server = socket.socket()
-        server.bind((self.ls.address, self.port))
+        address = self.ls.address if self.port != 10059 else "localhost"
+        server.bind((address, self.port))
         server.listen(5)
         self.ls.log("Opening socket listening at port %s" % self.port)
 
