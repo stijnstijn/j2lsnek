@@ -14,6 +14,7 @@ class servernet_handler(port_handler):
     def handle_data(self):
         self.client.settimeout(5)  # should really be enough
         loops = 0
+        payload = None
 
         if self.ip not in self.ls.remotes:
             self.ls.log("Unauthorized ServerNet connection from %s" % self.ip)
