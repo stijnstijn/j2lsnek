@@ -45,7 +45,7 @@ class api_handler(port_handler):
             try:
                 payload = json.loads(self.buffer.decode("ascii"))
                 break
-            except json.JSONDecodeError:
+            except ValueError:  # older python3s don't support json.JSONDecodeError
                 pass
 
             if loops > 12:  # even our patience knows its limits
