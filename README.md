@@ -34,9 +34,14 @@ separate commands for each updated property any more; rather, when a server's in
 by the list server it is listed on, and other list servers replace their database records accordingly. Another new
 feature is that bans, whitelistings and settings like the MOTD can also be synchronised.
 
+ServerNet syncing treats all connected list servers as equal. This means all servers can add and remove items like bans;
+origin does not matter, i.e. server A can remove a global ban set by server B. If this is a problem you should probably
+be looking for more trustworthy list server hosts.
+
 Remote administration is available via an API. The API can only be called from localhost; thus any interface should be
 hosted on the same machine as the list server. See port10059.py for API details.
 
 ##Todo:
 - Test whether stuff actually works and can't easily be broken
 - Maybe some extra abuse detection and mitigation
+- Whitelists
