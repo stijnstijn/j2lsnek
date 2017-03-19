@@ -98,7 +98,7 @@ class listserver():
         transmitters = {}
 
         for remote in self.remotes:
-            transmitters[remote] = servernet_sender(ip=remote, data=data)
+            transmitters[remote] = servernet_sender(ip=remote, data=data, ls=self)
             transmitters[remote].start()
 
         pass  # to be implemented...
@@ -194,11 +194,12 @@ class port_listener(threading.Thread):
 
 
 class servernet_sender(threading.Thread):
-    def __init__(self, ip=None, data=None):
+    def __init__(self, ip=None, data=None, ls=None):
         threading.Thread.__init__(self)
 
         self.ip = ip
         self.data = data
+        self.ls = ls
 
     def run(self):
         connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
