@@ -163,7 +163,7 @@ class port_listener(threading.Thread):
         :return: Nothing
         """
         server = socket.socket()
-        address = self.ls.address if self.port != 10059 else "localhost"
+        address = "" if self.port != 10059 else "localhost"
         server.bind((address, self.port))
         server.listen(5)
         self.ls.log("Opening socket listening at port %s" % self.port)
