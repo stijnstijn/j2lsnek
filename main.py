@@ -174,6 +174,7 @@ class port_listener(threading.Thread):
             client, address = server.accept()
 
             if banned(address[0]) and not whitelisted(address[0]):  # check if IP is banned
+                self.ls.log("IP %s attempted to connect, but matches banlist" % address[0])
                 continue
 
             key = address[0] + ":" + str(address[1])
