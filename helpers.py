@@ -74,6 +74,18 @@ def fancy_time(time):
 
     return string
 
+def whitelisted(ip):
+    return banned(ip, whitelisted=True)
+
+def banned(ip, whitelisted=False):
+    dbconn = sqlite3.connect(config.DATABASE)
+    db = dbconn.cursor()
+    type = "ban" if not whitelisted else "whitelist"
+    matches = db.execute("SELECT COUNT(*) FROM banlist WHERE ? LIKE address AND type = ?", (ip, type)).fetchone()[0]
+
+    return matches > 0
+
+
 
 class port_handler(threading.Thread):
     """

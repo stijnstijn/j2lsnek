@@ -22,6 +22,8 @@ from handlers.port10057 import ascii_handler
 from handlers.port10058 import motd_handler
 from handlers.port10059 import api_handler
 
+from helpers import banned, whitelisted
+
 
 
 class listserver():
@@ -163,13 +165,17 @@ class port_listener(threading.Thread):
         :return: Nothing
         """
         server = socket.socket()
-        address = "" if self.port != 10059 else "localhost"
+        address = "" if self.port != 10059 else "localhost"  # 10059 should only be accessible via localhost
         server.bind((address, self.port))
         server.listen(5)
         self.ls.log("Opening socket listening at port %s" % self.port)
 
         while True:
             client, address = server.accept()
+
+            if banned(address[0]) and not whitelisted(address[0]):  # check if IP is banned
+                continue
+
             key = address[0] + ":" + str(address[1])
 
             if self.port == 10053:
