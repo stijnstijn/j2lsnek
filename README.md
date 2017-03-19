@@ -47,4 +47,3 @@ Todo:
 ---
 - Test whether stuff actually works and can't easily be broken
 - Maybe some extra abuse detection and mitigation
-- Whitelists
