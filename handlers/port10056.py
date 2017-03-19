@@ -129,7 +129,7 @@ class servernet_handler(port_handler):
                 self.ls.broadcast({"action": "ban", "data": payload_data}, [self.ip])
 
             #motd
-            motd = self.db.execute("SELECT value FROM settings WHERE item = ?", ("motd")).fetchone()
+            motd = self.db.execute("SELECT value FROM settings WHERE item = ?", ("motd",)).fetchone()
             motd = motd["value"] if motd else "jj2 aint dead\n"
             self.ls.broadcast({"action": "motd", "data": {"motd": motd}}, [self.ip])
 
