@@ -95,7 +95,7 @@ class fake_apicaller:
                 connection.close()
 
                 type += 1
-                if type > 16:
+                if type > 20:
                     type = 1
 
 
