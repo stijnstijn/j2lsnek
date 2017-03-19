@@ -1,4 +1,4 @@
-from helpers import port_handler
+from helpers.classes import port_handler
 
 
 class binary_handler(port_handler):

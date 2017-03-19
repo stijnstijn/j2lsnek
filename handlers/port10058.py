@@ -1,6 +1,4 @@
-import time
-
-from helpers import port_handler
+from helpers.classes import port_handler
 
 
 class motd_handler(port_handler):

@@ -5,15 +5,13 @@ By Stijn (https://stijn.chat)
 Thanks to DJazz for a reference implementation and zepect for some misc tips.
 """
 
-import threading
-import sqlite3
-import socket
 import json
+import socket
+import sqlite3
+import threading
 import time
-import sys
 
 import config
-
 from handlers.port10053 import binary_handler
 from handlers.port10054 import server_handler
 from handlers.port10055 import stats_handler
@@ -21,9 +19,7 @@ from handlers.port10056 import servernet_handler
 from handlers.port10057 import ascii_handler
 from handlers.port10058 import motd_handler
 from handlers.port10059 import api_handler
-
-from helpers import banned, whitelisted
-
+from helpers.functions import banned, whitelisted
 
 
 class listserver():

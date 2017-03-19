@@ -1,7 +1,8 @@
 import socket
 
-from helpers import port_handler, decode_mode, decode_version, whitelisted
-from jj2server import jj2server
+from helpers.functions import decode_mode, decode_version, whitelisted
+
+from helpers.classes import port_handler, jj2server
 
 
 class server_handler(port_handler):

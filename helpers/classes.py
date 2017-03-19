@@ -1,3 +1,4 @@
+import threading
 import sqlite3
 import config
 import time
@@ -89,3 +90,83 @@ class jj2server():
         self.dbconn.commit()
 
         return
+
+class port_handler(threading.Thread):
+    """
+    Generic data handler: receives data from a socket and processes it
+    handle_data() method is to be defined by descendant classes, which will be called from the listener loop
+    """
+
+    dbconn = False
+    db = False
+    buffer = bytearray()
+
+    def __init__(self, client = None, address = None, ls = None):
+        """
+        Check if all data is available and assign object vars
+
+        :param client: Socket through which the client is connected
+        :param address: Address (tuple with IP and connection port)
+        :param ls: List server object, for logging etc
+        """
+        threading.Thread.__init__(self)
+
+        if not client or not address or not ls:
+            raise TypeError("port_handler expects client, address and list server object as arguments")
+
+        self.client = client
+        self.address = address
+        self.ip = self.address[0]
+        self.key = self.address[0] + ":" + str(self.address[1])
+        self.ls = ls
+
+    def run(self):
+        """
+        Set up a database connection (they can't be shared between threads) and call the data handler
+
+        :return: Nothing
+        """
+        self.dbconn = sqlite3.connect(config.DATABASE)
+        self.dbconn.row_factory = sqlite3.Row
+        self.db = self.dbconn.cursor()
+
+        self.handle_data()
+        return
+
+    def msg(self, string):
+        """
+        Send text message to connection - for ascii server list etc, and error messages
+
+        :param string: Text message, will be encoded as ascii
+        :return: Return result of socket.sendall()
+        """
+        return self.client.sendall(string.encode("ascii"))
+
+    def error_msg(self, string):
+        """
+        Just msg() with a warning before the message
+
+        :param string: Error message to send
+        :return: Return result of self.msg()
+        """
+        return self.msg("/!\ GURU MEDITATION /!\ " + string)
+
+    def acknowledge(self):
+        """
+        Just msg() but with a standardised ACK-message
+
+        :return: Return result of self.msg()
+        """
+        return self.msg("ACK")
+
+    def end(self):
+        """
+        End the connection: close the socket
+
+        :return: Return result of socket.close()
+        """
+        return self.client.close()
+
+    def query(self, query, replacements = tuple()):
+        self.db.execute(query, replacements)
+        self.dbconn.commit()
