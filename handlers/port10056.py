@@ -30,7 +30,7 @@ class servernet_handler(port_handler):
 
 
             try:
-                payload = json.loads(self.buffer.encode("UTF-8"))
+                payload = json.loads(self.buffer.decode("ascii"))
                 break
             except json.JSONDecodeError:
                 pass
@@ -43,7 +43,7 @@ class servernet_handler(port_handler):
             self.end()
             return
 
-        if not payload.action or not payload.data:
+        if not payload["action"] or not payload["data"]:
             self.ls.log("ServerNet update received from %s, but JSON was malformed" % self.ip)
             self.end()
             return
@@ -51,15 +51,15 @@ class servernet_handler(port_handler):
         # ok, payload is valid, process it
 
         # server listings
-        if payload.action == "server":
-            if "id" not in payload.data:
+        if payload["action"] == "server":
+            if "id" not in payload["data"]:
                 self.ls.log("Received malformed server data from ServerNet connection %s" % self.ip)
                 return
 
-            server = jj2server(payload.data["id"])
-            for key in payload.data:
+            server = jj2server(payload["data"]["id"])
+            for key in payload["data"]:
                 try:
-                    server.set(key, payload.data[key])
+                    server.set(key, payload["data"][key])
                 except IndexError:
                     self.ls.log("Received malformed server data from ServerNet connection %s" % self.ip)
                     self.end()
@@ -67,48 +67,48 @@ class servernet_handler(port_handler):
             server.set("remote", 1)
 
         # ban list (and whitelist) entries
-        elif payload.action == "ban":
-            if "address" not in payload.data or "type" in payload.data or "origin" not in payload.data:
+        elif payload["action"] == "ban":
+            if "address" not in payload["data"] or "type" in payload["data"] or "origin" not in payload["data"]:
                 self.ls.log("Received malformed banlist entry from ServerNet connection %s" % self.ip)
                 self.end()
                 return
 
             exists = self.db.execute("SELECT COUNT(*) FROM banlist WHERE address = ? AND origin = ? AND type = ?",
-                                     (payload.data["address"], payload.data["origin"], payload.data["type"])).fetchone()
+                                     (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"])).fetchone()
             if not exists:
-                self.db.execute("INSERT INTO banlist (address, origin, type) VALUES (?, ?, ?)", (payload.data["address"], payload.data["origin"], payload.data["type"]))
+                self.db.execute("INSERT INTO banlist (address, origin, type) VALUES (?, ?, ?)", (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"]))
 
         # removal of ban/whitelist entries
-        elif payload.action == "unban":
-            if "address" not in payload.data or "type" in payload.data or "origin" not in payload.data:
+        elif payload["action"] == "unban":
+            if "address" not in payload["data"] or "type" in payload["data"] or "origin" not in payload["data"]:
                 self.ls.log("Received malformed banlist entry from ServerNet connection %s" % self.ip)
                 self.end()
                 return
 
             self.db.execute("DELETE FROM banlist WHERE address = ? AND origin = ? AND type = ?",
-                            (payload.data["address"], payload.data["origin"], payload.data["type"])).fetchone()
+                            (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"])).fetchone()
 
         # server delistings
-        elif payload.action == "delist":
-            if "id" not in payload.data:
+        elif payload["action"] == "delist":
+            if "id" not in payload["data"]:
                 self.ls.log("Received malformed server data from ServerNet connection %s" % self.ip)
                 self.end()
                 return
-            server = jj2server(payload.data["id"])
+            server = jj2server(payload["data"]["id"])
             if server.get("remote") == 1:
                 server.forget()
 
         # motd updates
-        elif payload.action == "motd":
-            if "motd" not in payload.data:
+        elif payload["action"] == "motd":
+            if "motd" not in payload["data"]:
                 self.ls.log("Received malformed MOTD from ServerNet connection %s" % self.ip)
                 self.end()
                 return
 
-            self.db.execute("UPDATE settings SET value = ? WHERE item = ?", (payload.data["motd"], "motd"))
+            self.db.execute("UPDATE settings SET value = ? WHERE item = ?", (payload["data"]["motd"], "motd"))
 
         # sync request: send all data
-        elif payload.action == "request":
+        elif payload["action"] == "request":
             #servers
             servers = self.db.execute("SELECT * FROM servers WHERE players > 0 AND origin = ?", (self.ls.address,)).fetchall()
             for server in servers:
