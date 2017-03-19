@@ -1,6 +1,6 @@
 import socket
 
-from helpers import port_handler, decode_mode, decode_version
+from helpers import port_handler, decode_mode, decode_version, whitelisted
 from jj2server import jj2server
 
 
@@ -31,7 +31,7 @@ class server_handler(port_handler):
             if new and data and len(data) == 42:
                 # check for spamming
                 other = self.db.execute("SELECT COUNT(*) FROM servers WHERE ip = ?", (self.ip,)).fetchone()[0]
-                if other > 3:
+                if other >= 2 and not whitelisted(self.ip):
                     self.error_msg("Too many connections from this IP address")
                     break
 
