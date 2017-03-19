@@ -95,6 +95,12 @@ class listserver():
         if not recipient:
             recipients = self.remotes
 
+        transmitters = {}
+
+        for remote in self.remotes:
+            transmitters[remote] = servernet_sender(ip=remote, data=data)
+            transmitters[remote].start()
+
         pass  # to be implemented...
 
     def prepare_database(self):
@@ -201,8 +207,8 @@ class servernet_sender(threading.Thread):
 
         sent = 0
         while sent < len(self.data):
-            length_sent = connection.send(self.data[sent:])
-            if sent == 0:
+            length_sent = connection.send(self.data[sent:].encode("ascii"))
+            if length_sent == 0:
                 break
             sent += length_sent
 
