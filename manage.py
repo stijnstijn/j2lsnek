@@ -32,40 +32,39 @@ def send(action, payload):
 
     return response
 
-if len(sys.argv) < 2 or sys.argv[1] not in ["add-banlist", "delete-banlist", "add-remote", "delete-remote", "set-motd"]:
+if len(sys.argv) < 2 or sys.argv[1] not in ["ban", "unban", "whitelist", "unwhitelist", "add-banlist", "delete-banlist", "add-remote", "delete-remote", "set-motd"]:
     print(" Syntax: python3 manage.py [command] [arguments]\n")
-    print(" Commands:")
+    print(" Shorthand commands:")
+    print("  ban [IP] (bans globally)")
+    print("  unban [IP] (removes global ban)")
+    print("  whitelist [IP] (whitelists globally")
+    print("  unwhitelist [IP] (removes global whitelist)")
+    print("  set-motd [text]")
+    print("")
+    print(" Advanced commands:")
     print("  add-banlist [IP] [ban/whitelist] [origin] [global: 1/0]")
     print("  delete-banlist [IP] [ban/whitelist] [origin] [global: 1/0]")
     print("  add-remote [name] [IP]")
     print("  delete-remote [name] [IP]")
-    print("  set-motd [text]")
     sys.exit()
 
-if sys.argv[1] == "add-banlist":
-    if len(sys.argv) != 6:
-        print("Syntax:\n add-banlist [IP] [ban/whitelist] [origin] [global: 1/0]")
+if sys.argv[1] in ["ban", "unban", "whitelist", "unwhitelist"]:
+    if len(sys.argv) != 3:
+        print("Syntax:\n %s [IP]" % sys.argv[1])
+        sys.exit()
+
+    payload = {"address": sys.argv[2]}
+
+elif sys.argv[1] in ["add-banlist", "delete-banlist"]:
+    if len(sys.argv) != 3:
+        print("Syntax:\n %s [IP] [ban/whitelist] [origin] [global: 1/0]" % sys.argv[1])
         sys.exit()
 
     payload = {"address": sys.argv[2], "type": sys.argv[3], "origin": sys.argv[4], "global": int(sys.argv[5])}
 
-elif sys.argv[1] == "delete-banlist":
-    if len(sys.argv) != 6:
-        print("Syntax:\n delete-banlist [IP] [ban/whitelist] [origin] [global: 1/0]")
-        sys.exit()
-
-    payload = {"address": sys.argv[2], "type": sys.argv[3], "origin": sys.argv[4], "global": int(sys.argv[5])}
-
-elif sys.argv[1] == "add-remote":
+elif sys.argv[1] in ["add-remote", "delete-remote"]:
     if len(sys.argv) != 4:
-        print("Syntax:\n add-remote [name] [IP]")
-        sys.exit()
-
-    payload = {"name": sys.argv[2], "address": sys.argv[3]}
-
-elif sys.argv[1] == "delete-remote":
-    if len(sys.argv) != 4:
-        print("Syntax:\n delete-remote [name] [IP]")
+        print("Syntax:\n %s [name] [IP]" % sys.argv[1])
         sys.exit()
 
     payload = {"name": sys.argv[2], "address": sys.argv[3]}
