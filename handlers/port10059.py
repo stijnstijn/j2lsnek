@@ -64,6 +64,27 @@ class api_handler(port_handler):
             self.end()
             return
 
+        # shorthand command for global ban/whitelisting; forward to handler for add-banlist
+        if payload["action"] == "ban" or payload["action"] == "whitelist":
+            if "address" not in payload["data"]:
+                self.ls.log("Malformed API request (%s)" % payload["action"])
+                self.error_msg("Malformed API request")
+                self.end()
+                return
+
+            payload["data"] = {"address": payload["data"]["address"], "type": payload["action"], "origin": self.ls.address, "global": 1}
+            payload["action"] = "add-banlist"
+
+        # shorthand command for global unban/unwhitelisting; forward to handler for delete-banlist
+        if payload["action"] == "unban" or payload["action"] == "unwhitelist":
+            if "address" not in payload["data"]:
+                self.ls.log("Malformed API request (%s)" % payload["action"])
+                self.error_msg("Malformed API request")
+                self.end()
+                return
+
+            payload["data"] = {"address": payload["data"]["address"], "type": payload["action"][2:], "origin": self.ls.address, "global": 1}
+            payload["action"] = "delete-banlist"
 
         # add entry to banlist/whitelist
         if payload["action"] == "add-banlist":
