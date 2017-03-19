@@ -203,14 +203,18 @@ class servernet_sender(threading.Thread):
     def run(self):
         connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         connection.settimeout(5)
-        connection.connect((self.ip, 10056))
 
-        sent = 0
-        while sent < len(self.data):
-            length_sent = connection.send(self.data[sent:].encode("ascii"))
-            if length_sent == 0:
-                break
-            sent += length_sent
+        try:
+            connection.connect((self.ip, 10056))
+
+            sent = 0
+            while sent < len(self.data):
+                length_sent = connection.send(self.data[sent:].encode("ascii"))
+                if length_sent == 0:
+                    break
+                sent += length_sent
+        except socket.timeout:
+            self.ls.log("Timeout while sending to ServerNet remote %s" % self.ip)
 
         connection.close()
 
