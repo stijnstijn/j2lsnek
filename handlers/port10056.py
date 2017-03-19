@@ -44,7 +44,7 @@ class servernet_handler(port_handler):
             self.end()
             return
 
-        if not payload["action"] or not payload["data"]:
+        if "action" not in payload["action"] or "data" not in payload:
             self.ls.log("ServerNet update received from %s, but JSON was malformed" % self.ip)
             self.end()
             return
