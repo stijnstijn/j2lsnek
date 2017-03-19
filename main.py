@@ -167,6 +167,9 @@ class port_listener(threading.Thread):
         except OSError:
             self.ls.log("WARNING! Port %s:%s is already in use! List server is NOT listening at this port!" % (address, self.port))
             return
+        except ConnectionRefusedError:
+            self.ls.log("WARNING! OS refused listening at %s:%s! List server is NOT listening at this port!" % (address, self.port))
+            return
 
         server.listen(5)
         self.ls.log("Opening socket listening at port %s" % self.port)
@@ -224,6 +227,8 @@ class servernet_sender(threading.Thread):
                 sent += length_sent
         except socket.timeout:
             self.ls.log("Timeout while sending to ServerNet remote %s" % self.ip)
+        except ConnectionRefusedError:
+            self.ls.log("ServerNet remote %s refused connection: likely not listening" % self.ip)
 
         connection.close()
 
