@@ -162,7 +162,12 @@ class port_listener(threading.Thread):
         """
         server = socket.socket()
         address = "" if self.port != 10059 else "localhost"  # 10059 should only be accessible via localhost
-        server.bind((address, self.port))
+        try:
+            server.bind((address, self.port))
+        except OSError:
+            self.ls.log("WARNING! Port %s:%s is already in use! List server is NOT listening at this port!" % (address, self.port))
+            return
+
         server.listen(5)
         self.ls.log("Opening socket listening at port %s" % self.port)
 
