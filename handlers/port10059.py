@@ -18,7 +18,7 @@ class api_handler(port_handler):
     as the list server itself (or use some sort of gateway if you really don't want to do that)
 
     Available commands are add-banlist, delete-banlist, add-remote, delete-remote and motd. See the code below for
-    details and data requirements.
+    details, shorthand versions and data requirements.
     """
 
     def handle_data(self):

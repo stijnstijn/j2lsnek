@@ -41,7 +41,8 @@ class listserver():
 
         self.prepare_database()
 
-        self.broadcast({"action": "request", "data": {}})  # let other list servers know we're live and ask them for the latest
+        # let other list servers know we're live and ask them for the latest
+        self.broadcast({"action": "request", "data": {}})
         self.listen_to([10053, 10054, 10055, 10056, 10057, 10058, 10059])
 
     def listen_to(self, ports):
@@ -150,9 +151,10 @@ class listserver():
         except sqlite3.OperationalError:
             db.execute("CREATE TABLE remotes (name TEXT, address TEXT)")
 
+        # if this method is run, it means the list server is restarted, which breaks all open connections, so clear all
+        # servers and such - banlist will be synced upon restart
         db.execute("DELETE FROM banlist WHERE origin != ?", (self.address,))
-        db.execute("DELETE FROM servers")  # if this method is run, it means the list server is restarted,
-                                           # which breaks all open connections, so clear all servers and such
+        db.execute("DELETE FROM servers")
 
         result = dbconn.commit()
 
@@ -214,7 +216,8 @@ class port_listener(threading.Thread):
             try:
                 client, address = server.accept()
             except socket.timeout:
-                continue # no problemo, just listen again
+                continue # no problemo, just listen again - this only times out so it won't hang the entire app when
+                         # trying to exit, as there's no other way to easily interrupt accept()
 
             if banned(address[0]) and not whitelisted(address[0]):  # check if IP is banned
                 self.ls.log("IP %s attempted to connect, but matches banlist" % address[0])
