@@ -30,6 +30,8 @@ class server_handler(port_handler):
                 self.ls.log("Server from %s timed out" % self.key)
                 break
 
+            broadcast = False
+
             # new server wants to get listed
             if new and data and len(data) == 42:
                 # check for spamming
@@ -64,13 +66,17 @@ class server_handler(port_handler):
                 server.set("version", decode_version(version))
                 server.set("origin", self.ls.address)
 
-                self.ls.broadcast({"action": "server", "data": server.data})
+                broadcast = True
 
             # existing server sending an update
             elif not new and data and (len(data) == 2 or data[0] == 0x02):
-                if data[0] == 0 and server.get("players") != data[1]:
-                    self.ls.log("Updating player count for server %s" % self.key)
-                    server.set("players", data[1])
+                broadcast = True
+                if data[0] == 0:
+                    if server.get("players") != data[1]:
+                        self.ls.log("Updating player count for server %s" % self.key)
+                        server.set("players", data[1])
+                    else:
+                        self.ls.log("Received ping from server %s" % self.key)
                 elif data[0] == 0x02:
                     self.ls.log("Updating server name for server %s" % self.key)
                     server.set("name", data[1:33].decode("ascii"))
@@ -90,9 +96,19 @@ class server_handler(port_handler):
 
                 if data:
                     self.error_msg("Invalid data received")  # all valid commands are either 42 or 2 bytes long
+
                 break
+
+            # broadcast updates to connected remotes
+            if broadcast:
+                self.ls.broadcast({"action": "server", "data": server.data})
 
             time.sleep(config.MICROSLEEP)
 
-        server.forget()  # server presumed dead, remove from database
+        # server presumed dead, remove from database
+        server.forget()
+
+        # make sure remotes also delist the server
+        self.ls.broadcast({"action": "delist", "data": server.data})
+
         self.end()
