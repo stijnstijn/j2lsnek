@@ -42,14 +42,6 @@ class listserver():
 
         self.prepare_database()
 
-        db.execute("DELETE FROM banlist WHERE origin != ?", (self.address,))
-        db.execute("DELETE FROM servers")  # if this method is run, it means the list server is restarted,
-        dbconn.commit()  # which breaks all open connections, so clear all servers and such
-
-        remotes = db.execute("SELECT * FROM remotes").fetchall()
-        if remotes:
-            self.remotes = [remote["address"] for remote in remotes]
-
         self.broadcast({"action": "request", "data": {}})  # let other list servers know we're live and ask them for the latest
         self.listen_to([10053, 10054, 10055, 10056, 10057, 10058, 10059])
 
@@ -137,7 +129,16 @@ class listserver():
         except sqlite3.OperationalError:
             db.execute("CREATE TABLE remotes (name TEXT, address TEXT)")
 
+        db.execute("DELETE FROM banlist WHERE origin != ?", (self.address,))
+        db.execute("DELETE FROM servers")  # if this method is run, it means the list server is restarted,
+                                           # which breaks all open connections, so clear all servers and such
+
         result = dbconn.commit()
+
+        remotes = db.execute("SELECT * FROM remotes").fetchall()
+        if remotes:
+            self.remotes = [remote["address"] for remote in remotes]
+            
         db.close()
         dbconn.close()
 
