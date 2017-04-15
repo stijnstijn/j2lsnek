@@ -286,9 +286,9 @@ class port_handler(threading.Thread):
         return result
 
 
-        def fetch_one(self, query, replacements=tuple(), autolock=True):
-            return self.query(query, replacements, autolock, "fetchone")
+    def fetch_one(self, query, replacements=tuple(), autolock=True):
+        return self.query(query, replacements, autolock, "fetchone")
 
 
-        def fetch_all(self, query, replacements=tuple(), autolock=True):
-            return self.query(query, replacements, autolock, "fetchall")
+    def fetch_all(self, query, replacements=tuple(), autolock=True):
+        return self.query(query, replacements, autolock, "fetchall")
