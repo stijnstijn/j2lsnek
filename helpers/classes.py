@@ -9,6 +9,7 @@ class jj2server():
     Class that represents a jj2 server: offers a few basic methods to transparently interface with the database
     record that belongs to the server
     """
+
     def __init__(self, id):
         """
         Set up database connection (they're not thread-safe) and retrieve server info from database. If not available
@@ -23,7 +24,8 @@ class jj2server():
         self.data = self.fetch_one("SELECT * FROM servers WHERE id = ?", (self.id,))
 
         if not self.data:
-            self.query("INSERT INTO servers (id, created, lifesign) VALUES (?, ?, ?)", (self.id, int(time.time()), int(time.time())))
+            self.query("INSERT INTO servers (id, created, lifesign) VALUES (?, ?, ?)",
+                       (self.id, int(time.time()), int(time.time())))
             self.data = self.fetch_one("SELECT * FROM servers WHERE id = ?", (self.id,))
 
         if not self.data:
@@ -103,7 +105,7 @@ class jj2server():
         self.locked = False
         self.lock.release()
 
-    def query(self, query, replacements = tuple(), autolock = True, mode = "execute"):
+    def query(self, query, replacements=tuple(), autolock=True, mode="execute"):
         """
         Execute sqlite query
 
@@ -141,11 +143,12 @@ class jj2server():
 
         return result
 
-    def fetch_one(self, query, replacements = tuple(), autolock = True):
+    def fetch_one(self, query, replacements=tuple(), autolock=True):
         return self.query(query, replacements, autolock, "fetchone")
 
-    def fetch_all(self, query, replacements = tuple(), autolock = True):
+    def fetch_all(self, query, replacements=tuple(), autolock=True):
         return self.query(query, replacements, autolock, "fetchall")
+
 
 class port_handler(threading.Thread):
     """
@@ -155,7 +158,7 @@ class port_handler(threading.Thread):
     buffer = bytearray()
     locked = False
 
-    def __init__(self, client = None, address = None, ls = None):
+    def __init__(self, client=None, address=None, ls=None):
         """
         Check if all data is available and assign object vars
 
@@ -237,7 +240,7 @@ class port_handler(threading.Thread):
         self.locked = False
         self.lock.release()
 
-    def query(self, query, replacements = tuple(), autolock = True, mode = "execute"):
+    def query(self, query, replacements=tuple(), autolock=True, mode="execute"):
         """
         Execute sqlite query
 
@@ -253,30 +256,39 @@ class port_handler(threading.Thread):
         if autolock:
             self.acquire_lock()
 
-        dbconn = sqlite3.connect(config.DATABASE)
-        dbconn.row_factory = sqlite3.Row
+        try:
+            dbconn = sqlite3.connect(config.DATABASE)
+            dbconn.row_factory = sqlite3.Row
 
-        db = dbconn.cursor()
+            db = dbconn.cursor()
 
-        if mode == "fetchone":
-            result = db.execute(query, replacements).fetchone()
-        elif mode == "fetchall":
-            result = db.execute(query, replacements).fetchall()
-        else:
-            result = db.execute(query, replacements)
+            if mode == "fetchone":
+                result = db.execute(query, replacements).fetchone()
+            elif mode == "fetchall":
+                result = db.execute(query, replacements).fetchall()
+            else:
+                result = db.execute(query, replacements)
 
-        dbconn.commit()
+            dbconn.commit()
 
-        db.close()
-        dbconn.close()
+            db.close()
+            dbconn.close()
+
+        except sqlite3.OperationalError as e:
+            self.ls.halt("SQLite error: %s" % str(e))
+
+        except sqlite3.ProgrammingError as e:
+            self.ls.halt("SQLite error: %s" % str(e))
 
         if autolock:
             self.release_lock()
 
         return result
 
-    def fetch_one(self, query, replacements = tuple(), autolock = True):
-        return self.query(query, replacements, autolock, "fetchone")
 
-    def fetch_all(self, query, replacements = tuple(), autolock = True):
-        return self.query(query, replacements, autolock, "fetchall")
+def fetch_one(self, query, replacements=tuple(), autolock=True):
+    return self.query(query, replacements, autolock, "fetchone")
+
+
+def fetch_all(self, query, replacements=tuple(), autolock=True):
+    return self.query(query, replacements, autolock, "fetchall")

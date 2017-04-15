@@ -58,6 +58,7 @@ class listserver():
         while self.looping:  # always True but could add some mechanism to quit in the future
             time.sleep(config.MICROSLEEP)  # avoid using all CPU
 
+        print("Bye!")
 
         return
 
@@ -90,6 +91,19 @@ class listserver():
             transmitters[remote].start()
 
         return
+
+    def halt(self, reason = "Unknown error"):
+        """
+        Halt program execution
+
+        Sets self.looping to False, which ends the main loop and allows the thread to start halting other threads. That
+        latter bit yet to be implemented.
+
+        :param reason: Reason for quitting, a string
+        :return:
+        """
+        self.looping = False
+        print("HALTED: %s" % reason)
 
     def prepare_database(self):
         """
