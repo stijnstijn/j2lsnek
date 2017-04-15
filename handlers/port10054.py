@@ -1,4 +1,6 @@
 import socket
+import config
+import time
 
 from helpers.functions import decode_mode, decode_version, whitelisted
 
@@ -89,6 +91,8 @@ class server_handler(port_handler):
                 if data:
                     self.error_msg("Invalid data received")  # all valid commands are either 42 or 2 bytes long
                 break
+
+            time.sleep(config.MICROSLEEP)
 
         server.forget()  # server presumed dead, remove from database
         self.end()

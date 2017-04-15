@@ -30,7 +30,6 @@ class listserver():
     looping = True
     sockets = {}  # sockets the server is listening it
     remotes = []  # ServerNet connections
-    queue = []  # sqlite query queue
 
     def __init__(self):
         """
@@ -57,8 +56,7 @@ class listserver():
             self.sockets[port].start()
 
         while self.looping:  # always True but could add some mechanism to quit in the future
-            for query in self.queue:
-                db.execute(query[0], query[1])
+            time.sleep(config.MICROSLEEP)  # avoid using all CPU
 
 
         return
@@ -213,6 +211,8 @@ class port_listener(threading.Thread):
             else:
                 raise NotImplementedError("No handler class available for port %s" % self.port)
             self.connections[key].start()
+
+            time.sleep(config.MICROSLEEP)
 
         return
 
