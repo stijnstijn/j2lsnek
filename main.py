@@ -58,7 +58,12 @@ class listserver():
         while self.looping:  # always True but could add some mechanism to quit in the future
             time.sleep(config.MICROSLEEP)  # avoid using all CPU
 
-        print("Bye!")
+        self.log("Waiting for listeners to finish...")
+        for port in self.sockets:
+            self.sockets[port].halt()
+            self.sockets[port].join()
+
+        self.log("Bye!")
 
         return
 
@@ -163,6 +168,7 @@ class port_listener(threading.Thread):
     Opens a socket that listens on a port and creates handlers when someone connects
     """
     connections = {}
+    looping = True
 
     def __init__(self, port=None, ls=None):
         """
@@ -199,7 +205,7 @@ class port_listener(threading.Thread):
         server.listen(5)
         self.ls.log("Opening socket listening at port %s" % self.port)
 
-        while True:
+        while self.looping:
             client, address = server.accept()
 
             if banned(address[0]) and not whitelisted(address[0]):  # check if IP is banned
@@ -230,9 +236,38 @@ class port_listener(threading.Thread):
 
         return
 
+    def halt(self):
+        """
+        Stop listening
+
+        Stops the main loop and signals all active handlers to stop what they're doing and rejoin the listener thread.
+
+        :return:
+        """
+        self.looping = False
+
+        self.ls.log("Waiting for handlers on port %s to finish..." % self.port)
+        for key in self.connections:
+            self.connections[key].halt()
+            self.connections[key].join()
+
 
 class servernet_sender(threading.Thread):
+    """
+    Send message to connected remote ServerNet mirrors
+
+    To be threaded, as multiple messages may need to be sent and messages may time out, etc
+    """
     def __init__(self, ip=None, data=None, ls=None):
+        """
+        Set up sender
+
+        Note that this does no checking of whether the address is a valid remote; this is done in the main thread
+
+        :param ip: IP address of remote to send to
+        :param data: Data to send
+        :param ls: List server thread reference, for logging etc
+        """
         threading.Thread.__init__(self)
 
         self.ip = ip
@@ -240,6 +275,14 @@ class servernet_sender(threading.Thread):
         self.ls = ls
 
     def run(self):
+        """
+        Send message
+
+        Connects to the remote on port 10056, and sends the message; timeout is set at 5 seconds, which should be
+        plenty.
+
+        :return: Nothing
+        """
         connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         connection.settimeout(5)
 

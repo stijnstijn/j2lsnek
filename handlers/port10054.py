@@ -12,6 +12,7 @@ class server_handler(port_handler):
     """
     Handle server status updates
     """
+    looping = True
 
     def handle_data(self):
         """
@@ -24,7 +25,7 @@ class server_handler(port_handler):
         self.ls.log("Server connected from %s" % self.key)
 
         # keep connection open until server disconnects (or times out)
-        while True:
+        while self.looping:
             try:
                 data = self.client.recv(1024)
             except socket.timeout:
@@ -113,3 +114,14 @@ class server_handler(port_handler):
         self.ls.broadcast({"action": "delist", "data": server.data})
 
         self.end()
+
+    def halt(self):
+        """
+        Halt port handler
+
+        Most other handlers don't need to do anything in particular to halt, but this one maintains connections with
+        listed servers, so signal that those need to be closed after the next ping.
+
+        :return:
+        """
+        self.looping = False

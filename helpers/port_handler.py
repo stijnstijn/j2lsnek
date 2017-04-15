@@ -42,9 +42,22 @@ class port_handler(threading.Thread):
         self.handle_data()
         return
 
+    def halt(self):
+        """
+        Halt handler
+
+        Most handlers don't need to do anything for halting, but some may be looping or maintaining connections, in
+        which case this method can be used to properly end that.
+
+        :return:
+        """
+        pass
+
     def msg(self, string):
         """
-        Send text message to connection - for ascii server list etc, and error messages
+        Send text message to connection
+
+        For ascii server list etc, and error messages
 
         :param string: Text message, will be encoded as ascii
         :return: Return result of socket.sendall()
