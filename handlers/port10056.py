@@ -51,7 +51,7 @@ class servernet_handler(port_handler):
             return
 
         # ok, payload is valid, process it
-        self.lfs.log("Received ServerNet update from %s: %s" % (self.ip, repr(payload)))
+        self.ls.log("Received ServerNet update from %s: %s" % (self.ip, repr(payload)))
 
         # server listings
         if payload["action"] == "server":
