@@ -1,4 +1,4 @@
-from helpers.classes import port_handler
+from helpers.port_handler import port_handler
 
 
 class motd_handler(port_handler):

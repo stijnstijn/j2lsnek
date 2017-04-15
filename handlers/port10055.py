@@ -3,7 +3,7 @@ from datetime import datetime
 
 import config
 from helpers.functions import fancy_time
-from helpers.classes import port_handler
+from helpers.port_handler import port_handler
 
 
 class stats_handler(port_handler):

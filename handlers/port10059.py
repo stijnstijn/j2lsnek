@@ -1,7 +1,7 @@
 import json
 import socket
 
-from helpers.classes import port_handler
+from helpers.port_handler import port_handler
 
 
 class api_handler(port_handler):

@@ -1,9 +1,9 @@
 import json
 import socket
 
-from helpers.classes import port_handler
+from helpers.port_handler import port_handler
 
-from helpers.classes import jj2server
+from helpers.port_handler import jj2server
 
 
 class servernet_handler(port_handler):
