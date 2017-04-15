@@ -55,12 +55,16 @@ class listserver():
             self.sockets[port] = port_listener(port=port, ls=self)
             self.sockets[port].start()
 
-        while self.looping:  # always True but could add some mechanism to quit in the future
-            time.sleep(config.MICROSLEEP)  # avoid using all CPU
+        while self.looping:
+            cmd = input("")
+            if cmd == "q":
+                self.looping = False
 
         self.log("Waiting for listeners to finish...")
         for port in self.sockets:
             self.sockets[port].halt()
+
+        for port in self.sockets:
             self.sockets[port].join()
 
         self.log("Bye!")
@@ -203,10 +207,14 @@ class port_listener(threading.Thread):
             return
 
         server.listen(5)
+        server.settimeout(5)
         self.ls.log("Opening socket listening at port %s" % self.port)
 
         while self.looping:
-            client, address = server.accept()
+            try:
+                client, address = server.accept()
+            except socket.timeout:
+                continue # no problemo, just listen again
 
             if banned(address[0]) and not whitelisted(address[0]):  # check if IP is banned
                 self.ls.log("IP %s attempted to connect, but matches banlist" % address[0])

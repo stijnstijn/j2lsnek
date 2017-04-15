@@ -3,7 +3,7 @@ import socket
 
 from helpers.port_handler import port_handler
 
-from helpers.port_handler import jj2server
+from helpers.jj2server import jj2server
 
 
 class servernet_handler(port_handler):
