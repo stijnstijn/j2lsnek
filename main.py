@@ -238,6 +238,7 @@ class servernet_sender(threading.Thread):
                 if length_sent == 0:
                     break
                 sent += length_sent
+            self.ls.log("Sent message to remote %s" % self.ip)
         except socket.timeout:
             self.ls.log("Timeout while sending to ServerNet remote %s" % self.ip)
         except ConnectionRefusedError:
