@@ -218,6 +218,8 @@ class port_handler(threading.Thread):
             self.acquire_lock()
 
         dbconn = sqlite3.connect(config.DATABASE)
+        dbconn.row_factory = sqlite3.Row
+
         db = dbconn.cursor()
 
         if mode == "fetchone":
