@@ -201,7 +201,7 @@ class port_handler(threading.Thread):
         self.locked = False
         self.lock.release()
 
-    def query(self, query, replacements = tuple(), autolock = True):
+    def query(self, query, replacements = tuple(), autolock = True, mode = "execute"):
         """
         Execute sqlite query
 
@@ -219,7 +219,14 @@ class port_handler(threading.Thread):
 
         dbconn = sqlite3.connect(config.DATABASE)
         db = dbconn.cursor()
-        result = db.execute(query, replacements)
+
+        if mode == "fetchone":
+            result = db.execute(query, replacements).fetchone()
+        elif mode == "fetchall":
+            result = db.execute(query, replacements).fetchall()
+        else:
+            result = db.execute(query, replacements)
+
         dbconn.commit()
 
         db.close()
@@ -229,3 +236,9 @@ class port_handler(threading.Thread):
             self.release_lock()
 
         return result
+
+    def fetch_one(self, query, replacements = tuple(), autolock = True):
+        return self.query(query, replacements, autolock, "fetchone")
+
+    def fetch_all(self, query, replacements = tuple(), autolock = True):
+        return self.query(query, replacements, autolock, "fetchall")

@@ -75,8 +75,8 @@ class servernet_handler(port_handler):
                 self.end()
                 return
 
-            exists = self.query("SELECT COUNT(*) FROM banlist WHERE address = ? AND origin = ? AND type = ?",
-                                     (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"])).fetchone()
+            exists = self.fetch_one("SELECT COUNT(*) FROM banlist WHERE address = ? AND origin = ? AND type = ?",
+                                     (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"]))
             if not exists:
                 self.query("INSERT INTO banlist (address, origin, type) VALUES (?, ?, ?)", (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"]))
 
@@ -87,8 +87,8 @@ class servernet_handler(port_handler):
                 self.end()
                 return
 
-            self.query("DELETE FROM banlist WHERE address = ? AND origin = ? AND type = ?",
-                            (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"])).fetchone()
+            self.fetch_one("DELETE FROM banlist WHERE address = ? AND origin = ? AND type = ?",
+                            (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"]))
 
         # server delistings
         elif payload["action"] == "delist":
@@ -112,7 +112,7 @@ class servernet_handler(port_handler):
         # sync request: send all data
         elif payload["action"] == "request":
             #servers
-            servers = self.query("SELECT * FROM servers WHERE players > 0 AND origin = ?", (self.ls.address,)).fetchall()
+            servers = self.fetch_all("SELECT * FROM servers WHERE players > 0 AND origin = ?", (self.ls.address,))
             for server in servers:
                 payload_data = {}
                 for property in server.keys():
@@ -121,7 +121,7 @@ class servernet_handler(port_handler):
                 self.ls.broadcast({"action": "server", "data": payload_data}, [self.ip])
 
             #banlist
-            banlist = self.query("SELECT * FROM banlist WHERE global = 1 AND origin = ?", (self.ls.address,)).fetchall()
+            banlist = self.fetch_all("SELECT * FROM banlist WHERE global = 1 AND origin = ?", (self.ls.address,))
             for listing in banlist:
                 payload_data = {}
                 for property in listing.keys():
@@ -130,7 +130,7 @@ class servernet_handler(port_handler):
                 self.ls.broadcast({"action": "ban", "data": payload_data}, [self.ip])
 
             #motd
-            motd = self.query("SELECT value FROM settings WHERE item = ?", ("motd",)).fetchone()
+            motd = self.fetch_one("SELECT value FROM settings WHERE item = ?", ("motd",))
             motd = motd["value"] if motd else "jj2 aint dead\n"
             self.ls.broadcast({"action": "motd", "data": {"motd": motd}}, [self.ip])
 

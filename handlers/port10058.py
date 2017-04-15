@@ -12,7 +12,7 @@ class motd_handler(port_handler):
         """
         self.ls.log("Sending MOTD to %s" % self.ip)
 
-        motd = self.query("SELECT value FROM settings WHERE item = ?", ('motd',)).fetchone()
+        motd = self.fetch_one("SELECT value FROM settings WHERE item = ?", ('motd',))
 
         if motd:
             self.msg(motd["value"] + "\n")

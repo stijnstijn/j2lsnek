@@ -11,7 +11,7 @@ class binary_handler(port_handler):
         Show the binary server list and immediately close connection
         """
         self.ls.log("Sending binary server list to %s" % self.ip)
-        servers = self.query("SELECT * FROM servers WHERE players > 0").fetchall()
+        servers = self.fetch_all("SELECT * FROM servers WHERE players > 0")
 
         list = bytearray([7])
         list.extend("LIST".encode("ascii"))

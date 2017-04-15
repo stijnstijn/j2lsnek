@@ -18,7 +18,7 @@ class stats_handler(port_handler):
         self.ls.log("Sending list stats to %s" % self.ip)
 
         running_since = datetime.fromtimestamp(self.ls.start)
-        servers = self.query("SELECT * FROM servers WHERE players > 0").fetchall()
+        servers = self.fetch_all("SELECT * FROM servers WHERE players > 0")
 
         total = 0
         mirrored = 0
