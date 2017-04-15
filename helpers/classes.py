@@ -85,7 +85,7 @@ class jj2server():
 
         return
 
-    def query(self, query, replacements = tuple()):
+    def query(self, query, replacements = tuple(), autolock = True, mode = "execute"):
         """
         Execute sqlite query
 
@@ -95,21 +95,39 @@ class jj2server():
 
         :param query: Query string
         :param replacements: Replacements, viz. sqlite3.execute()'s second parameter
+        :param autolock: Acquire lock? Can be set to False if locking is done manually, e.g. for batches of queries
         :return: Query result
         """
-        self.lock.acquire()
+        if autolock:
+            self.acquire_lock()
 
         dbconn = sqlite3.connect(config.DATABASE)
+        dbconn.row_factory = sqlite3.Row
+
         db = dbconn.cursor()
-        result = db.execute(query, replacements)
+
+        if mode == "fetchone":
+            result = db.execute(query, replacements).fetchone()
+        elif mode == "fetchall":
+            result = db.execute(query, replacements).fetchall()
+        else:
+            result = db.execute(query, replacements)
+
         dbconn.commit()
 
         db.close()
         dbconn.close()
 
-        self.lock.release()
+        if autolock:
+            self.release_lock()
 
         return result
+
+    def fetch_one(self, query, replacements = tuple(), autolock = True):
+        return self.query(query, replacements, autolock, "fetchone")
+
+    def fetch_all(self, query, replacements = tuple(), autolock = True):
+        return self.query(query, replacements, autolock, "fetchall")
 
 class port_handler(threading.Thread):
     """
