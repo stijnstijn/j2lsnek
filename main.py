@@ -28,27 +28,25 @@ class listserver():
     Sets up port listeners and broadcasts data to connected remote list servers
     """
     looping = True
-    sockets = {}
-    remotes = []
+    sockets = {}  # sockets the server is listening it
+    remotes = []  # ServerNet connections
+    queue = []  # sqlite query queue
 
     def __init__(self):
         """
         Sets up the database connection, which is really only used to clear stale servers from the database
         """
-        self.dbconn = sqlite3.connect(config.DATABASE)
-        self.dbconn.row_factory = sqlite3.Row
-        self.db = self.dbconn.cursor()
 
         self.start = int(time.time())
         self.address = socket.gethostname()
 
         self.prepare_database()
 
-        self.db.execute("DELETE FROM banlist WHERE origin != ?", (self.address,))
-        self.db.execute("DELETE FROM servers")  # if this method is run, it means the list server is restarted,
-        self.dbconn.commit()  # which breaks all open connections, so clear all servers and such
+        db.execute("DELETE FROM banlist WHERE origin != ?", (self.address,))
+        db.execute("DELETE FROM servers")  # if this method is run, it means the list server is restarted,
+        dbconn.commit()  # which breaks all open connections, so clear all servers and such
 
-        remotes = self.db.execute("SELECT * FROM remotes").fetchall()
+        remotes = db.execute("SELECT * FROM remotes").fetchall()
         if remotes:
             self.remotes = [remote["address"] for remote in remotes]
 
@@ -66,8 +64,10 @@ class listserver():
             self.sockets[port] = port_listener(port=port, ls=self)
             self.sockets[port].start()
 
-        #while self.looping:  # always True but could add some mechanism to quit in the future
-        #    pass
+        while self.looping:  # always True but could add some mechanism to quit in the future
+            for query in self.queue:
+                db.execute(query[0], query[1])
+
 
         return
 
@@ -99,37 +99,49 @@ class listserver():
             transmitters[remote] = servernet_sender(ip=remote, data=data, ls=self)
             transmitters[remote].start()
 
-        pass  # to be implemented...
+        return
 
     def prepare_database(self):
         """
         Creates database tables if they don't exist yet
 
+        No lock is required for the database action since no other database shenanigans should be going on at this point
+        as this is before threads get started
+
         :return: result of connection.commit()
         """
+
+        dbconn = sqlite3.connect(config.DATABASE)
+        dbconn.row_factory = sqlite3.Row
+        db = dbconn.cursor()
+
         try:
-            test = self.db.execute("SELECT * FROM servers")
+            test = db.execute("SELECT * FROM servers")
         except sqlite3.OperationalError:
-            self.db.execute(
+            db.execute(
                 "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, created INTEGER DEFAULT 0, lifesign INTEGER DEFAULT 0, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT)")
 
         try:
-            test = self.db.execute("SELECT * FROM settings")
+            test = db.execute("SELECT * FROM settings")
         except sqlite3.OperationalError:
-            self.db.execute("CREATE TABLE settings (item TEXT UNIQUE, value TEXT)")
-            self.db.execute("INSERT INTO settings (item, value) VALUES (?, ?)", ("motd", ""))
+            db.execute("CREATE TABLE settings (item TEXT UNIQUE, value TEXT)")
+            db.execute("INSERT INTO settings (item, value) VALUES (?, ?)", ("motd", ""))
 
         try:
-            test = self.db.execute("SELECT * FROM banlist")
+            test = db.execute("SELECT * FROM banlist")
         except sqlite3.OperationalError:
-            self.db.execute("CREATE TABLE banlist (address TEXT, type TEXT, origin TEXT, global INTEGER)")
+            db.execute("CREATE TABLE banlist (address TEXT, type TEXT, origin TEXT, global INTEGER)")
 
         try:
-            test = self.db.execute("SELECT * FROM remotes")
+            test = db.execute("SELECT * FROM remotes")
         except sqlite3.OperationalError:
-            self.db.execute("CREATE TABLE remotes (name TEXT, address TEXT)")
+            db.execute("CREATE TABLE remotes (name TEXT, address TEXT)")
 
-        return self.dbconn.commit()
+        result = dbconn.commit()
+        db.close()
+        dbconn.close()
+
+        return result
 
 
 class port_listener(threading.Thread):

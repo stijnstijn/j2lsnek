@@ -1,3 +1,4 @@
+import threading
 import sqlite3
 import config
 import math
@@ -77,9 +78,12 @@ def whitelisted(ip):
     return banned(ip, whitelisted=True)
 
 def banned(ip, whitelisted=False):
+    lock = threading.Lock()
+    lock.acquire()
     dbconn = sqlite3.connect(config.DATABASE)
     db = dbconn.cursor()
     type = "ban" if not whitelisted else "whitelist"
     matches = db.execute("SELECT COUNT(*) FROM banlist WHERE ? LIKE address AND type = ?", (ip, type)).fetchone()[0]
+    lock.release()
 
     return matches > 0

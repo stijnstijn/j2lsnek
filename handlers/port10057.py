@@ -14,7 +14,7 @@ class ascii_handler(port_handler):
         """
         self.ls.log("Sending ascii server list to %s" % self.ip)
 
-        servers = self.db.execute("SELECT * FROM servers WHERE players > 0").fetchall()
+        servers = self.query("SELECT * FROM servers WHERE players > 0").fetchall()
         list = ""
 
         for server in servers:

@@ -16,18 +16,15 @@ class jj2server():
 
         :param id: Server ID, usually in the format "127.0.0.1:86400" but could be anything
         """
-        self.dbconn = sqlite3.connect(config.DATABASE)
-        self.dbconn.row_factory = sqlite3.Row
-        self.db = self.dbconn.cursor()
+        self.lock = threading.Lock()
 
         self.id = id
 
-        self.data = self.db.execute("SELECT * FROM servers WHERE id = ?", (self.id,)).fetchone()
+        self.data = self.query("SELECT * FROM servers WHERE id = ?", (self.id,)).fetchone()
 
         if not self.data:
-            self.db.execute("INSERT INTO servers (id, created, lifesign) VALUES (?, ?, ?)", (self.id, int(time.time()), int(time.time())))
-            self.dbconn.commit()
-            self.data = self.db.execute("SELECT * FROM servers WHERE id = ?", (self.id,)).fetchone()
+            self.query("INSERT INTO servers (id, created, lifesign) VALUES (?, ?, ?)", (self.id, int(time.time()), int(time.time())))
+            self.data = self.query("SELECT * FROM servers WHERE id = ?", (self.id,)).fetchone()
 
         if not self.data:
             raise NotImplementedError  # there's something very wrong if this happens
@@ -50,11 +47,9 @@ class jj2server():
             raise IndexError("%s is not a server property" % item)
 
         self.data[item] = value
-        self.db.execute("UPDATE servers SET %s = ?, lifesign = ? WHERE id = ?" % item, (value, time.time(), self.id))
+        self.query("UPDATE servers SET %s = ?, lifesign = ? WHERE id = ?" % item, (value, time.time(), self.id))
         # not escaping column names above is okay because the column name is always a key in self.data which is also
         # a valid column name
-
-        self.dbconn.commit()
 
         return
 
@@ -86,20 +81,43 @@ class jj2server():
 
         :return: Nothing
         """
-        self.db.execute("DELETE FROM servers WHERE id = ?", (self.id,))
-        self.dbconn.commit()
+        self.query("DELETE FROM servers WHERE id = ?", (self.id,))
 
         return
+
+    def query(self, query, replacements = tuple()):
+        """
+        Execute sqlite query
+
+        Acquires a Lock before querying, so the database doesn't run into concurrent reads/writes etc. Database
+        connection is set up and closed for each query - the overhead is not too bad and this way we can be sure that
+        there will be no conflicts
+
+        :param query: Query string
+        :param replacements: Replacements, viz. sqlite3.execute()'s second parameter
+        :return: Query result
+        """
+        self.lock.acquire()
+
+        dbconn = sqlite3.connect(config.DATABASE)
+        db = dbconn.cursor()
+        result = db.execute(query, replacements)
+        dbconn.commit()
+
+        db.close()
+        dbconn.close()
+
+        self.lock.release()
+
+        return result
 
 class port_handler(threading.Thread):
     """
     Generic data handler: receives data from a socket and processes it
     handle_data() method is to be defined by descendant classes, which will be called from the listener loop
     """
-
-    dbconn = False
-    db = False
     buffer = bytearray()
+    locked = False
 
     def __init__(self, client = None, address = None, ls = None):
         """
@@ -120,16 +138,14 @@ class port_handler(threading.Thread):
         self.key = self.address[0] + ":" + str(self.address[1])
         self.ls = ls
 
+        self.lock = threading.Lock()
+
     def run(self):
         """
-        Set up a database connection (they can't be shared between threads) and call the data handler
+        Call the data handler
 
         :return: Nothing
         """
-        self.dbconn = sqlite3.connect(config.DATABASE)
-        self.dbconn.row_factory = sqlite3.Row
-        self.db = self.dbconn.cursor()
-
         self.handle_data()
         return
 
@@ -167,6 +183,49 @@ class port_handler(threading.Thread):
         """
         return self.client.close()
 
-    def query(self, query, replacements = tuple()):
-        self.db.execute(query, replacements)
-        self.dbconn.commit()
+    def acquire_lock(self):
+        """
+        Acquire lock
+
+        To be used before the database is manipulated.
+        """
+        self.locked = True
+        self.lock.acquire()
+
+    def release_lock(self):
+        """
+        Release lock
+
+        To be done when done manipulating the database.
+        """
+        self.locked = False
+        self.lock.release()
+
+    def query(self, query, replacements = tuple(), autolock = True):
+        """
+        Execute sqlite query
+
+        Acquires a Lock before querying, so the database doesn't run into concurrent reads/writes etc. Database
+        connection is set up and closed for each query - the overhead is not too bad and this way we can be sure that
+        there will be no conflicts
+
+        :param query: Query string
+        :param replacements: Replacements, viz. sqlite3.execute()'s second parameter
+        :param autolock: Acquire lock? Can be set to False if locking is done manually, e.g. for batches of queries
+        :return: Query result
+        """
+        if autolock:
+            self.acquire_lock()
+
+        dbconn = sqlite3.connect(config.DATABASE)
+        db = dbconn.cursor()
+        result = db.execute(query, replacements)
+        dbconn.commit()
+
+        db.close()
+        dbconn.close()
+
+        if autolock:
+            self.release_lock()
+
+        return result
