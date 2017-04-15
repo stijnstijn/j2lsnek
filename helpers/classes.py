@@ -85,6 +85,24 @@ class jj2server():
 
         return
 
+    def acquire_lock(self):
+        """
+        Acquire lock
+
+        To be used before the database is manipulated.
+        """
+        self.locked = True
+        self.lock.acquire()
+
+    def release_lock(self):
+        """
+        Release lock
+
+        To be done when done manipulating the database.
+        """
+        self.locked = False
+        self.lock.release()
+
     def query(self, query, replacements = tuple(), autolock = True, mode = "execute"):
         """
         Execute sqlite query
