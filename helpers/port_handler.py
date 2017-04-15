@@ -102,6 +102,10 @@ class port_handler(threading.Thread):
         connection is set up and closed for each query - the overhead is not too bad and this way we can be sure that
         there will be no conflicts
 
+        .fetchone() and .fetchall() can't be used once the cursor is closed, so this method accepts an optional
+        parameter to return the result of either of those instead of the raw query result, which is in most cases
+        useless.
+
         :param query: Query string
         :param replacements: Replacements, viz. sqlite3.execute()'s second parameter
         :param autolock: Acquire lock? Can be set to False if locking is done manually, e.g. for batches of queries
@@ -139,10 +143,24 @@ class port_handler(threading.Thread):
 
         return result
 
-
     def fetch_one(self, query, replacements=tuple(), autolock=True):
+        """
+        Fetch one row resulting from a database query
+
+        :param query: Query string
+        :param replacements: Replacements, viz. sqlite3.execute()'s second parameter
+        :param autolock: Acquire lock? Can be set to False if locking is done manually, e.g. for batches of queries
+        :return: Query result, dictionary
+        """
         return self.query(query, replacements, autolock, "fetchone")
 
-
     def fetch_all(self, query, replacements=tuple(), autolock=True):
+        """
+        Fetch all rows resulting from a database query
+
+        :param query: Query string
+        :param replacements: Replacements, viz. sqlite3.execute()'s second parameter
+        :param autolock: Acquire lock? Can be set to False if locking is done manually, e.g. for batches of queries
+        :return: Query result, list of dictionaries
+        """
         return self.query(query, replacements, autolock, "fetchall")
