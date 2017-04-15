@@ -20,11 +20,11 @@ class jj2server():
 
         self.id = id
 
-        self.data = self.query("SELECT * FROM servers WHERE id = ?", (self.id,)).fetchone()
+        self.data = self.fetch_one("SELECT * FROM servers WHERE id = ?", (self.id,))
 
         if not self.data:
             self.query("INSERT INTO servers (id, created, lifesign) VALUES (?, ?, ?)", (self.id, int(time.time()), int(time.time())))
-            self.data = self.query("SELECT * FROM servers WHERE id = ?", (self.id,)).fetchone()
+            self.data = self.fetch_one("SELECT * FROM servers WHERE id = ?", (self.id,))
 
         if not self.data:
             raise NotImplementedError  # there's something very wrong if this happens
