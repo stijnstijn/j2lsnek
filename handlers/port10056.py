@@ -81,6 +81,8 @@ class servernet_handler(port_handler):
             if not exists:
                 self.query("INSERT INTO banlist (address, origin, type) VALUES (?, ?, ?)", (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"]))
 
+            self.ls.log("Added banlist entry via ServerNet connection %s" % self.ip)
+
         # removal of ban/whitelist entries
         elif payload["action"] == "unban":
             if "address" not in payload["data"] or "type" not in payload["data"] or "origin" not in payload["data"]:
@@ -90,6 +92,8 @@ class servernet_handler(port_handler):
 
             self.fetch_one("DELETE FROM banlist WHERE address = ? AND origin = ? AND type = ?",
                             (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"]))
+
+            self.ls.log("Removed banlist entry via ServerNet connection %s" % self.ip)
 
         # server delistings
         elif payload["action"] == "delist":
@@ -101,6 +105,8 @@ class servernet_handler(port_handler):
             if server.get("remote") == 1:
                 server.forget()
 
+            self.ls.log("Delisted server via ServerNet connection %s" % self.ip)
+
         # motd updates
         elif payload["action"] == "motd":
             if "motd" not in payload["data"]:
@@ -109,6 +115,8 @@ class servernet_handler(port_handler):
                 return
 
             self.query("UPDATE settings SET value = ? WHERE item = ?", (payload["data"]["motd"], "motd"))
+
+            self.ls.log("Updated MOTD via ServerNet connection %s" % self.ip)
 
         # sync request: send all data
         elif payload["action"] == "request":
@@ -134,6 +142,8 @@ class servernet_handler(port_handler):
             motd = self.fetch_one("SELECT value FROM settings WHERE item = ?", ("motd",))
             motd = motd["value"] if motd else "jj2 aint dead\n"
             self.ls.broadcast({"action": "motd", "data": {"motd": motd}}, [self.ip])
+
+            self.ls.log("Sent sync data to ServerNet connection %s" % self.ip)
 
         self.end()
         return
