@@ -22,7 +22,7 @@ class binary_handler(port_handler):
             length += 6
             list.append(length)
 
-            ip = server["ip"].split(".")
+            ip = server["ip"].split(".")[::-1]
             for component in ip:
                 list.append(int(component))
 
