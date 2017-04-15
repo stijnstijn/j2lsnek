@@ -70,7 +70,7 @@ class servernet_handler(port_handler):
 
         # ban list (and whitelist) entries
         elif payload["action"] == "ban":
-            if "address" not in payload["data"] or "type" in payload["data"] or "origin" not in payload["data"]:
+            if "address" not in payload["data"] or "type" not in payload["data"] or "origin" not in payload["data"]:
                 self.ls.log("Received malformed banlist entry from ServerNet connection %s" % self.ip)
                 self.end()
                 return
@@ -82,7 +82,7 @@ class servernet_handler(port_handler):
 
         # removal of ban/whitelist entries
         elif payload["action"] == "unban":
-            if "address" not in payload["data"] or "type" in payload["data"] or "origin" not in payload["data"]:
+            if "address" not in payload["data"] or "type" not in payload["data"] or "origin" not in payload["data"]:
                 self.ls.log("Received malformed banlist entry from ServerNet connection %s" % self.ip)
                 self.end()
                 return
