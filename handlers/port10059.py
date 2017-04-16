@@ -161,5 +161,23 @@ class api_handler(port_handler):
             self.ls.log("MOTD updated via API")
             self.acknowledge()
 
+        # retrieve server list
+        elif payload["action"] == "get-servers":
+            servers = self.fetch_all("SELECT * FROM servers ORDER BY created DESC")
+
+            self.msg(json.dumps([dict(servers[i]) for i, value in enumerate(servers)]))
+
+        # retrieve banlist
+        elif payload["action"] == "get-banlist":
+            banlist = self.fetch_all("SELECT * FROM banlist")
+
+            self.msg(json.dumps([dict(banlist[i]) for i, value in enumerate(banlist)]))
+
+        # retrieve motd
+        elif payload["action"] == "get-motd":
+            motd = self.fetch_one("SELECT * FROM settings WHERE item = ?", ("motd",))
+
+            self.msg(json.dumps(motd["value"]))
+
         self.end()
         return
