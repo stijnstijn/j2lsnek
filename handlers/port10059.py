@@ -97,7 +97,7 @@ class api_handler(port_handler):
                 payload["data"]["origin"] = self.ls.address
 
             self.query("INSERT INTO banlist (address, type, origin, global) VALUES (?, ?, ?, ?)",
-                            (payload["data"]["address"].replace("*", "%"), payload["data"]["type"], payload["data"]["origin"], payload["data"]["global"]))
+                            (payload["data"]["address"], payload["data"]["type"], payload["data"]["origin"], payload["data"]["global"]))
 
             if str(payload["data"]["global"]) == "1":
                 self.ls.broadcast({"action": "ban", "data": payload["data"]})
@@ -112,8 +112,9 @@ class api_handler(port_handler):
                 self.end()
                 return
 
+            self.ls.log(repr(payload))
             self.query("DELETE FROM banlist WHERE address = ? AND type = ? AND origin = ? AND global = ?",
-                            (payload["data"]["address"].replace("*", "%"), payload["data"]["type"], payload["data"]["origin"], payload["data"]["global"]))
+                            (payload["data"]["address"], payload["data"]["type"], payload["data"]["origin"], payload["data"]["global"]))
 
             if str(payload["data"]["global"]) == "1":
                 self.ls.broadcast({"action": "unban", "data": payload["data"]})
