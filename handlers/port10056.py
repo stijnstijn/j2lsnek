@@ -51,7 +51,7 @@ class servernet_handler(port_handler):
             return
 
         # ok, payload is valid, process it
-        self.ls.log("Received ServerNet update from %s: %s" % payload["action"])
+        self.ls.log("Received ServerNet update from %s: %s" % (self.ip, payload["action"]))
 
         # server listings
         if payload["action"] == "server":
@@ -64,7 +64,7 @@ class servernet_handler(port_handler):
                 try:
                     server.set(key, payload["data"][key])
                 except IndexError:
-                    self.ls.log("Received malformed server data from ServerNet connection %s" % self.ip)
+                    self.ls.log("Received malformed server data from ServerNet connection %s (unknown field %s)" % (self.ip, key))
                     server.forget()
                     self.end()
                     return
