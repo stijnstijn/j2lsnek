@@ -19,7 +19,7 @@ class binary_handler(port_handler):
 
         for server in servers:
             length = len(server["name"])
-            length += 6
+            length += 7
             list.append(length)
 
             ip = server["ip"].split(".")[::-1]
