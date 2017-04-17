@@ -5,7 +5,7 @@ import json
 while True:
     listserver = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     listserver.settimeout(4)
-    listserver.connect(("list1.digiex.net", 10057))
+    listserver.connect(("178.32.55.196", 10057))
 
     buffer = ""
     while True:
