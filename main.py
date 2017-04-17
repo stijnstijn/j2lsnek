@@ -79,6 +79,7 @@ class listserver():
         :param message: Message to log
         :return: Nothing
         """
+        message = message.replace("%", "%%")
         print(("T=%s " + message) % (int(time.time()) - self.start))  # maybe add logging to file or something later
         return
 
