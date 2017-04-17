@@ -31,7 +31,7 @@ while True:
             created = int(time.time()) - int(bits[0])
             players = int(bits[1][1:-1].split("/")[0])
             max = int(bits[1][1:-1].split("/")[1])
-            name = " ".join(bits[2:])
+            name = " ".join(bits[2:]).strip()
         except ValueError:
             continue
 
