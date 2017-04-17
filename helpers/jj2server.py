@@ -52,6 +52,12 @@ class jj2server():
         if item == "name":
             value = re.sub(r'[^\x00-\x7f]', r' ', value)  # no funny business with crazy characters
 
+        if item == "max" or item == "players":
+            if value > config.MAXPLAYERS:
+                value = config.MAXPLAYERS
+            if value < 1:
+                value = 1
+
         self.data[item] = value
         self.query("UPDATE servers SET %s = ?, lifesign = ? WHERE id = ?" % item, (value, int(time.time()), self.id))
         # not escaping column names above is okay because the column name is always a key in self.data which is also
