@@ -219,7 +219,7 @@ class port_listener(threading.Thread):
                 continue # no problemo, just listen again - this only times out so it won't hang the entire app when
                          # trying to exit, as there's no other way to easily interrupt accept()
 
-            if banned(address[0]) and not whitelisted(address[0]):  # check if IP is banned
+            if banned(address[0]) and not whitelisted(address[0]) and address[0] != "127.0.0.1":  # check if banned
                 self.ls.log("IP %s attempted to connect, but matches banlist" % address[0])
                 continue
 
