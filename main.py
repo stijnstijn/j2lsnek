@@ -83,17 +83,14 @@ class listserver():
         print(("T=%s " + message) % (int(time.time()) - self.start))  # maybe add logging to file or something later
         return
 
-    def broadcast(self, data, recipient=None):
+    def broadcast(self, data):
         """
         Send data to servers connected via ServerNET
 
         :param data: Data to send - will be JSON-encoded
-        :param recipient: Who should receive it. If not specified, will be sent to all known list servers
         :return: Nothing
         """
         data = json.dumps(data)
-        if not recipient:
-            recipients = self.remotes
 
         transmitters = {}
 
