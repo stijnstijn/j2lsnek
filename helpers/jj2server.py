@@ -49,7 +49,7 @@ class jj2server():
             raise IndexError("%s is not a server property" % item)
 
         self.data[item] = value
-        self.query("UPDATE servers SET %s = ?, lifesign = ? WHERE id = ?" % item, (value, time.time(), self.id))
+        self.query("UPDATE servers SET %s = ?, lifesign = ? WHERE id = ?" % item, (value, int(time.time()), self.id))
         # not escaping column names above is okay because the column name is always a key in self.data which is also
         # a valid column name
 
@@ -73,7 +73,7 @@ class jj2server():
 
         :return: Nothing
         """
-        self.set("lifesign", time.time())
+        self.set("lifesign", int(time.time()))
 
         return
 

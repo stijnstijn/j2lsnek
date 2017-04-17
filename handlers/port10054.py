@@ -79,6 +79,7 @@ class server_handler(port_handler):
                         server.set("players", data[1])
                     else:
                         self.ls.log("Received ping from server %s" % self.key)
+                        server.ping()
                 elif data[0] == 0x02:
                     self.ls.log("Updating server name for server %s" % self.key)
                     server.set("name", data[1:33].decode("ascii"))
