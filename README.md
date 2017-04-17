@@ -43,7 +43,15 @@ be looking for more trustworthy list server hosts.
 Remote administration is available via an API. The API can only be called from localhost; thus any interface should be
 hosted on the same machine as the list server. See port10059.py for API details.
 
+Abuse protection
+---
+This list server adds a number of constraints that should make it better equipped to handle abuse than the original and
+node.js-based list servers. It limits the amount of connections per IP, synchronises bans among mirrors and sanitises
+server data. Managing bans and whitelistings is made easier via a remote admin interface (which is separate from this
+repository).
+
 Todo:
 ---
 - Test whether stuff actually works and can't easily be broken
-- Maybe some extra abuse detection and mitigation
+- Remove stale (older than 1min) remote servers from database
+- Connection throttling?
