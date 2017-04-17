@@ -2,6 +2,7 @@ import threading
 import sqlite3
 import config
 import time
+import re
 
 
 class jj2server():
@@ -47,6 +48,9 @@ class jj2server():
         """
         if item not in self.data:
             raise IndexError("%s is not a server property" % item)
+
+        if item == "name":
+            value = re.sub(r'[^\x00-\x7f]', r' ', value)  # no funny business with crazy characters
 
         self.data[item] = value
         self.query("UPDATE servers SET %s = ?, lifesign = ? WHERE id = ?" % item, (value, int(time.time()), self.id))
