@@ -39,7 +39,7 @@ class listserver():
         self.start = int(time.time())
         self.address = socket.gethostname()
 
-        self.log("Starting list server! Address for this server: %s" % self.addres)
+        self.log("Starting list server! Address for this server: %s" % self.address)
         self.log("Current time: %s" % time.strftime("%d-%M-%Y %H:%M:%S"))
         self.log("Enter 'q' to quit (q + enter).")
         self.log("")
