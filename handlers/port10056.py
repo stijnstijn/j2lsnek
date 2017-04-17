@@ -65,6 +65,7 @@ class servernet_handler(port_handler):
                     server.set(key, payload["data"][key])
                 except IndexError:
                     self.ls.log("Received malformed server data from ServerNet connection %s" % self.ip)
+                    server.forget()
                     self.end()
                     return
             server.set("remote", 1)
