@@ -72,13 +72,13 @@ class servernet_handler(port_handler):
 
         # ban list (and whitelist) entries
         elif payload["action"] == "ban":
-            if "address" not in payload["data"] or "type" not in payload["data"] or "origin" not in payload["data"]:
+            if "address" not in payload["data"] or "type" not in payload["data"] or "origin" not in payload["data"] or "note" not in payload["data"]:
                 self.ls.log("Received malformed banlist entry from ServerNet connection %s" % self.ip)
                 self.end()
                 return
 
-            exists = self.fetch_one("SELECT COUNT(*) FROM banlist WHERE address = ? AND origin = ? AND type = ?",
-                                     (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"]))
+            exists = self.fetch_one("SELECT COUNT(*) FROM banlist WHERE address = ? AND origin = ? AND type = ? AND note = ?",
+                                     (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"], payload["data"]["note"]))
             if not exists:
                 self.query("INSERT INTO banlist (address, origin, type) VALUES (?, ?, ?)", (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"]))
 
@@ -86,13 +86,13 @@ class servernet_handler(port_handler):
 
         # removal of ban/whitelist entries
         elif payload["action"] == "unban":
-            if "address" not in payload["data"] or "type" not in payload["data"] or "origin" not in payload["data"]:
+            if "address" not in payload["data"] or "type" not in payload["data"] or "origin" not in payload["data"] or "note" not in payload["data"]:
                 self.ls.log("Received malformed banlist entry from ServerNet connection %s" % self.ip)
                 self.end()
                 return
 
-            self.fetch_one("DELETE FROM banlist WHERE address = ? AND origin = ? AND type = ?",
-                            (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"]))
+            self.fetch_one("DELETE FROM banlist WHERE address = ? AND origin = ? AND type = ? AND note = ?",
+                            (payload["data"]["address"], payload["data"]["origin"], payload["data"]["type"], payload["data"]["note"]))
 
             self.ls.log("Removed banlist entry via ServerNet connection %s" % self.ip)
 

@@ -142,7 +142,7 @@ class listserver():
         try:
             test = db.execute("SELECT * FROM banlist")
         except sqlite3.OperationalError:
-            db.execute("CREATE TABLE banlist (address TEXT, type TEXT, origin TEXT, global INTEGER)")
+            db.execute("CREATE TABLE banlist (address TEXT, type TEXT, origin TEXT, note TEXT, global INTEGER)")
 
         try:
             test = db.execute("SELECT * FROM remotes")

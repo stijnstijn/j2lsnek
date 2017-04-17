@@ -71,7 +71,7 @@ class api_handler(port_handler):
                 self.end()
                 return
 
-            payload["data"] = {"address": payload["data"]["address"], "type": payload["action"], "origin": self.ls.address, "global": 1}
+            payload["data"] = {"address": payload["data"]["address"], "type": payload["action"], "origin": self.ls.address, "global": 1, "note": "(added via shorthand)"}
             payload["action"] = "add-banlist"
 
         # shorthand command for global unban/unwhitelisting; forward to handler for delete-banlist
@@ -87,7 +87,7 @@ class api_handler(port_handler):
 
         # add entry to banlist/whitelist
         if payload["action"] == "add-banlist":
-            if "address" not in payload["data"] or "type" not in payload["data"] or "global" not in payload["data"]:
+            if "address" not in payload["data"] or "type" not in payload["data"] or "global" not in payload["data"] or "note" not in payload["data"]:
                 self.ls.log("Malformed API request (add-banlist)")
                 self.error_msg("Malformed API request")
                 self.end()
@@ -96,8 +96,8 @@ class api_handler(port_handler):
             if "origin" not in payload["data"]:
                 payload["data"]["origin"] = self.ls.address
 
-            self.query("INSERT INTO banlist (address, type, origin, global) VALUES (?, ?, ?, ?)",
-                            (payload["data"]["address"], payload["data"]["type"], payload["data"]["origin"], payload["data"]["global"]))
+            self.query("INSERT INTO banlist (address, type, origin, global, note) VALUES (?, ?, ?, ?, ?)",
+                            (payload["data"]["address"], payload["data"]["type"], payload["data"]["origin"], payload["data"]["global"], payload["data"]["note"]))
 
             if str(payload["data"]["global"]) == "1":
                 self.ls.broadcast({"action": "ban", "data": payload["data"]})
@@ -106,15 +106,15 @@ class api_handler(port_handler):
 
         # remove entry from banlist/whitelist
         elif payload["action"] == "delete-banlist":
-            if "address" not in payload["data"] or "type" not in payload["data"] or "origin" not in payload["data"] or "global" not in payload["data"]:
+            if "address" not in payload["data"] or "type" not in payload["data"] or "origin" not in payload["data"] or "global" not in payload["data"] or "note" not in payload["data"]:
                 self.ls.log("Malformed API request (delete-banlist)")
                 self.error_msg("Malformed API request")
                 self.end()
                 return
 
             self.ls.log(repr(payload))
-            self.query("DELETE FROM banlist WHERE address = ? AND type = ? AND origin = ? AND global = ?",
-                            (payload["data"]["address"], payload["data"]["type"], payload["data"]["origin"], payload["data"]["global"]))
+            self.query("DELETE FROM banlist WHERE address = ? AND type = ? AND origin = ? AND global = ? AND note = ?",
+                            (payload["data"]["address"], payload["data"]["type"], payload["data"]["origin"], payload["data"]["global"], payload["data"]["note"]))
 
             if str(payload["data"]["global"]) == "1":
                 self.ls.broadcast({"action": "unban", "data": payload["data"]})
