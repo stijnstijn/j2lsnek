@@ -41,6 +41,7 @@ class stats_handler(port_handler):
         stats += "                Jazz Jackrabbit 2 List Server statistics\n"
         stats += "\n"
         stats += "\n"
+        stats += "  This server                      : " + self.ls.address + "\n"
         stats += "  Serving you since                : " + running_since.strftime("%d %b %Y %H:%M") + "\n"
         stats += "  Uptime                           : " + fancy_time(int(time.time() - self.ls.start)) + "\n"
         stats += "\n"
