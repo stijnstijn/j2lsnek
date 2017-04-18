@@ -181,6 +181,7 @@ class port_listener(threading.Thread):
     Opens a socket that listens on a port and creates handlers when someone connects
     """
     connections = {}
+    ticker = {}
     looping = True
 
     def __init__(self, port=None, ls=None):
@@ -226,9 +227,31 @@ class port_listener(threading.Thread):
                 continue # no problemo, just listen again - this only times out so it won't hang the entire app when
                          # trying to exit, as there's no other way to easily interrupt accept()
 
-            if banned(address[0]) and not whitelisted(address[0]) and address[0] != "127.0.0.1":  # check if banned
-                self.ls.log("IP %s attempted to connect, but matches banlist" % address[0])
+            # check if banned (unless whitelisted)
+            is_whitelisted = whitelisted(address[0])  # needed later, so save value
+            if banned(address[0]) and not is_whitelisted and address[0] != "127.0.0.1":
+                self.ls.log("IP %s attempted to connect but matches banlist, refused" % address[0])
                 continue
+
+            # check if to be throttled - each connection made adds a "tick", and when those exceed a max value
+            # connection is refused until the tick count decays below that max value
+            now = int(time.time())
+            if not is_whitelisted and address[0] in self.ticker:
+                ticks = self.ticker[address[0]][0]
+                last_tick = self.ticker[address[0]][1]
+                decay = (now - last_tick) * config.TICKSDECAY
+                ticks -= decay
+
+                if ticks <= 0:
+                    ticks = 1
+                elif ticks > config.TICKSMAX:
+                    self.ls.log("IP %s hit rate limit, throttled" % address[0])
+                    continue
+            else:
+                ticks = 1
+
+            if not is_whitelisted:
+                self.ticker[address[0]] = [ticks, now]
 
             key = address[0] + ":" + str(address[1])
 

@@ -53,5 +53,4 @@ repository).
 Todo:
 ---
 - Test whether stuff actually works and can't easily be broken
-- Remove stale (older than 1min) remote servers from database
 - Connection throttling?
