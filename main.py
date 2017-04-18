@@ -280,7 +280,7 @@ class port_listener(threading.Thread):
             # remove connections that have finished
             stale_connections = []
             for key in self.connections:
-                if self.connections[key].is_alive():
+                if not self.connections[key].is_alive():
                     stale_connections.append(key)  # can't change self.connections while we're looping through it
 
             for key in stale_connections:
