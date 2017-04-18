@@ -272,6 +272,10 @@ class port_listener(threading.Thread):
                 raise NotImplementedError("No handler class available for port %s" % self.port)
             self.connections[key].start()
 
+            for ip in self.ticker:
+                if self.ticker[ip][1] < now - config.TICKSMAXAGE:
+                    self.ticker.pop(ip, None)  # remove IPs that haven't been seen for a long time
+
             time.sleep(config.MICROSLEEP)
 
         return
