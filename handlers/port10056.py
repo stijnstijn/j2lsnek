@@ -191,8 +191,9 @@ class servernet_handler(port_handler):
             # motd
             motd = self.fetch_one("SELECT value FROM settings WHERE item = ?", ("motd",))
             updated = self.fetch_one("SELECT value FROM settings WHERE item = ?", ("motd-updated",))
+
             motd = motd["value"] if motd else "jj2 aint dead\n"
-            self.ls.broadcast({"action": "motd", "data": {"motd": motd, "updated": updated if updated else 0}}, [self.ip])
+            self.ls.broadcast({"action": "motd", "data": {"motd": motd, "updated": updated["value"] if updated else 0}}, [self.ip])
 
             # remotes
             remotes = self.fetch_all("SELECT * FROM remotes")
