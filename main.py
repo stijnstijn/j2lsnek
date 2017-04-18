@@ -229,7 +229,7 @@ class port_listener(threading.Thread):
 
             # check if banned (unless whitelisted)
             is_whitelisted = whitelisted(address[0])  # needed later, so save value
-            if banned(address[0]) and not is_whitelisted and address[0] != "127.0.0.1":
+            if banned(address[0]) and not is_whitelisted:
                 self.ls.log("IP %s attempted to connect but matches banlist, refused" % address[0])
                 continue
 

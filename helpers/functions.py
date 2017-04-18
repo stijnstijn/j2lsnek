@@ -75,7 +75,7 @@ def fancy_time(time):
     return string
 
 def whitelisted(ip):
-    return banned(ip, whitelisted=True)
+    return True if ip == "127.0.0.1" else banned(ip, whitelisted=True)
 
 def banned(ip, whitelisted=False):
     lock = threading.Lock()
