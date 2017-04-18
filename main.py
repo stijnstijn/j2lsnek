@@ -245,7 +245,6 @@ class port_listener(threading.Thread):
 
                 if ticks > config.TICKSMAX:
                     self.ls.log("IP %s hit rate limit, throttled" % address[0])
-                    ticks *= 1.1  # punish the offender - repeated attempts will make matters worse (bad idea?)
                     self.ticker[address[0]] = [ticks, now]
                     continue
 
