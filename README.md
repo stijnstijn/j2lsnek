@@ -53,4 +53,4 @@ repository).
 Todo:
 ---
 - Test whether stuff actually works and can't easily be broken
-- Connection throttling?
+- Restarting/updating the list server remotely?
