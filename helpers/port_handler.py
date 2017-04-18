@@ -89,6 +89,15 @@ class port_handler(threading.Thread):
         """
         return self.client.close()
 
+    def cleanup(self):
+        """
+        Housekeeping
+
+        Not critical, but should be called before some user-facing actions (e.g. retrieving server lists)
+        :return:
+        """
+        self.query("DELETE FROM servers WHERE remote = 1 AND lifesign < ?", (int(time.time()) - config.TIMEOUT,))
+
     def acquire_lock(self):
         """
         Acquire lock

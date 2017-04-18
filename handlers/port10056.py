@@ -121,6 +121,8 @@ class servernet_handler(port_handler):
 
         # sync request: send all data
         elif payload["action"] == "request":
+            self.cleanup()  # removes stale servers, etc
+
             #servers
             servers = self.fetch_all("SELECT * FROM servers WHERE players > 0 AND origin = ?", (self.ls.address,))
             for server in servers:

@@ -11,6 +11,8 @@ class binary_handler(port_handler):
         Show the binary server list and immediately close connection
         """
         self.ls.log("Sending binary server list to %s" % self.ip)
+
+        self.cleanup()
         servers = self.fetch_all("SELECT * FROM servers WHERE players > 0 AND max > 0 ORDER BY private ASC, players DESC, created ASC")
 
         list = bytearray([7])
