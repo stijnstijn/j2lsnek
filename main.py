@@ -5,10 +5,11 @@ By Stijn (https://stijn.chat)
 Thanks to DJazz for a reference implementation and zepect for some misc tips.
 """
 
-import json
-import socket
-import sqlite3
+import importlib
 import threading
+import sqlite3
+import socket
+import json
 import time
 
 import config
@@ -146,7 +147,7 @@ class listserver():
             test = db.execute("SELECT * FROM settings")
         except sqlite3.OperationalError:
             db.execute("CREATE TABLE settings (item TEXT UNIQUE, value TEXT)")
-            db.execute("INSERT INTO settings (item, value) VALUES (?, ?)", ("motd", ""))
+            db.execute("INSERT INTO settings (item, value) VALUES (?, ?), (?, ?)", ("motd", "", "motd-updated", "0"))
 
         try:
             test = db.execute("SELECT * FROM banlist")
@@ -173,6 +174,31 @@ class listserver():
         dbconn.close()
 
         return result
+
+    def add_remote(self, address):
+        """
+        Add ServerNet remote
+
+        Does not add remote to database (that's the APIs' job) but only to internal list
+
+        :param address: Address (IP) of ServerNet remote
+        :return:
+        """
+        self.remotes.append(address)
+
+    def delete_remote(self, address):
+        """
+        Delete ServerNet remote
+
+        Does not delete remote from database (that's the APIs' job) but only from internal list
+
+        :param address: Address (IP) of ServerNet remote
+        :return:
+        """
+        self.remotes.remove(address)
+
+    def reload(self):
+        importlib.reload(config)
 
 
 class port_listener(threading.Thread):

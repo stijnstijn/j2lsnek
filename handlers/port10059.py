@@ -1,5 +1,6 @@
-import json
 import socket
+import json
+import time
 
 from helpers.port_handler import port_handler
 
@@ -133,6 +134,7 @@ class api_handler(port_handler):
                             (payload["data"]["name"], payload["data"]["address"]))
 
             self.ls.remotes.append(payload["data"]["address"])
+            self.ls.broadcast({"action": "add-remote", "data": payload["data"]})
             self.ls.log("Remote added via API (%s)" % payload["data"]["address"])
             self.acknowledge()
 
@@ -148,6 +150,7 @@ class api_handler(port_handler):
                             (payload["data"]["name"], payload["data"]["address"]))
 
             self.ls.remotes.remove(payload["data"]["address"])
+            self.ls.broadcast({"action": "delete-remote", "data": payload["data"]})
             self.ls.log("Remote deleted via API (%s)" % payload["data"]["address"])
             self.acknowledge()
 
@@ -159,8 +162,9 @@ class api_handler(port_handler):
                 self.end()
                 return
 
-            self.query("UPDATE settings SET value = ? WHERE item = ?",
-                            (payload["data"]["motd"], "motd"))
+            self.query("UPDATE settings SET value = ? WHERE item = ?", (payload["data"]["motd"], "motd"))
+            self.query("UPDATE settings SET value = ? WHERE item = ?", (int(time.time()), "motd-updated"))
+            payload["data"]["updated"] = int(time.time())
 
             self.ls.broadcast({"action": "motd", "data": payload["data"]})
             self.ls.log("MOTD updated via API")
@@ -184,6 +188,11 @@ class api_handler(port_handler):
             motd = self.fetch_one("SELECT * FROM settings WHERE item = ?", ("motd",))
 
             self.msg(json.dumps(motd["value"]))
+
+        # initiate reload
+        elif payload["action"] == "reload":
+            self.ls.reload()
+            self.acknowledge()
 
         self.end()
         return
