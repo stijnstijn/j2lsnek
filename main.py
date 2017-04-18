@@ -278,9 +278,15 @@ class port_listener(threading.Thread):
                     self.ticker.pop(ip, None)
 
             # remove connections that have finished
+            stale_connections = []
             for key in self.connections:
-                if not self.connections[key].is_alive():
-                    del self.connections[key]
+                if self.connections[key].is_alive():
+                    stale_connections.append(key)  # can't change self.connections while we're looping through it
+
+            for key in stale_connections:
+                del self.connections[key]
+
+            del stale_connections
 
             time.sleep(config.MICROSLEEP)
 
