@@ -236,7 +236,7 @@ class port_listener(threading.Thread):
             # check if to be throttled - each connection made adds a "tick", and when those exceed a max value
             # connection is refused until the tick count decays below that max value
             now = int(time.time())
-            ticks = 1
+            ticks = 0
             if not is_whitelisted and address[0] in self.ticker:
                 ticks = self.ticker[address[0]][0]
                 last_tick = self.ticker[address[0]][1]
@@ -250,7 +250,7 @@ class port_listener(threading.Thread):
                     continue
 
             if not is_whitelisted:
-                self.ticker[address[0]] = [max(ticks, 1), now]
+                self.ticker[address[0]] = [max(ticks + 1, 1), now]
 
             key = address[0] + ":" + str(address[1])
 
