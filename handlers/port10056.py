@@ -116,7 +116,7 @@ class servernet_handler(port_handler):
                 self.end()
                 return
 
-            exists = self.fetch_one("SELECT * FROM remotes WHERE name = ? OR address = ?" (payload["data"]["name"], payload["data"]["address"]))
+            exists = self.fetch_one("SELECT * FROM remotes WHERE name = ? OR address = ?", (payload["data"]["name"], payload["data"]["address"]))
             if exists:
                 self.ls.log("Remote %s tried adding remote %s, but name or address already known" % (self.ip, self.payload["data"]["address"]))
                 self.end()
@@ -134,7 +134,7 @@ class servernet_handler(port_handler):
                 self.end()
                 return
 
-            exists = self.fetch_one("SELECT * FROM remotes WHERE name = ? AND address = ?" (payload["data"]["name"], payload["data"]["address"]))
+            exists = self.fetch_one("SELECT * FROM remotes WHERE name = ? AND address = ?", (payload["data"]["name"], payload["data"]["address"]))
             if not exists:
                 self.ls.log("Remote %s tried removing remote %s, but not known" % (self.ip, self.payload["data"]["address"]))
                 self.end()
