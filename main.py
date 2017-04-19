@@ -299,6 +299,7 @@ class port_listener(threading.Thread):
                          # trying to exit, as there's no other way to easily interrupt accept()
             except ssl.SSLError as e:
                 self.ls.log.error("Could not establish SSL connection: %s" % e)
+                continue
 
             # check if banned (unless whitelisted)
             is_whitelisted = whitelisted(address[0])  # needed later, so save value
