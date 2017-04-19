@@ -284,8 +284,8 @@ class port_listener(threading.Thread):
                 # in case of port 10059, we authenticate via SSL certificates, since else anyone running on localhost
                 # may interact with the list server API
                 if self.port == 10059:
-                    client = ssl.wrap_socket(client, server_side=True, cert_reqs=ssl.CERT_REQUIRED, certfile=config.CERTFILE, keyfile=config.KEYFILE)
-
+                    unwrapped_client, address = server.accept()
+                    client = ssl.wrap_socket(unwrapped_client, server_side=True, cert_reqs=ssl.CERT_REQUIRED, certfile=config.CERTFILE, keyfile=config.KEYFILE)
                 else:
                     client, address = server.accept()
             except socket.timeout:
