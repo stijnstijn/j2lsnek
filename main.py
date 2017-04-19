@@ -383,6 +383,7 @@ class servernet_sender(threading.Thread):
             self.ls.log("ServerNet remote %s refused connection: likely not listening" % self.ip)
         except socket.gaierror:
             self.ls.log("ServerNet remote address %s does not seem to be valid" % self.ip)
+            self.ls.delete_remote(self.ip)
 
         connection.close()
 
