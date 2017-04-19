@@ -16,13 +16,12 @@ import os
 from logging.handlers import RotatingFileHandler
 
 import config
-from handlers.port10053 import binary_handler
-from handlers.port10054 import server_handler
-from handlers.port10055 import stats_handler
-from handlers.port10056 import servernet_handler
-from handlers.port10057 import ascii_handler
-from handlers.port10058 import motd_handler
-from handlers.port10059 import api_handler
+from handlers.binarylist import binary_handler
+from handlers.liveserver import server_handler
+from handlers.statistics import stats_handler
+from handlers.api import servernet_handler
+from handlers.asciilist import ascii_handler
+from handlers.motd import motd_handler
 from helpers.functions import banned, whitelisted
 
 
@@ -76,7 +75,7 @@ class listserver():
         self.prepare_database()
 
         # let other list servers know we're live and ask them for the latest
-        self.broadcast({"action": "request", "data": {}})
+        self.broadcast(action="request", data=[{"from": self.address}])
 
         self.listen_to([10053, 10054, 10055, 10056, 10057, 10058, 10059])
 
@@ -107,18 +106,23 @@ class listserver():
 
         return
 
-    def broadcast(self, data, recipients = None):
+    def broadcast(self, action, data, recipients=None, ignore=[]):
         """
         Send data to servers connected via ServerNET
 
-        :param data: Data to send - will be JSON-encoded
+        :param action: Action with which to call the API
+        :param data: Data to send
         :param recipients: List of IPs to send to, will default to all known remotes
         :return: Nothing
         """
-        data = json.dumps(data)
+        data = json.dumps({"action": action, "data": data, "origin": self.address})
 
         if not recipients:
             recipients = self.remotes
+
+        for ignored in ignore:
+            if ignored in recipients:
+                recipients.remove(ignored)
 
         transmitters = {}
 
@@ -137,7 +141,7 @@ class listserver():
         Sets self.looping to False, which ends the main loop and allows the thread to start halting other threads. That
         latter bit yet to be implemented.
 
-        :param reason: Reason for quitting, a string
+        :param reason: Reason for quitting, a stringitem
         :return:
         """
         self.looping = False
@@ -216,7 +220,8 @@ class listserver():
         :param address: Address (IP) of ServerNet remote
         :return:
         """
-        self.remotes.remove(address)
+        if address in self.remotes:
+            self.remotes.remove(address)
 
     def reload(self):
         importlib.reload(config)
@@ -306,14 +311,12 @@ class port_listener(threading.Thread):
                 self.connections[key] = server_handler(client=client, address=address, ls=self.ls)
             elif self.port == 10055:
                 self.connections[key] = stats_handler(client=client, address=address, ls=self.ls)
-            elif self.port == 10056:
+            elif self.port == 10056 or self.port == 10059:
                 self.connections[key] = servernet_handler(client=client, address=address, ls=self.ls)
             elif self.port == 10057:
                 self.connections[key] = ascii_handler(client=client, address=address, ls=self.ls)
             elif self.port == 10058:
                 self.connections[key] = motd_handler(client=client, address=address, ls=self.ls)
-            elif self.port == 10059:
-                self.connections[key] = api_handler(client=client, address=address, ls=self.ls)
             else:
                 raise NotImplementedError("No handler class available for port %s" % self.port)
             self.connections[key].start()
@@ -402,7 +405,7 @@ class servernet_sender(threading.Thread):
             self.ls.log.warning("Timeout while sending to ServerNet remote %s" % self.ip)
         except ConnectionRefusedError:
             self.ls.log.warning("ServerNet remote %s refused connection: likely not listening" % self.ip)
-        except socket.gaierror:
+        except (socket.gaierror, OSError):
             self.ls.log.error("ServerNet remote address %s does not seem to be valid" % self.ip)
             self.ls.delete_remote(self.ip)
 

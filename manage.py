@@ -21,7 +21,7 @@ def send(action, payload):
     connection.settimeout(5)
     connection.connect(("localhost", 10059))
 
-    msg = json.dumps({"action": action, "data": payload})
+    msg = json.dumps({"action": action, "data": [payload], "origin": "web"})
     connection.sendall(msg.encode("ascii"))
 
     try:
@@ -48,12 +48,15 @@ if len(sys.argv) < 2 or sys.argv[1] not in ["ban", "unban", "whitelist", "unwhit
     print("  delete-remote [name] [IP]")
     sys.exit()
 
+action = sys.argv[1]
 if sys.argv[1] in ["ban", "unban", "whitelist", "unwhitelist"]:
+    action = {"ban": "add-banlist", "unban": "delete-banlist", "whitelist": "add-banlist", "unwhitelist": "delete-whitelist"}[action]
+    type = "ban" if action.split("-")[1] == "banlist" else "whitelist"
     if len(sys.argv) != 3:
         print("Syntax:\n %s [IP]" % sys.argv[1])
         sys.exit()
 
-    payload = {"address": sys.argv[2]}
+    payload = {"address": sys.argv[2], "note": "(added via CLI)", "type": type, "global": 1}
 
 elif sys.argv[1] in ["add-banlist", "delete-banlist"]:
     if len(sys.argv) != 3:
@@ -77,7 +80,7 @@ elif sys.argv[1] == "set-motd":
     payload = {"motd": " ".join(sys.argv[2:])}
 
 
-result = send(sys.argv[1], payload)
+result = send(action, payload)
 
 if result == "ACK":
     print("Command successful.")

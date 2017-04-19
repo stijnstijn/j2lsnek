@@ -104,7 +104,7 @@ class server_handler(port_handler):
 
             # broadcast updates to connected remotes
             if broadcast:
-                self.ls.broadcast({"action": "server", "data": server.data})
+                self.ls.broadcast(action="server", data=[server.data])
 
             time.sleep(config.MICROSLEEP)
 
@@ -112,7 +112,7 @@ class server_handler(port_handler):
         server.forget()
 
         # make sure remotes also delist the server
-        self.ls.broadcast({"action": "delist", "data": server.data})
+        self.ls.broadcast(action="delist", data=[server.data])
 
         self.end()
 

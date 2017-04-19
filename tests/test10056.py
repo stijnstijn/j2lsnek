@@ -16,15 +16,15 @@ class fake_apicaller:
                 start = now
                 connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 connection.settimeout(4)
-                connection.connect((LIST_SERVER, 10059))
+                connection.connect((LIST_SERVER, 10056))
                 print("Connection with list server %s opened" % LIST_SERVER)
                 payload = ""
 
                 if type == 1:
-                    payload = {"action": "add-banlist", "data": {"address": "0.0.0.0", "type": "ban", "origin": "localhost", "global": 1}}
+                    payload = {"action": "add-banlist", "data": [{"address": "0.0.0.0", "type": "ban", "origin": "localhost", "global": 1, "note": "(added via test)"}]}
                     print("Sending valid add-banlist API command")
                 if type == 2:
-                    payload = {"action": "add-banlist", "data": {"address": "0.0.0.0", "type": "ban", "origin": "localhost"}}
+                    payload = {"action": "add-banlist", "data": [{"address": "0.0.0.0", "type": "ban", "origin": "localhost"}]}
                     print("Sending invalid add-banlist API command (missing property)")
                 if type == 3:
                     payload = {"action": "add-banlist", "data": None}
@@ -34,10 +34,10 @@ class fake_apicaller:
                     print("Sending invalid add-banlist API command (no data)")
 
                 if type == 5:
-                    payload = {"action": "delete-banlist", "data": {"address": "0.0.0.0", "type": "ban", "origin": "localhost", "global": 1}}
+                    payload = {"action": "delete-banlist", "data": [{"address": "0.0.0.0", "type": "ban", "origin": "localhost", "global": 1, "note": "(added via test)"}]}
                     print("Sending valid delete-banlist API command")
                 if type == 6:
-                    payload = {"action": "delete-banlist", "data": {"address": "0.0.0.0", "type": "ban", "origin": "localhost"}}
+                    payload = {"action": "delete-banlist", "data": [{"address": "0.0.0.0", "type": "ban", "origin": "localhost"}]}
                     print("Sending invalid delete-banlist API command (missing property)")
                 if type == 7:
                     payload = {"action": "delete-banlist", "data": None}
@@ -47,44 +47,61 @@ class fake_apicaller:
                     print("Sending invalid delete-banlist API command (no data)")
 
                 if type == 9:
-                    payload = {"action": "add-remote", "data": {"address": "0.0.0.0", "name": "test remote"}}
+                    payload = {"action": "add-remote", "data": [{"address": "0.0.0.0", "name": "test remote"}]}
                     print("Sending valid add-remote API command")
                 if type == 10:
-                    payload = {"action": "add-remote", "data": {"address": "0.0.0.0"}}
-                    print("Sending invalid add-remote API command (missing property)")
+                    payload = {"action": "add-remote", "data": [{"address": "INSANE TEST", "name": "invalid remote"}]}
+                    print("Sending invalid add-remote API command (invalid address)")
                 if type == 11:
+                    payload = {"action": "add-remote", "data": [{"address": "0.0.0.0"}]}
+                    print("Sending invalid add-remote API command (missing property)")
+                if type == 12:
                     payload = {"action": "add-remote", "data": None}
                     print("Sending invalid add-remote API command (empty data)")
-                if type == 12:
+                if type == 13:
                     payload = {"action": "add-remote"}
                     print("Sending invalid add-remote API command (no data)")
 
-                if type == 13:
-                    payload = {"action": "delete-remote", "data": {"address": "0.0.0.0", "name": "test remote"}}
-                    print("Sending valid delete-remote API command")
                 if type == 14:
-                    payload = {"action": "delete-remote", "data": {"address": "0.0.0.0"}}
-                    print("Sending invalid delete-remote API command (missing property)")
+                    payload = {"action": "delete-remote", "data": [{"address": "0.0.0.0", "name": "test remote"}]}
+                    print("Sending valid delete-remote API command")
                 if type == 15:
+                    payload = {"action": "delete-remote", "data": [{"address": "0.0.0.0"}]}
+                    print("Sending invalid delete-remote API command (missing property)")
+                if type == 16:
                     payload = {"action": "delete-remote", "data": None}
                     print("Sending invalid delete-remote API command (empty data)")
-                if type == 16:
+                if type == 17:
                     payload = {"action": "delete-remote"}
                     print("Sending invalid delete-remote API command (no data)")
 
-                if type == 17:
-                    payload = {"action": "set-motd", "data": {"motd": "test motd"}}
-                    print("Sending valid set-motd API command")
                 if type == 18:
-                    payload = {"action": "set-motd", "data": {}}
-                    print("Sending invalid set-motd API command (missing property)")
+                    payload = {"action": "set-motd", "data": [{"motd": "test motd", "motd-updated": int(time.time())}]}
+                    print("Sending valid set-motd API command")
                 if type == 19:
+                    payload = {"action": "set-motd", "data": {"motd": "test motd"}}
+                    print("Sending invalid set-motd API command (missing property)")
+                if type == 20:
                     payload = {"action": "set-motd", "data": None}
                     print("Sending invalid set-motd API command (empty data)")
-                if type == 20:
+                if type == 21:
                     payload = {"action": "set-motd"}
                     print("Sending invalid set-motd API command (no data)")
 
+                if type == 18:
+                    payload = {"action": "get-motd", "data": [{"from": "localhost"}]}
+                    print("Sending valid get-motd API command")
+                if type == 19:
+                    payload = {"action": "get-remotes", "data": [{"from": "localhost"}]}
+                    print("Sending invalid get-remotes API command")
+                if type == 20:
+                    payload = {"action": "get-banlist", "data": [{"from": "localhost"}]}
+                    print("Sending invalid get-banlist API command")
+                if type == 21:
+                    payload = {"action": "get-servers"}
+                    print("Sending invalid get-servers API command")
+
+                payload["origin"] = "web"
                 connection.sendall(json.dumps(payload).encode("ascii"))
                 try:
                     data = connection.recv(1024)
