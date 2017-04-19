@@ -291,7 +291,7 @@ class port_listener(threading.Thread):
                 # may interact with the list server API
                 if self.port == 10059:
                     unwrapped_client, address = server.accept()
-                    client = ssl.wrap_socket(unwrapped_client, server_side=True, cert_reqs=ssl.CERT_REQUIRED, certfile=config.CERTFILE, keyfile=config.KEYFILE)
+                    client = ssl.wrap_socket(unwrapped_client, server_side=True, certfile=config.CERTFILE, keyfile=config.KEYFILE)
                 else:
                     client, address = server.accept()
             except socket.timeout:
