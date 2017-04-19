@@ -230,6 +230,10 @@ class servernet_handler(port_handler):
 
             self.ls.log.info("Sent sync data to ServerNet connection %s" % self.ip)
 
+        # reload config, etc
+        elif action == "reload":
+            self.ls.reload()
+
         # retrieve server list
         elif action == "get-servers":
             self.cleanup()
