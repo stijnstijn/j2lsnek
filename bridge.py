@@ -37,7 +37,7 @@ while True:
         except ValueError:
             continue
 
-    payload = {"action": "server", "data": servers, "origin": "bridge"}
+    payload = {"action": "server", "data": payload, "origin": "bridge"}
 
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connection.settimeout(4)
@@ -46,7 +46,7 @@ while True:
 
     try:
         data = connection.recv(1024)
-        print("Synced server %s" % name)
+        print("Synced servers")
     except socket.timeout:
         print("API call timed out")
 
