@@ -231,7 +231,7 @@ class servernet_handler(port_handler):
 
             # motd
             settings = self.fetch_all("SELECT * FROM settings WHERE item IN (?, ?)", ("motd", "motd-updated"))
-            self.ls.broadcast(action="set-motd", data=[{key: setting[key] for key in setting.keys()} for setting in settings], recipients=[self.ip])
+            self.ls.broadcast(action="set-motd", data=[{item["item"]: item["value"] for item in settings}], recipients=[self.ip])
 
             self.ls.log.info("Sent sync data to ServerNet connection %s" % self.ip)
 
