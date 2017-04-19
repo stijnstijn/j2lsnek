@@ -381,6 +381,8 @@ class servernet_sender(threading.Thread):
             self.ls.log("Timeout while sending to ServerNet remote %s" % self.ip)
         except ConnectionRefusedError:
             self.ls.log("ServerNet remote %s refused connection: likely not listening" % self.ip)
+        except socket.gaierror:
+            self.ls.log("ServerNet remote address %s does not seem to be valid" % self.ip)
 
         connection.close()
 
