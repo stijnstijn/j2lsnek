@@ -29,6 +29,7 @@ class port_handler(threading.Thread):
         self.client = client
         self.address = address
         self.ip = self.address[0]
+        self.port = int(self.address[1])
         self.key = self.address[0] + ":" + str(self.address[1])
         self.ls = ls
 
