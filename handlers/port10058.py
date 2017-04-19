@@ -10,7 +10,7 @@ class motd_handler(port_handler):
         """
         Return MOTD and immediately close connection
         """
-        self.ls.log("Sending MOTD to %s" % self.ip)
+        self.ls.log.info("Sending MOTD to %s" % self.ip)
 
         motd = self.fetch_one("SELECT value FROM settings WHERE item = ?", ('motd',))
 

@@ -22,14 +22,14 @@ class server_handler(port_handler):
         server = jj2server(self.key)
         new = True  # server is always new when connection is opened
         self.client.settimeout(10)  # time out in 10 seconds unless further data is received
-        self.ls.log("Server connected from %s" % self.key)
+        self.ls.log.info("Server connected from %s" % self.key)
 
         # keep connection open until server disconnects (or times out)
         while self.looping:
             try:
                 data = self.client.recv(1024)
             except socket.timeout:
-                self.ls.log("Server from %s timed out" % self.key)
+                self.ls.log.info("Server from %s timed out" % self.key)
                 break
 
             broadcast = False
@@ -39,11 +39,11 @@ class server_handler(port_handler):
                 # check for spamming
                 other = self.fetch_one("SELECT COUNT(*) FROM servers WHERE ip = ?", (self.ip,))[0]
                 if other >= 2 and not whitelisted(self.ip):
-                    self.ls.log("IP %s attempted to list server, but has 2 listed servers already")
+                    self.ls.log.warning("IP %s attempted to list server, but has 2 listed servers already")
                     self.error_msg("Too many connections from this IP address")
                     break
 
-                self.ls.log("Server listed from %s" % self.key)
+                self.ls.log.info("Server listed from %s" % self.key)
                 self.client.settimeout(35)  # should update player count every 30s, allow for a little lag
 
                 new = False
@@ -75,27 +75,27 @@ class server_handler(port_handler):
                 broadcast = True
                 if data[0] == 0:
                     if server.get("players") != data[1]:
-                        self.ls.log("Updating player count for server %s" % self.key)
+                        self.ls.log.info("Updating player count for server %s" % self.key)
                         server.set("players", data[1])
                     else:
-                        self.ls.log("Received ping from server %s" % self.key)
+                        self.ls.log.info("Received ping from server %s" % self.key)
                         server.ping()
                 elif data[0] == 0x02:
-                    self.ls.log("Updating server name for server %s" % self.key)
+                    self.ls.log.info("Updating server name for server %s" % self.key)
                     server.set("name", data[1:33].decode("ascii"))
                 elif data[0] == 0x03:
-                    self.ls.log("Updating max players for server %s" % self.key)
+                    self.ls.log.info("Updating max players for server %s" % self.key)
                     server.set("max", data[1])
                 elif data[0] == 0x04:
-                    self.ls.log("Updating public/private for server %s" % self.key)
+                    self.ls.log.info("Updating public/private for server %s" % self.key)
                     server.set("private", data[1] & 1)
 
             # server wants to be delisted, goes offline or sends strange data
             else:
                 if not new:
-                    self.ls.log("Server from %s was delisted; invalid data received" % self.key)
+                    self.ls.log.info("Server from %s was delisted; invalid data received" % self.key)
                 else:
-                    self.ls.log("Server from %s provided faulty listing data: not listed" % self.key)
+                    self.ls.log.warning("Server from %s provided faulty listing data: not listed" % self.key)
 
                 if data:
                     self.error_msg("Invalid data received")  # all valid commands are either 42 or 2 bytes long

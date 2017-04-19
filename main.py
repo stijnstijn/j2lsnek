@@ -7,10 +7,13 @@ Thanks to DJazz for a reference implementation and zepect for some misc tips.
 
 import importlib
 import threading
+import logging
 import sqlite3
 import socket
 import json
 import time
+import os
+from logging.handlers import RotatingFileHandler
 
 import config
 from handlers.port10053 import binary_handler
@@ -31,24 +34,50 @@ class listserver():
     looping = True
     sockets = {}  # sockets the server is listening it
     remotes = []  # ServerNet connections
+    log = None
 
     def __init__(self):
         """
-        Sets up the database connection, which is really only used to clear stale servers from the database
+        Sets up the database connection, logging, and starts port listeners
         """
 
         self.start = int(time.time())
         self.address = socket.gethostname()
 
-        self.log("Starting list server! Address for this server: %s" % self.address)
-        self.log("Current time: %s" % time.strftime("%d-%M-%Y %H:%M:%S"))
-        self.log("Enter 'q' to quit (q + enter).")
-        self.log("")
+        # initialise logger
+        self.log = logging.getLogger("j2lsnek")
+        self.log.setLevel(logging.INFO)
+
+        # first handler: output to console, only show warnings (i.e. noteworthy messages)
+        console = logging.StreamHandler()
+        console.setLevel(logging.WARNING)
+        console.setFormatter(logging.Formatter("%(asctime)-15s | %(message)s", "%d-%M-%Y %H:%M:%S"))
+        self.log.addHandler(console)
+
+        # second handler: rotating log file, max 5MB big, log all messages
+        handler = RotatingFileHandler("j2lsnek.log", maxBytes = 5242880)
+        handler.setLevel(logging.INFO)
+        handler.setFormatter(logging.Formatter("%(asctime)-15s | %(message)s", "%d-%M-%Y %H:%M:%S"))
+        self.log.addHandler(handler)
+
+        # say hello
+        os.system("cls" if os.name == "nt" else "clear")  # clear screen
+        print("\n                          .-=-.          .--.")
+        print("              __        .' s n '.       /  \" )")
+        print("      _     .'  '.     / l .-. e \     /  .-'\\")
+        print("     ( \   / .-.  \   / 2 /   \ k \   /  /   |\\ ssssssssssssss")
+        print("      \ `-` /   \  `-' j /     \   `-`  /")
+        print("       `-.-`     '.____.'       `.____.'\n")
+        self.log.warning("Starting list server! Address for this server: %s" % self.address)
+        self.log.warning("Current time: %s" % time.strftime("%d-%M-%Y %H:%M:%S"))
+        self.log.warning("Enter 'q' to quit (q + enter).")
+        self.log.warning("")
 
         self.prepare_database()
 
         # let other list servers know we're live and ask them for the latest
         self.broadcast({"action": "request", "data": {}})
+
         self.listen_to([10053, 10054, 10055, 10056, 10057, 10058, 10059])
 
     def listen_to(self, ports):
@@ -67,26 +96,15 @@ class listserver():
             if cmd == "q":
                 self.looping = False
 
-        self.log("Waiting for listeners to finish...")
+        self.log.warning("Waiting for listeners to finish...")
         for port in self.sockets:
             self.sockets[port].halt()
 
         for port in self.sockets:
             self.sockets[port].join()
 
-        self.log("Bye!")
+        self.log.warning("Bye!")
 
-        return
-
-    def log(self, message):
-        """
-        Logs status messages
-
-        :param message: Message to log
-        :return: Nothing
-        """
-        message = message.replace("%", "%%")
-        print(("T=%s " + message) % (int(time.time()) - self.start))  # maybe add logging to file or something later
         return
 
     def broadcast(self, data, recipients = None):
@@ -236,15 +254,15 @@ class port_listener(threading.Thread):
         try:
             server.bind((address, self.port))
         except OSError:
-            self.ls.log("WARNING! Port %s:%s is already in use! List server is NOT listening at this port!" % (address, self.port))
+            self.ls.log.error("WARNING! Port %s:%s is already in use! List server is NOT listening at this port!" % (address, self.port))
             return
         except ConnectionRefusedError:
-            self.ls.log("WARNING! OS refused listening at %s:%s! List server is NOT listening at this port!" % (address, self.port))
+            self.ls.log.error("WARNING! OS refused listening at %s:%s! List server is NOT listening at this port!" % (address, self.port))
             return
 
         server.listen(5)
         server.settimeout(5)
-        self.ls.log("Opening socket listening at port %s" % self.port)
+        self.ls.log.info("Opening socket listening at port %s" % self.port)
 
         while self.looping:
             try:
@@ -256,7 +274,7 @@ class port_listener(threading.Thread):
             # check if banned (unless whitelisted)
             is_whitelisted = whitelisted(address[0])  # needed later, so save value
             if banned(address[0]) and not is_whitelisted:
-                self.ls.log("IP %s attempted to connect but matches banlist, refused" % address[0])
+                self.ls.log.warning("IP %s attempted to connect but matches banlist, refused" % address[0])
                 continue
 
             # check if to be throttled - each connection made adds a "tick", and when those exceed a max value
@@ -270,7 +288,7 @@ class port_listener(threading.Thread):
                 ticks -= decay
 
                 if ticks > config.TICKSMAX:
-                    self.ls.log("IP %s hit rate limit, throttled" % address[0])
+                    self.ls.log.warning("IP %s hit rate limit, throttled" % address[0])
                     self.ticker[address[0]] = [ticks, now]
                     continue
 
@@ -327,7 +345,7 @@ class port_listener(threading.Thread):
         """
         self.looping = False
 
-        self.ls.log("Waiting for handlers on port %s to finish..." % self.port)
+        self.ls.log.info("Waiting for handlers on port %s to finish..." % self.port)
         for key in self.connections:
             self.connections[key].halt()
             self.connections[key].join()
@@ -376,13 +394,13 @@ class servernet_sender(threading.Thread):
                 if length_sent == 0:
                     break
                 sent += length_sent
-            self.ls.log("Sent message to remote %s" % self.ip)
+            self.ls.log.info("Sent message to remote %s" % self.ip)
         except socket.timeout:
-            self.ls.log("Timeout while sending to ServerNet remote %s" % self.ip)
+            self.ls.log.warning("Timeout while sending to ServerNet remote %s" % self.ip)
         except ConnectionRefusedError:
-            self.ls.log("ServerNet remote %s refused connection: likely not listening" % self.ip)
+            self.ls.log.warning("ServerNet remote %s refused connection: likely not listening" % self.ip)
         except socket.gaierror:
-            self.ls.log("ServerNet remote address %s does not seem to be valid" % self.ip)
+            self.ls.log.error("ServerNet remote address %s does not seem to be valid" % self.ip)
             self.ls.delete_remote(self.ip)
 
         connection.close()

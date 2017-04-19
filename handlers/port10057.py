@@ -12,7 +12,7 @@ class ascii_handler(port_handler):
         """
         Show a nicely formatted server list and immediately close connection
         """
-        self.ls.log("Sending ascii server list to %s" % self.ip)
+        self.ls.log.info("Sending ascii server list to %s" % self.ip)
 
         self.cleanup()
         servers = self.fetch_all("SELECT * FROM servers WHERE players > 0 ORDER BY private ASC, players DESC, created ASC")

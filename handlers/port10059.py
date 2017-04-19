@@ -40,7 +40,7 @@ class api_handler(port_handler):
                 self.buffer.extend(self.client.recv(2048))
                 loops += 1
             except socket.timeout:
-                self.ls.log("API call timed out")
+                self.ls.log.error("API call timed out")
                 break
 
             try:
@@ -53,13 +53,13 @@ class api_handler(port_handler):
                 break
 
         if not payload:  # payload not received or readable for whatever reason, give up
-            self.ls.log("API call with empty or unavailable payload received")
+            self.ls.log.warning("API call with empty or unavailable payload received")
             self.error_msg("Malformed API request")
             self.end()
             return
 
         if not isinstance(payload, dict) or "action" not in payload or "data" not in payload or not isinstance(payload["data"], dict):
-            self.ls.log("API call with malformed payload received")
+            self.ls.log.warning("API call with malformed payload received")
             self.error_msg("Malformed API request")
             self.end()
             return
@@ -67,7 +67,7 @@ class api_handler(port_handler):
         # shorthand command for global ban/whitelisting; forward to handler for add-banlist
         if payload["action"] == "ban" or payload["action"] == "whitelist":
             if "address" not in payload["data"]:
-                self.ls.log("Malformed API request (%s)" % payload["action"])
+                self.ls.log.warning("Malformed API request (%s)" % payload["action"])
                 self.error_msg("Malformed API request")
                 self.end()
                 return
@@ -78,7 +78,7 @@ class api_handler(port_handler):
         # shorthand command for global unban/unwhitelisting; forward to handler for delete-banlist
         if payload["action"] == "unban" or payload["action"] == "unwhitelist":
             if "address" not in payload["data"]:
-                self.ls.log("Malformed API request (%s)" % payload["action"])
+                self.ls.log.warning("Malformed API request (%s)" % payload["action"])
                 self.error_msg("Malformed API request")
                 self.end()
                 return
@@ -89,7 +89,7 @@ class api_handler(port_handler):
         # add entry to banlist/whitelist
         if payload["action"] == "add-banlist":
             if "address" not in payload["data"] or "type" not in payload["data"] or "global" not in payload["data"] or "note" not in payload["data"]:
-                self.ls.log("Malformed API request (add-banlist)")
+                self.ls.log.warning("Malformed API request (add-banlist)")
                 self.error_msg("Malformed API request")
                 self.end()
                 return
@@ -102,13 +102,13 @@ class api_handler(port_handler):
 
             if str(payload["data"]["global"]) == "1":
                 self.ls.broadcast({"action": "ban", "data": payload["data"]})
-            self.ls.log("Banlist entry added via API (%s)" % payload["data"]["address"])
+            self.ls.log.info("Banlist entry added via API (%s)" % payload["data"]["address"])
             self.acknowledge()
 
         # remove entry from banlist/whitelist
         elif payload["action"] == "delete-banlist":
             if "address" not in payload["data"] or "type" not in payload["data"] or "origin" not in payload["data"] or "global" not in payload["data"] or "note" not in payload["data"]:
-                self.ls.log("Malformed API request (delete-banlist)")
+                self.ls.log.warning("Malformed API request (delete-banlist)")
                 self.error_msg("Malformed API request")
                 self.end()
                 return
@@ -118,13 +118,13 @@ class api_handler(port_handler):
 
             if str(payload["data"]["global"]) == "1":
                 self.ls.broadcast({"action": "unban", "data": payload["data"]})
-            self.ls.log("Banlist entry deleted via API (%s)" % payload["data"]["address"])
+            self.ls.log.info("Banlist entry deleted via API (%s)" % payload["data"]["address"])
             self.acknowledge()
 
         # add remote list server
         elif payload["action"] == "add-remote":
             if "name" not in payload["data"] or "address" not in payload["data"]:
-                self.ls.log("Malformed API request (add-remote)")
+                self.ls.log.warning("Malformed API request (add-remote)")
                 self.error_msg("Malformed API request")
                 self.end()
                 return
@@ -134,13 +134,13 @@ class api_handler(port_handler):
 
             self.ls.remotes.append(payload["data"]["address"])
             self.ls.broadcast({"action": "add-remote", "data": payload["data"]})
-            self.ls.log("Remote added via API (%s)" % payload["data"]["address"])
+            self.ls.log.info("Remote added via API (%s)" % payload["data"]["address"])
             self.acknowledge()
 
         # remove remote list server
         elif payload["action"] == "delete-remote":
             if "name" not in payload["data"] or "address" not in payload["data"]:
-                self.ls.log("Malformed API request (delete-remote)")
+                self.ls.log.warning("Malformed API request (delete-remote)")
                 self.error_msg("Malformed API request")
                 self.end()
                 return
@@ -150,13 +150,13 @@ class api_handler(port_handler):
 
             self.ls.remotes.remove(payload["data"]["address"])
             self.ls.broadcast({"action": "delete-remote", "data": payload["data"]})
-            self.ls.log("Remote deleted via API (%s)" % payload["data"]["address"])
+            self.ls.log.info("Remote deleted via API (%s)" % payload["data"]["address"])
             self.acknowledge()
 
         # update MOTD
         elif payload["action"] == "set-motd":
             if "motd" not in payload["data"]:
-                self.ls.log("Malformed API request (set-motd)")
+                self.ls.log.warning("Malformed API request (set-motd)")
                 self.error_msg("Malformed API request")
                 self.end()
                 return
@@ -166,7 +166,7 @@ class api_handler(port_handler):
             payload["data"]["updated"] = int(time.time())
 
             self.ls.broadcast({"action": "motd", "data": payload["data"]})
-            self.ls.log("MOTD updated via API")
+            self.ls.log.info("MOTD updated via API")
             self.acknowledge()
 
         # retrieve server list

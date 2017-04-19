@@ -15,7 +15,7 @@ class stats_handler(port_handler):
         """
         Calculate some list server statistics, show a nicely formatted list and immediately close connection
         """
-        self.ls.log("Sending list stats to %s" % self.ip)
+        self.ls.log.info("Sending list stats to %s" % self.ip)
 
         running_since = datetime.fromtimestamp(self.ls.start)
         self.cleanup()
