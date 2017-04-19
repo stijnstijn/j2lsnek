@@ -44,15 +44,17 @@ class port_listener(threading.Thread):
         :return: Nothing
         """
         server = socket.socket()
-        address = "" if self.port != 10059 else "localhost" # 10059 should only be accessible via localhost
+        address = "" if self.port != 10059 else "localhost"  # 10059 should only be accessible via localhost
 
         try:
             server.bind((address, self.port))
         except OSError:
-            self.ls.log.error("WARNING! Port %s:%s is already in use! List server is NOT listening at this port!" % (address, self.port))
+            self.ls.log.error("WARNING! Port %s:%s is already in use! List server is NOT listening at this port!" % (
+            address, self.port))
             return
         except ConnectionRefusedError:
-            self.ls.log.error("WARNING! OS refused listening at %s:%s! List server is NOT listening at this port!" % (address, self.port))
+            self.ls.log.error("WARNING! OS refused listening at %s:%s! List server is NOT listening at this port!" % (
+            address, self.port))
             return
 
         server.listen(5)
@@ -65,12 +67,13 @@ class port_listener(threading.Thread):
                 # may interact with the list server API
                 if self.port == 10059:
                     unwrapped_client, address = server.accept()
-                    client = ssl.wrap_socket(unwrapped_client, server_side=True, certfile=config.CERTFILE, keyfile=config.KEYFILE)
+                    client = ssl.wrap_socket(unwrapped_client, server_side=True, certfile=config.CERTFILE,
+                                             keyfile=config.KEYFILE)
                 else:
                     client, address = server.accept()
             except socket.timeout:
-                continue # no problemo, just listen again - this only times out so it won't hang the entire app when
-                         # trying to exit, as there's no other way to easily interrupt accept()
+                continue  # no problemo, just listen again - this only times out so it won't hang the entire app when
+                # trying to exit, as there's no other way to easily interrupt accept()
             except ssl.SSLError as e:
                 self.ls.log.error("Could not establish SSL connection: %s" % e)
                 continue

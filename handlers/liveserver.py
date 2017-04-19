@@ -48,7 +48,7 @@ class server_handler(port_handler):
 
                 new = False
 
-                port = int.from_bytes(data[0:2], byteorder = "little")
+                port = int.from_bytes(data[0:2], byteorder="little")
                 name = data[2:35].decode('ascii')
                 players = int(data[35])
                 max = int(data[36])
@@ -102,7 +102,7 @@ class server_handler(port_handler):
 
                 break
 
-            # broadcast updates to connected remotes
+            # broadcast updates to connected mirrors
             if broadcast:
                 self.ls.broadcast(action="server", data=[server.data])
 
@@ -111,7 +111,7 @@ class server_handler(port_handler):
         # server presumed dead, remove from database
         server.forget()
 
-        # make sure remotes also delist the server
+        # make sure mirrors also delist the server
         self.ls.broadcast(action="delist", data=[server.data])
 
         self.end()

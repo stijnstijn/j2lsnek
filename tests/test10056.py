@@ -21,10 +21,13 @@ class fake_apicaller:
                 payload = ""
 
                 if type == 1:
-                    payload = {"action": "add-banlist", "data": [{"address": "0.0.0.0", "type": "ban", "origin": "localhost", "global": 1, "note": "(added via test)"}]}
+                    payload = {"action": "add-banlist", "data": [
+                        {"address": "0.0.0.0", "type": "ban", "origin": "localhost", "global": 1,
+                         "note": "(added via test)"}]}
                     print("Sending valid add-banlist API command")
                 if type == 2:
-                    payload = {"action": "add-banlist", "data": [{"address": "0.0.0.0", "type": "ban", "origin": "localhost"}]}
+                    payload = {"action": "add-banlist",
+                               "data": [{"address": "0.0.0.0", "type": "ban", "origin": "localhost"}]}
                     print("Sending invalid add-banlist API command (missing property)")
                 if type == 3:
                     payload = {"action": "add-banlist", "data": None}
@@ -34,10 +37,13 @@ class fake_apicaller:
                     print("Sending invalid add-banlist API command (no data)")
 
                 if type == 5:
-                    payload = {"action": "delete-banlist", "data": [{"address": "0.0.0.0", "type": "ban", "origin": "localhost", "global": 1, "note": "(added via test)"}]}
+                    payload = {"action": "delete-banlist", "data": [
+                        {"address": "0.0.0.0", "type": "ban", "origin": "localhost", "global": 1,
+                         "note": "(added via test)"}]}
                     print("Sending valid delete-banlist API command")
                 if type == 6:
-                    payload = {"action": "delete-banlist", "data": [{"address": "0.0.0.0", "type": "ban", "origin": "localhost"}]}
+                    payload = {"action": "delete-banlist",
+                               "data": [{"address": "0.0.0.0", "type": "ban", "origin": "localhost"}]}
                     print("Sending invalid delete-banlist API command (missing property)")
                 if type == 7:
                     payload = {"action": "delete-banlist", "data": None}
@@ -47,33 +53,33 @@ class fake_apicaller:
                     print("Sending invalid delete-banlist API command (no data)")
 
                 if type == 9:
-                    payload = {"action": "add-remote", "data": [{"address": "0.0.0.0", "name": "test remote"}]}
-                    print("Sending valid add-remote API command")
+                    payload = {"action": "add-mirror", "data": [{"address": "0.0.0.0", "name": "test mirror"}]}
+                    print("Sending valid add-mirror API command")
                 if type == 10:
-                    payload = {"action": "add-remote", "data": [{"address": "INSANE TEST", "name": "invalid remote"}]}
-                    print("Sending invalid add-remote API command (invalid address)")
+                    payload = {"action": "add-mirror", "data": [{"address": "INSANE TEST", "name": "invalid mirror"}]}
+                    print("Sending invalid add-mirror API command (invalid address)")
                 if type == 11:
-                    payload = {"action": "add-remote", "data": [{"address": "0.0.0.0"}]}
-                    print("Sending invalid add-remote API command (missing property)")
+                    payload = {"action": "add-mirror", "data": [{"address": "0.0.0.0"}]}
+                    print("Sending invalid add-mirror API command (missing property)")
                 if type == 12:
-                    payload = {"action": "add-remote", "data": None}
-                    print("Sending invalid add-remote API command (empty data)")
+                    payload = {"action": "add-mirror", "data": None}
+                    print("Sending invalid add-mirror API command (empty data)")
                 if type == 13:
-                    payload = {"action": "add-remote"}
-                    print("Sending invalid add-remote API command (no data)")
+                    payload = {"action": "add-mirror"}
+                    print("Sending invalid add-mirror API command (no data)")
 
                 if type == 14:
-                    payload = {"action": "delete-remote", "data": [{"address": "0.0.0.0", "name": "test remote"}]}
-                    print("Sending valid delete-remote API command")
+                    payload = {"action": "delete-mirror", "data": [{"address": "0.0.0.0", "name": "test mirror"}]}
+                    print("Sending valid delete-mirror API command")
                 if type == 15:
-                    payload = {"action": "delete-remote", "data": [{"address": "0.0.0.0"}]}
-                    print("Sending invalid delete-remote API command (missing property)")
+                    payload = {"action": "delete-mirror", "data": [{"address": "0.0.0.0"}]}
+                    print("Sending invalid delete-mirror API command (missing property)")
                 if type == 16:
-                    payload = {"action": "delete-remote", "data": None}
-                    print("Sending invalid delete-remote API command (empty data)")
+                    payload = {"action": "delete-mirror", "data": None}
+                    print("Sending invalid delete-mirror API command (empty data)")
                 if type == 17:
-                    payload = {"action": "delete-remote"}
-                    print("Sending invalid delete-remote API command (no data)")
+                    payload = {"action": "delete-mirror"}
+                    print("Sending invalid delete-mirror API command (no data)")
 
                 if type == 18:
                     payload = {"action": "set-motd", "data": [{"motd": "test motd", "motd-updated": int(time.time())}]}
@@ -92,8 +98,8 @@ class fake_apicaller:
                     payload = {"action": "get-motd", "data": [{"from": "localhost"}]}
                     print("Sending valid get-motd API command")
                 if type == 19:
-                    payload = {"action": "get-remotes", "data": [{"from": "localhost"}]}
-                    print("Sending invalid get-remotes API command")
+                    payload = {"action": "get-mirrors", "data": [{"from": "localhost"}]}
+                    print("Sending invalid get-mirrors API command")
                 if type == 20:
                     payload = {"action": "get-banlist", "data": [{"from": "localhost"}]}
                     print("Sending invalid get-banlist API command")
@@ -114,7 +120,6 @@ class fake_apicaller:
                 type += 1
                 if type > 20:
                     type = 1
-
 
 
 tester = fake_apicaller()

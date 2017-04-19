@@ -33,7 +33,10 @@ while True:
             players = int(bits[1][1:-1].split("/")[0])
             max = int(bits[1][1:-1].split("/")[1])
             name = " ".join(bits[2:]).strip()
-            payload.append({"id": id, "ip": ip, "port": port, "created": created, "lifesign": int(time.time()), "private": private, "remote": 1, "origin": "bridge", "version": version, "mode": mode, "players": players, "max": max, "name": name})
+            payload.append(
+                {"id": id, "ip": ip, "port": port, "created": created, "lifesign": int(time.time()), "private": private,
+                 "remote": 1, "origin": "bridge", "version": version, "mode": mode, "players": players, "max": max,
+                 "name": name})
         except ValueError:
             continue
 

@@ -75,6 +75,7 @@ def fancy_time(time):
 
     return string
 
+
 def whitelisted(ip):
     """
     Check if someone is whitelisted
@@ -84,6 +85,7 @@ def whitelisted(ip):
     :return: Whether the IP is whitelisted
     """
     return True if ip == "127.0.0.1" else banned(ip, whitelisted=True)
+
 
 def banned(ip, whitelisted=False):
     """
@@ -100,10 +102,12 @@ def banned(ip, whitelisted=False):
     dbconn = sqlite3.connect(config.DATABASE)
     db = dbconn.cursor()
     type = "ban" if not whitelisted else "whitelist"
-    matches = db.execute("SELECT COUNT(*) FROM banlist WHERE ? LIKE REPLACE(address, '*', '%') AND type = ?", (ip, type)).fetchone()[0]
+    matches = db.execute("SELECT COUNT(*) FROM banlist WHERE ? LIKE REPLACE(address, '*', '%') AND type = ?",
+                         (ip, type)).fetchone()[0]
     lock.release()
 
     return matches > 0
+
 
 def get_own_ip():
     """

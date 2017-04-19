@@ -38,7 +38,9 @@ def send(action, payload):
 
     return response
 
-if len(sys.argv) < 2 or sys.argv[1] not in ["ban", "unban", "whitelist", "unwhitelist", "add-banlist", "delete-banlist", "add-remote", "delete-remote", "set-motd", "reload"]:
+
+if len(sys.argv) < 2 or sys.argv[1] not in ["ban", "unban", "whitelist", "unwhitelist", "add-banlist", "delete-banlist",
+                                            "add-mirror", "delete-mirror", "set-motd", "reload"]:
     print(" Syntax: python3 manage.py [command] [arguments]\n")
     print(" Shorthand commands:")
     print("  ban [IP] (bans globally)")
@@ -50,14 +52,16 @@ if len(sys.argv) < 2 or sys.argv[1] not in ["ban", "unban", "whitelist", "unwhit
     print(" Advanced commands:")
     print("  add-banlist [IP] [ban/whitelist] [origin] [global: 1/0]")
     print("  delete-banlist [IP] [ban/whitelist] [origin] [global: 1/0]")
-    print("  add-remote [name] [IP]")
-    print("  delete-remote [name] [IP]")
+    print("  add-mirror [name] [IP]")
+    print("  delete-mirror [name] [IP]")
     print("  reload")
     sys.exit()
 
 action = sys.argv[1]
 if sys.argv[1] in ["ban", "unban", "whitelist", "unwhitelist"]:
-    action = {"ban": "add-banlist", "unban": "delete-banlist", "whitelist": "add-banlist", "unwhitelist": "delete-whitelist"}[action]
+    action = \
+    {"ban": "add-banlist", "unban": "delete-banlist", "whitelist": "add-banlist", "unwhitelist": "delete-whitelist"}[
+        action]
     type = "ban" if action.split("-")[1] == "banlist" else "whitelist"
     if len(sys.argv) != 3:
         print("Syntax:\n %s [IP]" % sys.argv[1])
@@ -72,7 +76,7 @@ elif sys.argv[1] in ["add-banlist", "delete-banlist"]:
 
     payload = {"address": sys.argv[2], "type": sys.argv[3], "origin": sys.argv[4], "global": int(sys.argv[5])}
 
-elif sys.argv[1] in ["add-remote", "delete-remote"]:
+elif sys.argv[1] in ["add-mirror", "delete-mirror"]:
     if len(sys.argv) != 4:
         print("Syntax:\n %s [name] [IP]" % sys.argv[1])
         sys.exit()
@@ -88,7 +92,6 @@ elif sys.argv[1] == "set-motd":
 
 elif sys.argv[1] == "reload":
     payload = {"from": "cli"}
-
 
 result = send(action, payload)
 

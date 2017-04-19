@@ -23,11 +23,11 @@ from helpers.port_listener import port_listener
 class listserver():
     """
     Main list server thread
-    Sets up port listeners and broadcasts data to connected remote list servers
+    Sets up port listeners and broadcasts data to connected mirror list servers
     """
     looping = True
     sockets = {}  # sockets the server is listening it
-    remotes = []  # ServerNet connections
+    mirrors = []  # ServerNet connections
     log = None
     can_auth = False
 
@@ -51,7 +51,7 @@ class listserver():
         self.log.addHandler(console)
 
         # second handler: rotating log file, max 5MB big, log all messages
-        handler = RotatingFileHandler("j2lsnek.log", maxBytes = 5242880)
+        handler = RotatingFileHandler("j2lsnek.log", maxBytes=5242880)
         handler.setLevel(logging.INFO)
         handler.setFormatter(logging.Formatter("%(asctime)-15s | %(message)s", "%d-%M-%Y %H:%M:%S"))
         self.log.addHandler(handler)
@@ -118,13 +118,13 @@ class listserver():
 
         :param action: Action with which to call the API
         :param data: Data to send
-        :param recipients: List of IPs to send to, will default to all known remotes
+        :param recipients: List of IPs to send to, will default to all known mirrors
         :return: Nothing
         """
         data = json.dumps({"action": action, "data": data, "origin": self.address})
 
         if not recipients:
-            recipients = self.remotes
+            recipients = self.mirrors
 
         for ignored in ignore:
             if ignored in recipients:
@@ -132,15 +132,15 @@ class listserver():
 
         transmitters = {}
 
-        for remote in recipients:
-            if remote == "localhost" or remote == "127.0.0.1" or remote == self.ip:
-                continue  # may be a remote but should never be sent to because it risks infinite loops
-            transmitters[remote] = broadcaster(ip=remote, data=data, ls=self)
-            transmitters[remote].start()
+        for mirror in recipients:
+            if mirror == "localhost" or mirror == "127.0.0.1" or mirror == self.ip:
+                continue  # may be a mirror but should never be sent to because it risks infinite loops
+            transmitters[mirror] = broadcaster(ip=mirror, data=data, ls=self)
+            transmitters[mirror].start()
 
         return
 
-    def halt(self, reason = "Unknown error"):
+    def halt(self, reason="Unknown error"):
         """
         Halt program execution
 
@@ -185,9 +185,9 @@ class listserver():
             db.execute("CREATE TABLE banlist (address TEXT, type TEXT, origin TEXT, note TEXT, global INTEGER)")
 
         try:
-            test = db.execute("SELECT * FROM remotes")
+            test = db.execute("SELECT * FROM mirrors")
         except sqlite3.OperationalError:
-            db.execute("CREATE TABLE remotes (name TEXT, address TEXT)")
+            db.execute("CREATE TABLE mirrors (name TEXT, address TEXT)")
 
         # if this method is run, it means the list server is restarted, which breaks all open connections, so clear all
         # servers and such - banlist will be synced upon restart
@@ -196,38 +196,38 @@ class listserver():
 
         result = dbconn.commit()
 
-        remotes = db.execute("SELECT * FROM remotes").fetchall()
-        if remotes:
-            self.remotes = [socket.gethostbyname(remote["address"]) for remote in remotes]  # use IPs
+        mirrors = db.execute("SELECT * FROM mirrors").fetchall()
+        if mirrors:
+            self.mirrors = [socket.gethostbyname(mirror["address"]) for mirror in mirrors]  # use IPs
 
         db.close()
         dbconn.close()
 
         return result
 
-    def add_remote(self, address):
+    def add_mirrore(self, address):
         """
-        Add ServerNet remote
+        Add ServerNet mirror
 
-        Does not add remote to database (that's the APIs' job) but only to internal list
+        Does not add mirror to database (that's the APIs' job) but only to internal list
 
-        :param address: Address (IP) of ServerNet remote
+        :param address: Address (IP) of ServerNet mirror
         :return:
         """
-        if address not in self.remotes:
-            self.remotes.append(address)
+        if address not in self.mirrors:
+            self.mirrors.append(address)
 
-    def delete_remote(self, address):
+    def delete_mirror(self, address):
         """
-        Delete ServerNet remote
+        Delete ServerNet mirror
 
-        Does not delete remote from database (that's the APIs' job) but only from internal list
+        Does not delete mirror from database (that's the APIs' job) but only from internal list
 
-        :param address: Address (IP) of ServerNet remote
+        :param address: Address (IP) of ServerNet mirror
         :return:
         """
-        if address in self.remotes:
-            self.remotes.remove(address)
+        if address in self.mirrors:
+            self.mirrors.remove(address)
 
     def reload(self):
         self.log.warning("Reloading modules...")

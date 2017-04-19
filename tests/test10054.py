@@ -14,6 +14,7 @@ class fake_server():
     Simulate a jazz jackrabbit 2 server and send various types of updates to test whether list server
     is able to handle them
     """
+
     def run(self):
         """
         Open a socket on port 10054 with the list server, send handshake, and then send a random type of update every
@@ -53,7 +54,7 @@ class fake_server():
 
                 # update server name, semi-random "x is a random number" string
                 elif type == 2:
-                    number = random.randint(11,99)
+                    number = random.randint(11, 99)
                     name = "%s is a random number" % number
                     message = bytearray([0x02])
                     message.extend(name.encode("ascii"))
@@ -68,7 +69,7 @@ class fake_server():
 
                 # public/private, either 0 or 1 randomly
                 elif type == 4:
-                    priv = random.randint(0,1)
+                    priv = random.randint(0, 1)
                     connection.sendall(bytes([0x04, priv]))
                     print("Sent: set public/private to %s" % priv)
 

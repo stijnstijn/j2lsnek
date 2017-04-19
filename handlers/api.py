@@ -10,23 +10,27 @@ from helpers.jj2server import jj2server
 class servernet_handler(port_handler):
     """
     Sync data between list servers
-
-    Lots of checking to ensure that incoming data is kosher
     """
+
     def handle_data(self):
+        """
+        Handle incoming API calls
+
+        Lots of checking to ensure that incoming data is kosher, then processing and passing it on to other mirrors
+        """
         self.client.settimeout(5)  # should really be enough
         loops = 0
         payload = None
         self.buffer = bytearray()
 
-        # only allowed remotes, plus localhost since that's where admin interfaces live
+        # only allowed mirrors, plus localhost since that's where admin interfaces live
         if self.port == 10059:
             if self.ip != "127.0.0.1":
                 self.ls.log.error("Outside IP %s tried connection to remote admin API" % self.ip)
                 self.end()
                 return
-            # SSL validity check here?
-        elif self.ip not in self.ls.remotes:
+                # SSL validity check here?
+        elif self.ip not in self.ls.mirrors:
             self.ls.log.error("Unauthorized ServerNet connection from %s:%s" % (self.ip, self.port))
             self.end()
             return
@@ -82,7 +86,8 @@ class servernet_handler(port_handler):
 
         # switch on the engine, pass it on
         no_broadcast = ["hello", "request", "delist"]
-        if len(pass_on) > 0 and payload["action"] not in no_broadcast and payload["action"][0:4] != "get-" and payload["origin"] == "web":
+        if len(pass_on) > 0 and payload["action"] not in no_broadcast and payload["action"][0:4] != "get-" and payload[
+            "origin"] == "web":
             self.ls.broadcast(action=payload["action"], data=pass_on, ignore=[self.ip])
 
         self.end()
@@ -107,7 +112,8 @@ class servernet_handler(port_handler):
             try:
                 [server.set(key, data[key]) for key in data]
             except IndexError:
-                self.ls.log.error("Received incomplete server data from ServerNet connection %s (unknown field %s)" % (self.ip, key))
+                self.ls.log.error(
+                    "Received incomplete server data from ServerNet connection %s (unknown field %s)" % (self.ip, key))
                 server.forget()
                 return False
             server.set("remote", 1)
@@ -118,9 +124,11 @@ class servernet_handler(port_handler):
                 data["origin"] = self.ls.address
 
             try:
-                if not self.fetch_one("SELECT * FROM banlist WHERE address = ? AND origin = ? AND type = ? AND note = ?",
-                                         (data["address"], data["origin"], data["type"], data["note"])):
-                    self.query("INSERT INTO banlist (address, origin, type, note) VALUES (?, ?, ?, ?)", (data["address"], data["origin"], data["type"], data["note"]))
+                if not self.fetch_one(
+                        "SELECT * FROM banlist WHERE address = ? AND origin = ? AND type = ? AND note = ?",
+                        (data["address"], data["origin"], data["type"], data["note"])):
+                    self.query("INSERT INTO banlist (address, origin, type, note) VALUES (?, ?, ?, ?)",
+                               (data["address"], data["origin"], data["type"], data["note"]))
             except KeyError:
                 self.ls.log.error("Received incomplete banlist entry from ServerNet connection %s" % self.ip)
                 return False
@@ -134,7 +142,7 @@ class servernet_handler(port_handler):
 
             try:
                 self.fetch_one("DELETE FROM banlist WHERE address = ? AND origin = ? AND type = ? AND note = ?",
-                                (data["address"], data["origin"], data["type"], data["note"]))
+                               (data["address"], data["origin"], data["type"], data["note"]))
             except KeyError:
                 self.ls.log.error("Received incomplete banlist deletion request from ServerNet connection %s" % self.ip)
                 return False
@@ -153,40 +161,43 @@ class servernet_handler(port_handler):
 
             self.ls.log.info("Delisted server via ServerNet connection %s" % self.ip)
 
-        # add remote
-        elif action == "add-remote":
+        # add mirror
+        elif action == "add-mirror":
             try:
-                if self.fetch_one("SELECT * FROM remotes WHERE name = ? OR address = ?", (data["name"], data["address"])):
-                    self.ls.log.info("Remote %s tried adding remote %s, but name or address already known" % (self.ip, data["address"]))
+                if self.fetch_one("SELECT * FROM mirrors WHERE name = ? OR address = ?",
+                                  (data["name"], data["address"])):
+                    self.ls.log.info("Mirror %s tried adding mirror %s, but name or address already known" % (
+                    self.ip, data["address"]))
                     return True
             except KeyError:
-                self.ls.log.error("Received incomplete remote info from ServerNet connection %s" % self.ip)
+                self.ls.log.error("Received incomplete mirror info from ServerNet connection %s" % self.ip)
                 return False
 
             if data["name"] == "web":
-                self.ls.log.error("'web' is a reserved name for remotes, %s tried using it" % self.ip)
+                self.ls.log.error("'web' is a reserved name for mirrors, %s tried using it" % self.ip)
                 return False
 
-            self.query("INSERT INTO remotes (name, address) VALUES (?, ?)", (data["name"], data["address"]))
-            self.ls.add_remote(data["address"])
+            self.query("INSERT INTO mirrors (name, address) VALUES (?, ?)", (data["name"], data["address"]))
+            self.ls.add_mirror(data["address"])
             self.ls.broadcast(action="hello", data=[{"from": self.ls.address}], recipients=[data["address"]])
 
-            self.ls.log.info("Added remote %s via ServerNet connection %s" % (data["address"], self.ip))
+            self.ls.log.info("Added mirror %s via ServerNet connection %s" % (data["address"], self.ip))
 
-        # delete remote
-        elif action == "delete-remote":
+        # delete mirror
+        elif action == "delete-mirror":
             try:
-                if not self.fetch_one("SELECT * FROM remotes WHERE name = ? AND address = ?", (data["name"], data["address"])):
-                    self.ls.log.info("Remote %s tried removing remote %s, but not known" % (self.ip, data["address"]))
+                if not self.fetch_one("SELECT * FROM mirrors WHERE name = ? AND address = ?",
+                                      (data["name"], data["address"])):
+                    self.ls.log.info("Mirror %s tried removing mirror %s, but not known" % (self.ip, data["address"]))
                     return True
             except KeyError:
-                self.ls.log.error("Received incomplete remote deletion request from ServerNet connection %s" % self.ip)
+                self.ls.log.error("Received incomplete mirror deletion request from ServerNet connection %s" % self.ip)
                 return False
 
-            self.query("DELETE FROM remotes WHERE name = ? AND address = ?", (data["name"], data["address"]))
-            self.ls.delete_remote(data["address"])
+            self.query("DELETE FROM mirrors WHERE name = ? AND address = ?", (data["name"], data["address"]))
+            self.ls.delete_mirror(data["address"])
 
-            self.ls.log.info("Deleted remote %s via ServerNet connection %s" % (data["address"], self.ip))
+            self.ls.log.info("Deleted mirror %s via ServerNet connection %s" % (data["address"], self.ip))
 
         # motd updates
         elif action == "set-motd":
@@ -214,19 +225,24 @@ class servernet_handler(port_handler):
 
             # servers
             servers = self.fetch_all("SELECT * FROM servers WHERE players > 0 AND origin = ?", (self.ls.address,))
-            self.ls.broadcast(action="server", data=[{key: server[key] for key in server.keys()} for server in servers], recipients=[self.ip])
+            self.ls.broadcast(action="server", data=[{key: server[key] for key in server.keys()} for server in servers],
+                              recipients=[self.ip])
 
             # banlist
             banlist = self.fetch_all("SELECT * FROM banlist WHERE global = 1 AND origin = ?", (self.ls.address,))
-            self.ls.broadcast(action="ban", data=[{key: ban[key] for key in ban.keys()} for ban in banlist], recipients=[self.ip])
+            self.ls.broadcast(action="ban", data=[{key: ban[key] for key in ban.keys()} for ban in banlist],
+                              recipients=[self.ip])
 
-            # remotes
-            remotes = self.fetch_all("SELECT * FROM remotes")
-            self.ls.broadcast(action="add-remote", data=[{key: remote[key] for key in remote.keys()} for remote in remotes], recipients=[self.ip])
+            # mirrors
+            mirrors = self.fetch_all("SELECT * FROM mirrors")
+            self.ls.broadcast(action="add-mirror",
+                              data=[{key: mirror[key] for key in mirror.keys()} for mirror in mirrors],
+                              recipients=[self.ip])
 
             # motd
             settings = self.fetch_all("SELECT * FROM settings WHERE item IN (?, ?)", ("motd", "motd-updated"))
-            self.ls.broadcast(action="set-motd", data=[{item["item"]: item["value"] for item in settings}], recipients=[self.ip])
+            self.ls.broadcast(action="set-motd", data=[{item["item"]: item["value"] for item in settings}],
+                              recipients=[self.ip])
 
             self.ls.log.info("Sent sync data to ServerNet connection %s" % self.ip)
 
@@ -253,10 +269,10 @@ class servernet_handler(port_handler):
 
             self.msg(json.dumps(motd["value"]))
 
-        # retrieve remotes
-        elif action == "get-remotes":
-            remotes = self.fetch_all("SELECT * FROM remotes")
+        # retrieve mirrors
+        elif action == "get-mirrors":
+            mirrors = self.fetch_all("SELECT * FROM mirrors")
 
-            self.msg(json.dumps([dict(remotes[i]) for i, value in enumerate(remotes)]))
+            self.msg(json.dumps([dict(mirrors[i]) for i, value in enumerate(mirrors)]))
 
         return True
