@@ -72,7 +72,6 @@ class servernet_handler(port_handler):
         # switch on the engine, pass it on
         no_broadcast = ["hello", "request", "delist"]
         if len(pass_on) > 0 and payload["action"] not in no_broadcast and payload["action"][0:4] != "get-" and payload["origin"] == "web":
-            self.ls.log.warning("passing it on...")
             self.ls.broadcast(action=payload["action"], data=pass_on, ignore=[self.ip])
 
         self.end()

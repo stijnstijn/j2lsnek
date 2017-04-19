@@ -13,7 +13,7 @@ class port_handler(threading.Thread):
     buffer = bytearray()
     locked = False
 
-    def __init__(self, client=None, address=None, ls=None):
+    def __init__(self, client=None, address=None, ls=None, port=None):
         """
         Check if all data is available and assign object vars
 
@@ -23,13 +23,13 @@ class port_handler(threading.Thread):
         """
         threading.Thread.__init__(self)
 
-        if not client or not address or not ls:
+        if not client or not address or not ls or not port:
             raise TypeError("port_handler expects client, address and list server object as arguments")
 
         self.client = client
         self.address = address
         self.ip = self.address[0]
-        self.port = int(self.address[1])
+        self.port = port
         self.key = self.address[0] + ":" + str(self.address[1])
         self.ls = ls
 

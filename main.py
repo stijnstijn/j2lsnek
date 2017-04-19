@@ -306,17 +306,17 @@ class port_listener(threading.Thread):
             key = address[0] + ":" + str(address[1])
 
             if self.port == 10053:
-                self.connections[key] = binary_handler(client=client, address=address, ls=self.ls)
+                self.connections[key] = binary_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10054:
-                self.connections[key] = server_handler(client=client, address=address, ls=self.ls)
+                self.connections[key] = server_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10055:
-                self.connections[key] = stats_handler(client=client, address=address, ls=self.ls)
+                self.connections[key] = stats_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10056 or self.port == 10059:
-                self.connections[key] = servernet_handler(client=client, address=address, ls=self.ls)
+                self.connections[key] = servernet_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10057:
-                self.connections[key] = ascii_handler(client=client, address=address, ls=self.ls)
+                self.connections[key] = ascii_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10058:
-                self.connections[key] = motd_handler(client=client, address=address, ls=self.ls)
+                self.connections[key] = motd_handler(client=client, address=address, ls=self.ls, port=self.port)
             else:
                 raise NotImplementedError("No handler class available for port %s" % self.port)
             self.connections[key].start()
