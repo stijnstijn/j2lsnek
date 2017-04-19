@@ -191,7 +191,7 @@ class api_handler(port_handler):
 
         # retrieve remotes
         elif payload["action"] == "get-remotes":
-            remotes = self.fetch_one("SELECT * FROM remotes")
+            remotes = self.fetch_all("SELECT * FROM remotes")
 
             self.msg(json.dumps([dict(remotes[i]) for i, value in enumerate(remotes)]))
 
