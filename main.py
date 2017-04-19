@@ -236,6 +236,7 @@ class listserver():
             self.remotes.remove(address)
 
     def reload(self):
+        self.log.warning("Reloading modules...")
         importlib.reload(config)
 
 
