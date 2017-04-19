@@ -189,6 +189,12 @@ class api_handler(port_handler):
 
             self.msg(json.dumps(motd["value"]))
 
+        # retrieve remotes
+        elif payload["action"] == "get-remotes":
+            remotes = self.fetch_one("SELECT * FROM remotes")
+
+            self.msg(json.dumps([dict(remotes[i]) for i, value in enumerate(remotes)]))
+
         # initiate reload
         elif payload["action"] == "reload":
             self.ls.reload()
