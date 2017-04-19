@@ -83,7 +83,13 @@ class listserver():
         # let other list servers know we're live and ask them for the latest
         self.broadcast(action="request", data=[{"from": self.address}])
 
-        self.listen_to([10053, 10054, 10055, 10056, 10057, 10058, 10059])
+        # only listen on port 10059 if auth mechanism is available
+        ports = [10053, 10054, 10055, 10056, 10057, 10058, 10059]
+        if self.can_auth:
+            ports.remove(10059)
+            self.ls.log.warning("Not listening on port 10059 as auth files are not available")
+
+        self.listen_to(ports)
 
     def listen_to(self, ports):
         """
@@ -326,17 +332,14 @@ class port_listener(threading.Thread):
                 self.connections[key] = server_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10055:
                 self.connections[key] = stats_handler(client=client, address=address, ls=self.ls, port=self.port)
-            elif self.port == 10056:
+            elif self.port == 10056 or self.port == 10059:
                 self.connections[key] = servernet_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10057:
                 self.connections[key] = ascii_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10058:
                 self.connections[key] = motd_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10059:
-                if self.ls.can_auth:
-                    self.connections[key] = servernet_handler(client=client, address=address, ls=self.ls, port=self.port)
-                else:
-                    self.ls.log.warning("Not listening on port 10059 as auth files are not available")
+                self.connections[key] = servernet_handler(client=client, address=address, ls=self.ls, port=self.port)
             else:
                 raise NotImplementedError("No handler class available for port %s" % self.port)
             self.connections[key].start()
