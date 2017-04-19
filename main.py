@@ -204,7 +204,8 @@ class listserver():
         :param address: Address (IP) of ServerNet remote
         :return:
         """
-        self.remotes.append(address)
+        if address not in self.remotes:
+            self.remotes.append(address)
 
     def delete_remote(self, address):
         """
