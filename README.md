@@ -1,7 +1,7 @@
 j2lsnek 🐍
 ===
 
-Jazz Jackrabbit 2 List Server: New Edition k. Run `main.py` to start serving lists. Needs Python 3.
+Jazz Jackrabbit 2 List Server: New Edition k. Run `j2lsnek.py` to start serving lists. Needs Python 3.
 
 The "list server" is what Jazz Jackrabbit 2 multiplayer servers connect to to let people know they're live. Other people
 connect to the list server to retrieve an up-to-date list of servers they can join. But if you're reading this you
