@@ -103,7 +103,6 @@ class servernet_handler(port_handler):
             except IndexError:
                 self.ls.log.error("Received incomplete server data from ServerNet connection %s (unknown field %s)" % (self.ip, key))
                 server.forget()
-                self.end()
                 return False
             server.set("remote", 1)
 
@@ -118,7 +117,6 @@ class servernet_handler(port_handler):
                     self.query("INSERT INTO banlist (address, origin, type, note) VALUES (?, ?, ?, ?)", (data["address"], data["origin"], data["type"], data["note"]))
             except KeyError:
                 self.ls.log.error("Received incomplete banlist entry from ServerNet connection %s" % self.ip)
-                self.end()
                 return False
 
             self.ls.log.info("Added banlist entry via ServerNet connection %s" % self.ip)
@@ -133,7 +131,6 @@ class servernet_handler(port_handler):
                                 (data["address"], data["origin"], data["type"], data["note"]))
             except KeyError:
                 self.ls.log.error("Received incomplete banlist deletion request from ServerNet connection %s" % self.ip)
-                self.end()
                 return False
 
             self.ls.log.info("Removed banlist entry via ServerNet connection %s" % self.ip)
@@ -146,7 +143,6 @@ class servernet_handler(port_handler):
                     server.forget()
             except KeyError:
                 self.ls.log.error("Received incomplete server data from ServerNet connection %s" % self.ip)
-                self.end()
                 return False
 
             self.ls.log.info("Delisted server via ServerNet connection %s" % self.ip)
@@ -156,16 +152,13 @@ class servernet_handler(port_handler):
             try:
                 if self.fetch_one("SELECT * FROM remotes WHERE name = ? OR address = ?", (data["name"], data["address"])):
                     self.ls.log.info("Remote %s tried adding remote %s, but name or address already known" % (self.ip, data["address"]))
-                    self.end()
                     return True
             except KeyError:
                 self.ls.log.error("Received incomplete remote info from ServerNet connection %s" % self.ip)
-                self.end()
                 return False
 
             if data["name"] == "web":
                 self.ls.log.error("'web' is a reserved name for remotes, %s tried using it" % self.ip)
-                self.end()
                 return False
 
             self.query("INSERT INTO remotes (name, address) VALUES (?, ?)", (data["name"], data["address"]))
@@ -179,11 +172,9 @@ class servernet_handler(port_handler):
             try:
                 if not self.fetch_one("SELECT * FROM remotes WHERE name = ? AND address = ?", (data["name"], data["address"])):
                     self.ls.log.info("Remote %s tried removing remote %s, but not known" % (self.ip, data["address"]))
-                    self.end()
                     return True
             except KeyError:
                 self.ls.log.error("Received incomplete remote deletion request from ServerNet connection %s" % self.ip)
-                self.end()
                 return False
 
             self.query("DELETE FROM remotes WHERE name = ? AND address = ?", (data["name"], data["address"]))
@@ -197,11 +188,9 @@ class servernet_handler(port_handler):
                 timestamp = self.fetch_one("SELECT value FROM settings WHERE item = ?", ("motd-updated",))
                 if timestamp and int(timestamp["value"]) > (data["motd-updated"]):
                     self.ls.log.info("Received MOTD update from %s, but own MOTD was more recent" % self.ip)
-                    self.end()
                     return False
             except KeyError:
                 self.ls.log.error("Received incomplete MOTD from ServerNet connection %s" % self.ip)
-                self.end()
                 return False
 
             self.query("UPDATE settings SET value = ? WHERE item = ?", (data["motd"], "motd"))
