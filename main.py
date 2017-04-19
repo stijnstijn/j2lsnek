@@ -264,7 +264,7 @@ class port_listener(threading.Thread):
         :return: Nothing
         """
         server = socket.socket()
-        address = "" if port != 10059 else "localhost" # 10059 should only be accessible via localhost
+        address = "" if self.port != 10059 else "localhost" # 10059 should only be accessible via localhost
 
         try:
             server.bind((address, self.port))
