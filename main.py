@@ -123,7 +123,7 @@ class listserver():
         transmitters = {}
 
         for remote in recipients:
-            if remote == "localhost" or remote != "127.0.0.1":
+            if remote == "localhost" or remote == "127.0.0.1":
                 continue  # may be a remote but should never be sent to because it risks infinite loops
             transmitters[remote] = servernet_sender(ip=remote, data=data, ls=self)
             transmitters[remote].start()

@@ -152,7 +152,7 @@ class servernet_handler(port_handler):
                 return
 
             timestamp = self.fetch_one("SELECT value FROM settings WHERE item = ?", ("motd-updated",))
-            if timestamp and "updated" in payload["data"] and int(timestamp) > (payload["data"]["updated"]):
+            if timestamp and "updated" in payload["data"] and int(timestamp["value"]) > (payload["data"]["updated"]):
                 self.ls.log.info("Received MOTD update from %s, but own MOTD was more recent" % self.ip)
                 self.end()
 
