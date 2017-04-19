@@ -37,6 +37,13 @@ class stats_handler(port_handler):
             players += server["players"]
             max += server["max"]
 
+        # don't count yourself as remote
+        remotes = self.ls.remotes
+        if self.ls.ip in remotes:
+            remotes.remove(self.ls.ip)
+        if "127.0.0.1" in remotes:
+            remotes.remove("127.0.0.1")
+
         stats  = "+----------------------------------------------------------------------+\n\n"
         stats += "                Jazz Jackrabbit 2 List Server statistics\n"
         stats += "\n"
@@ -50,9 +57,9 @@ class stats_handler(port_handler):
         stats += "\n"
         stats += "  Players in servers               : [" + str(players) + "/" + str(max) + "]\n"
         stats += "\n"
-        stats += "  Connected list server mirrors    : " + str(len(self.ls.remotes)) + " remote list servers\n"
+        stats += "  Connected list server mirrors    : " + str(len(remotes)) + " remote list servers\n"
 
-        for remote in self.ls.remotes:
+        for remote in remotes:
             stats += "                                     -> " + remote + "\n"
 
         stats += "\n"
