@@ -108,10 +108,9 @@ class servernet_handler(port_handler):
                 data["origin"] = self.ls.address
 
             try:
-                exists = self.fetch_one("SELECT COUNT(*) FROM banlist WHERE address = ? AND origin = ? AND type = ? AND note = ?",
-                                         (data["address"], data["origin"], data["type"], data["note"]))
-                if not exists:
-                    self.query("INSERT INTO banlist (address, origin, type) VALUES (?, ?, ?)", (data["address"], data["origin"], data["type"]))
+                if not self.fetch_one("SELECT * FROM banlist WHERE address = ? AND origin = ? AND type = ? AND note = ?",
+                                         (data["address"], data["origin"], data["type"], data["note"])):
+                    self.query("INSERT INTO banlist (address, origin, type, note) VALUES (?, ?, ?, ?)", (data["address"], data["origin"], data["type"], data["note"]))
             except KeyError:
                 self.ls.log.error("Received incomplete banlist entry from ServerNet connection %s" % self.ip)
                 self.end()
