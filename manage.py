@@ -5,6 +5,7 @@ Allows giving API commands via a command-line interface, a GUI would be nicer th
 """
 import socket
 import json
+import time
 import sys
 import ssl
 
@@ -37,7 +38,7 @@ def send(action, payload):
 
     return response
 
-if len(sys.argv) < 2 or sys.argv[1] not in ["ban", "unban", "whitelist", "unwhitelist", "add-banlist", "delete-banlist", "add-remote", "delete-remote", "set-motd"]:
+if len(sys.argv) < 2 or sys.argv[1] not in ["ban", "unban", "whitelist", "unwhitelist", "add-banlist", "delete-banlist", "add-remote", "delete-remote", "set-motd", "reload"]:
     print(" Syntax: python3 manage.py [command] [arguments]\n")
     print(" Shorthand commands:")
     print("  ban [IP] (bans globally)")
@@ -51,6 +52,7 @@ if len(sys.argv) < 2 or sys.argv[1] not in ["ban", "unban", "whitelist", "unwhit
     print("  delete-banlist [IP] [ban/whitelist] [origin] [global: 1/0]")
     print("  add-remote [name] [IP]")
     print("  delete-remote [name] [IP]")
+    print("  reload")
     sys.exit()
 
 action = sys.argv[1]
@@ -82,7 +84,10 @@ elif sys.argv[1] == "set-motd":
         print("Syntax:\n set-motd [text]")
         sys.exit()
 
-    payload = {"motd": " ".join(sys.argv[2:])}
+    payload = {"motd": " ".join(sys.argv[2:]), "motd-updated": int(time.time())}
+
+elif sys.argv[1] == "reload":
+    payload = {"from": "cli"}
 
 
 result = send(action, payload)
