@@ -1,6 +1,6 @@
-import importlib
 import threading
 import sqlite3
+import socket
 import config
 import time
 
@@ -89,6 +89,7 @@ class port_handler(threading.Thread):
 
         :return: Return result of socket.close()
         """
+        self.client.shutdown(socket.SHUT_RDWR)
         return self.client.close()
 
     def cleanup(self):
