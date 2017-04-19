@@ -21,7 +21,7 @@ class servernet_handler(port_handler):
 
         # only allowed remotes, plus localhost since that's where admin interfaces live
         if self.ip not in self.ls.remotes and not (self.port == 10059 and self.ip == "127.0.0.1"):
-            self.ls.log.error("Unauthorized ServerNet connection from %s" % self.ip)
+            self.ls.log.error("Unauthorized ServerNet connection from %s:%s" % (self.ip, self.port))
             self.end()
             return
 
