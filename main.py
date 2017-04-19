@@ -12,6 +12,7 @@ import sqlite3
 import socket
 import json
 import time
+import ssl
 import os
 from logging.handlers import RotatingFileHandler
 
@@ -34,6 +35,7 @@ class listserver():
     sockets = {}  # sockets the server is listening it
     remotes = []  # ServerNet connections
     log = None
+    can_auth = False
 
     def __init__(self):
         """
@@ -59,6 +61,9 @@ class listserver():
         handler.setLevel(logging.INFO)
         handler.setFormatter(logging.Formatter("%(asctime)-15s | %(message)s", "%d-%M-%Y %H:%M:%S"))
         self.log.addHandler(handler)
+
+        # check if certificates are available for auth and encryption of port 10059 traffic
+        can_auth = os.path.isfile(config.CERTFILE) and os.path.isfile(config.KEYFILE)
 
         # say hello
         os.system("cls" if os.name == "nt" else "clear")  # clear screen
@@ -194,7 +199,7 @@ class listserver():
         remotes = db.execute("SELECT * FROM remotes").fetchall()
         if remotes:
             self.remotes = [socket.gethostbyname(remote["address"]) for remote in remotes]  # use IPs
-            
+
         db.close()
         dbconn.close()
 
@@ -259,7 +264,8 @@ class port_listener(threading.Thread):
         :return: Nothing
         """
         server = socket.socket()
-        address = "" if self.port != 10059 else "localhost"  # 10059 should only be accessible via localhost
+        address = "" if port != 10059 else "localhost" # 10059 should only be accessible via localhost
+
         try:
             server.bind((address, self.port))
         except OSError:
@@ -276,6 +282,10 @@ class port_listener(threading.Thread):
         while self.looping:
             try:
                 client, address = server.accept()
+                # in case of port 10059, we authenticate via SSL certificates, since else anyone running on localhost
+                # may interact with the list server API
+                if self.port == 10059:
+                    client, address = ssl.wrap_socket(client, server_side=True, cert_reqs=ssl.CERT_REQUIRED, certfile=config.CERTFILE, keyfile=config.KEYFILE)
             except socket.timeout:
                 continue # no problemo, just listen again - this only times out so it won't hang the entire app when
                          # trying to exit, as there's no other way to easily interrupt accept()
