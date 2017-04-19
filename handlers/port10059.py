@@ -113,7 +113,6 @@ class api_handler(port_handler):
                 self.end()
                 return
 
-            self.ls.log(repr(payload))
             self.query("DELETE FROM banlist WHERE address = ? AND type = ? AND origin = ? AND global = ? AND note = ?",
                             (payload["data"]["address"], payload["data"]["type"], payload["data"]["origin"], payload["data"]["global"], payload["data"]["note"]))
 
