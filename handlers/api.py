@@ -20,7 +20,13 @@ class servernet_handler(port_handler):
         self.buffer = bytearray()
 
         # only allowed remotes, plus localhost since that's where admin interfaces live
-        if self.ip not in self.ls.remotes and not (self.port == 10059 and self.ip == "127.0.0.1"):
+        if self.port == 10059:
+            if self.ip != "127.0.0.1":
+                self.ls.log.error("Outside IP %s tried connection to remote admin API" % self.ip)
+                self.end()
+                return
+            # SSL validity check here?
+        elif self.ip not in self.ls.remotes:
             self.ls.log.error("Unauthorized ServerNet connection from %s:%s" % (self.ip, self.port))
             self.end()
             return

@@ -281,14 +281,18 @@ class port_listener(threading.Thread):
 
         while self.looping:
             try:
-                client, address = server.accept()
                 # in case of port 10059, we authenticate via SSL certificates, since else anyone running on localhost
                 # may interact with the list server API
                 if self.port == 10059:
-                    client, address = ssl.wrap_socket(client, server_side=True, cert_reqs=ssl.CERT_REQUIRED, certfile=config.CERTFILE, keyfile=config.KEYFILE)
+                    client = ssl.wrap_socket(client, server_side=True, cert_reqs=ssl.CERT_REQUIRED, certfile=config.CERTFILE, keyfile=config.KEYFILE)
+
+                else:
+                    client, address = server.accept()
             except socket.timeout:
                 continue # no problemo, just listen again - this only times out so it won't hang the entire app when
                          # trying to exit, as there's no other way to easily interrupt accept()
+            except ssl.SSLError as e:
+                self.ls.log.error("Could not establish SSL connection: %s" % e)
 
             # check if banned (unless whitelisted)
             is_whitelisted = whitelisted(address[0])  # needed later, so save value
@@ -322,12 +326,17 @@ class port_listener(threading.Thread):
                 self.connections[key] = server_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10055:
                 self.connections[key] = stats_handler(client=client, address=address, ls=self.ls, port=self.port)
-            elif self.port == 10056 or self.port == 10059:
+            elif self.port == 10056:
                 self.connections[key] = servernet_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10057:
                 self.connections[key] = ascii_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10058:
                 self.connections[key] = motd_handler(client=client, address=address, ls=self.ls, port=self.port)
+            elif self.port == 10059:
+                if self.ls.can_auth:
+                    self.connections[key] = servernet_handler(client=client, address=address, ls=self.ls, port=self.port)
+                else:
+                    self.ls.log.warning("Not listening on port 10059 as auth files are not available")
             else:
                 raise NotImplementedError("No handler class available for port %s" % self.port)
             self.connections[key].start()

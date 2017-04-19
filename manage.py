@@ -6,6 +6,7 @@ Allows giving API commands via a command-line interface, a GUI would be nicer th
 import socket
 import json
 import sys
+import ssl
 
 
 def send(action, payload):
@@ -19,16 +20,20 @@ def send(action, payload):
     """
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connection.settimeout(5)
-    connection.connect(("localhost", 10059))
+    ssl_sock = ssl.wrap_socket(connection, ca_certs="server.crt", cert_reqs=ssl.CERT_REQUIRED)
+    ssl_sock.connect(("localhost", 10059))
 
     msg = json.dumps({"action": action, "data": [payload], "origin": "web"})
-    connection.sendall(msg.encode("ascii"))
+    ssl_sock.sendall(msg.encode("ascii"))
 
     try:
-        response = connection.recv(2048)
+        response = ssl_sock.recv(2048)
         response = response.decode("ascii")
     except socket.timeout:
         response = "(Connection timed out)"
+
+    ssl_sock.shutdown(socket.SHUT_RDWR)
+    ssl_sock.close()
 
     return response
 
