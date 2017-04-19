@@ -173,7 +173,7 @@ class servernet_handler(port_handler):
         # delete remote
         elif action == "delete-remote":
             try:
-                if self.fetch_one("SELECT * FROM remotes WHERE name = ? AND address = ?", (data["name"], data["address"])):
+                if not self.fetch_one("SELECT * FROM remotes WHERE name = ? AND address = ?", (data["name"], data["address"])):
                     self.ls.log.info("Remote %s tried removing remote %s, but not known" % (self.ip, data["address"]))
                     self.end()
                     return True
