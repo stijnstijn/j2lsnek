@@ -186,7 +186,7 @@ class servernet_handler(port_handler):
         elif action == "set-motd":
             try:
                 timestamp = self.fetch_one("SELECT value FROM settings WHERE item = ?", ("motd-updated",))
-                if timestamp and int(timestamp["value"]) > (data["motd-updated"]):
+                if timestamp and int(timestamp["value"]) > int(data["motd-updated"]):
                     self.ls.log.info("Received MOTD update from %s, but own MOTD was more recent" % self.ip)
                     return False
             except KeyError:
