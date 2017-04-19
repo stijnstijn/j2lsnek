@@ -76,9 +76,25 @@ def fancy_time(time):
     return string
 
 def whitelisted(ip):
+    """
+    Check if someone is whitelisted
+
+    Really a shorthand call to banned(), since both share the same list of addresses
+    :param ip: IP to check
+    :return: Whether the IP is whitelisted
+    """
     return True if ip == "127.0.0.1" else banned(ip, whitelisted=True)
 
 def banned(ip, whitelisted=False):
+    """
+    Check if someone is banned or whitelisted
+
+    Checks against banlist in database, which is managed via the API.
+
+    :param ip: IP to Check
+    :param whitelisted: If True, check if whitelisted
+    :return: Whether the IP is banned/whitelisted
+    """
     lock = threading.Lock()
     lock.acquire()
     dbconn = sqlite3.connect(config.DATABASE)
@@ -90,9 +106,18 @@ def banned(ip, whitelisted=False):
     return matches > 0
 
 def get_own_ip():
+    """
+    Get outside IP address of current internet connection
+
+    Connects to google's DNS server and sees what IP that gives us. So reliant on that server being up, but that's a
+    rather safe assumption.
+
+    :return: IP address
+    """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     ip = s.getsockname()[0]
+    s.shutdown(socket.SHUT_RDWR)
     s.close()
 
     return ip
