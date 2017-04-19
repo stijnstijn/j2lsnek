@@ -22,7 +22,7 @@ from handlers.statistics import stats_handler
 from handlers.api import servernet_handler
 from handlers.asciilist import ascii_handler
 from handlers.motd import motd_handler
-from helpers.functions import banned, whitelisted
+from helpers.functions import banned, whitelisted, get_own_ip
 
 
 class listserver():
@@ -42,6 +42,7 @@ class listserver():
 
         self.start = int(time.time())
         self.address = socket.gethostname()
+        self.ip = get_own_ip()
 
         # initialise logger
         self.log = logging.getLogger("j2lsnek")
@@ -127,7 +128,7 @@ class listserver():
         transmitters = {}
 
         for remote in recipients:
-            if remote == "localhost" or remote == "127.0.0.1":
+            if remote == "localhost" or remote == "127.0.0.1" or remote == self.ip:
                 continue  # may be a remote but should never be sent to because it risks infinite loops
             transmitters[remote] = servernet_sender(ip=remote, data=data, ls=self)
             transmitters[remote].start()
@@ -192,7 +193,7 @@ class listserver():
 
         remotes = db.execute("SELECT * FROM remotes").fetchall()
         if remotes:
-            self.remotes = [remote["address"] for remote in remotes]
+            self.remotes = [socket.gethostbyname(remote["address"]) for remote in remotes]  # use IPs
             
         db.close()
         dbconn.close()

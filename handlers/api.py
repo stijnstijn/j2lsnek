@@ -55,6 +55,11 @@ class servernet_handler(port_handler):
             self.end()
             return
 
+        # this shouldn't happen, but just in case...
+        if payload["origin"] == self.ls.address:
+            self.end()
+            return
+
         # payload data should be a list, though usually with 0 or 1 items
         try:
             pass_on = []

@@ -1,5 +1,6 @@
 import threading
 import sqlite3
+import socket
 import config
 import math
 
@@ -87,3 +88,11 @@ def banned(ip, whitelisted=False):
     lock.release()
 
     return matches > 0
+
+def get_own_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    ip = s.getsockname()[0]
+    s.close()
+
+    return ip
