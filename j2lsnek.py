@@ -209,7 +209,7 @@ class listserver():
 
         return result
 
-    def add_mirrore(self, address):
+    def add_mirror(self, address):
         """
         Add ServerNet mirror
 
