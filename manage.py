@@ -52,7 +52,7 @@ if len(sys.argv) < 2 or sys.argv[1] not in ["ban", "unban", "whitelist", "unwhit
     print(" Advanced commands:")
     print("  add-banlist [IP] [ban/whitelist] [origin] [global: 1/0]")
     print("  delete-banlist [IP] [ban/whitelist] [origin] [global: 1/0]")
-    print("  add-mirror [name] [IP]")
+    print("  add-mirror [address]")
     print("  delete-mirror [name] [IP]")
     print("  reload")
     sys.exit()
@@ -76,7 +76,18 @@ elif sys.argv[1] in ["add-banlist", "delete-banlist"]:
 
     payload = {"address": sys.argv[2], "type": sys.argv[3], "origin": sys.argv[4], "global": int(sys.argv[5])}
 
-elif sys.argv[1] in ["add-mirror", "delete-mirror"]:
+elif sys.argv[1] in ["add-mirror"]:
+    if len(sys.argv) != 3:
+        print("Syntax:\n %s [address]" % sys.argv[1])
+        sys.exit()
+
+    try:
+        payload = {"name": sys.argv[1], "address": socket.gethostbyname(sys.argv[1])}
+    except socket.gaierror:
+        print("Could not retrieve IP address for name %s" % sys.argv[1])
+        sys.exit()
+
+elif sys.argv[1] in ["delete-mirror"]:
     if len(sys.argv) != 4:
         print("Syntax:\n %s [name] [IP]" % sys.argv[1])
         sys.exit()

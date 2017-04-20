@@ -170,24 +170,28 @@ class listserver():
         try:
             test = db.execute("SELECT * FROM servers")
         except sqlite3.OperationalError:
+            self.log.info("Table 'servers' does not exist yet, creating.")
             db.execute(
                 "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, created INTEGER DEFAULT 0, lifesign INTEGER DEFAULT 0, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT)")
 
         try:
             test = db.execute("SELECT * FROM settings")
         except sqlite3.OperationalError:
+            self.log.info("Table 'settings' does not exist yet, creating and populating.")
             db.execute("CREATE TABLE settings (item TEXT UNIQUE, value TEXT)")
             db.execute("INSERT INTO settings (item, value) VALUES (?, ?), (?, ?)", ("motd", "", "motd-updated", "0"))
 
         try:
             test = db.execute("SELECT * FROM banlist")
         except sqlite3.OperationalError:
+            self.log.info("Table 'banlist' does not exist yet, creating.")
             db.execute("CREATE TABLE banlist (address TEXT, type TEXT, origin TEXT, note TEXT, global INTEGER)")
 
         try:
             test = db.execute("SELECT * FROM mirrors")
         except sqlite3.OperationalError:
-            db.execute("CREATE TABLE mirrors (name TEXT, address TEXT)")
+            self.log.info("Table 'mirrors' does not exist yet, creating.")
+            db.execute("CREATE TABLE mirrors (name TEXT, address TEXT, lifesign INTEGER)")
 
         # if this method is run, it means the list server is restarted, which breaks all open connections, so clear all
         # servers and such - banlist will be synced upon restart

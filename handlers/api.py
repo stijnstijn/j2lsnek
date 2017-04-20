@@ -30,10 +30,12 @@ class servernet_handler(port_handler):
                 self.end()
                 return
                 # SSL validity check here?
-        elif self.ip not in self.ls.mirrors:
-            self.ls.log.error("Unauthorized ServerNet connection from %s:%s" % (self.ip, self.port))
-            self.end()
-            return
+        elif self.port == 10056:
+            if self.ip not in self.ls.mirrors:
+                self.ls.log.error("Unauthorized ServerNet connection from %s:%s" % (self.ip, self.port))
+                self.end()
+                return
+            self.query("UPDATE mirrors SET lifesign = ? WHERE address = ?", (int(time.time()), self.ip))
 
         # receive API call
         while True:
@@ -234,7 +236,7 @@ class servernet_handler(port_handler):
                               recipients=[self.ip])
 
             # mirrors
-            mirrors = self.fetch_all("SELECT * FROM mirrors")
+            mirrors = self.fetch_all("SELECT name, address FROM mirrors")
             self.ls.broadcast(action="add-mirror",
                               data=[{key: mirror[key] for key in mirror.keys()} for mirror in mirrors],
                               recipients=[self.ip])
@@ -271,7 +273,7 @@ class servernet_handler(port_handler):
 
         # retrieve mirrors
         elif action == "get-mirrors":
-            mirrors = self.fetch_all("SELECT * FROM mirrors")
+            mirrors = self.fetch_all("SELECT name, address FROM mirrors")
 
             self.msg(json.dumps([dict(mirrors[i]) for i, value in enumerate(mirrors)]))
 

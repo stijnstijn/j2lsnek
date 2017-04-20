@@ -10,7 +10,8 @@ TIMEOUT = 40  # time until a server is delisted
 # certificate and private key file used to authenticate requests on port 10059 - only required for port 10059, rest of
 # list server will still work without them
 CERTFILE = "server.crt"
-KEYFILE = "server.key"
+CERTKEY = "server.key"
+CERTCHAIN = "server.csr"
 
 # the following three values are for throttling/rate limiting
 # TICKSMAX is the max amount of ticks per IP - when reached the connection will be refused

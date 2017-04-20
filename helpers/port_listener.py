@@ -43,18 +43,26 @@ class port_listener(threading.Thread):
 
         :return: Nothing
         """
-        server = socket.socket()
-        address = "" if self.port != 10059 else "localhost"  # 10059 should only be accessible via localhost
+        # in case of port 10059, we authenticate via SSL certificates, since else anyone running on localhost
+        # may interact with the list server API
+        if self.port == 10059:
+            unwrapped_server = socket.socket()
+            server = ssl.wrap_socket(unwrapped_server, server_side=True, certfile=config.CERTFILE,
+                                     ca_certs=config.CERTCHAIN)
+            address = "localhost"
+        else:
+            server = socket.socket()
+            address = ""
 
         try:
             server.bind((address, self.port))
         except OSError:
             self.ls.log.error("WARNING! Port %s:%s is already in use! List server is NOT listening at this port!" % (
-            address, self.port))
+                address, self.port))
             return
         except ConnectionRefusedError:
             self.ls.log.error("WARNING! OS refused listening at %s:%s! List server is NOT listening at this port!" % (
-            address, self.port))
+                address, self.port))
             return
 
         server.listen(5)
@@ -63,14 +71,7 @@ class port_listener(threading.Thread):
 
         while self.looping:
             try:
-                # in case of port 10059, we authenticate via SSL certificates, since else anyone running on localhost
-                # may interact with the list server API
-                if self.port == 10059:
-                    unwrapped_client, address = server.accept()
-                    client = ssl.wrap_socket(unwrapped_client, server_side=True, certfile=config.CERTFILE,
-                                             keyfile=config.KEYFILE)
-                else:
-                    client, address = server.accept()
+                client, address = server.accept()
             except socket.timeout:
                 continue  # no problemo, just listen again - this only times out so it won't hang the entire app when
                 # trying to exit, as there's no other way to easily interrupt accept()
