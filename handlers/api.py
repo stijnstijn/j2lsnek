@@ -88,8 +88,8 @@ class servernet_handler(port_handler):
 
         # switch on the engine, pass it on
         no_broadcast = ["hello", "request", "delist"]
-        if len(pass_on) > 0 and payload["action"] not in no_broadcast and payload["action"][0:4] != "get-" and payload[
-            "origin"] == "web":
+        if self.port == 10059 and len(pass_on) > 0 and payload["action"] not in no_broadcast and \
+                        payload["action"][0:4] != "get-" and payload["origin"] == "web":
             self.ls.broadcast(action=payload["action"], data=pass_on, ignore=[self.ip])
 
         self.end()
@@ -169,7 +169,7 @@ class servernet_handler(port_handler):
                 if self.fetch_one("SELECT * FROM mirrors WHERE name = ? OR address = ?",
                                   (data["name"], data["address"])):
                     self.ls.log.info("Mirror %s tried adding mirror %s, but name or address already known" % (
-                    self.ip, data["address"]))
+                        self.ip, data["address"]))
                     return True
             except KeyError:
                 self.ls.log.error("Received incomplete mirror info from ServerNet connection %s" % self.ip)
