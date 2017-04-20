@@ -7,11 +7,14 @@ MICROSLEEP = 0.2
 MAXPLAYERS = 32
 TIMEOUT = 40  # time until a server is delisted
 
-# certificate and private key file used to authenticate requests on port 10059 - only required for port 10059, rest of
-# list server will still work without them
-CERTFILE = "server.crt"
-CERTKEY = "server.key"
-CERTCHAIN = "server.csr"
+# ssl chain (for the server), certificates and keys that are used to authenticate remote admin interfaces - these
+# can be left empty and the list server will still work, port 10059 will just be unavailable if they're empty
+# or invalid
+CERTFILE = ""
+CERTCHAIN = ""
+CERTKEY = ""
+CLIENTCERT = ""
+CLIENTKEY = ""
 
 # the following three values are for throttling/rate limiting
 # TICKSMAX is the max amount of ticks per IP - when reached the connection will be refused

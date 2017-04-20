@@ -48,7 +48,7 @@ class port_listener(threading.Thread):
         if self.port == 10059:
             unwrapped_server = socket.socket()
             server = ssl.wrap_socket(unwrapped_server, server_side=True, certfile=config.CERTFILE,
-                                     ca_certs=config.CERTCHAIN)
+                                     ca_certs=config.CERTCHAIN, keyfile=config.CERTKEY)
             address = "localhost"
         else:
             server = socket.socket()

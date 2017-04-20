@@ -57,7 +57,7 @@ class listserver():
         self.log.addHandler(handler)
 
         # check if certificates are available for auth and encryption of port 10059 traffic
-        can_auth = os.path.isfile(config.CERTFILE) and os.path.isfile(config.KEYFILE)
+        can_auth = os.path.isfile(config.CERTFILE) and os.path.isfile(config.CERTKEY) and os.path.isfile(config.CERTCHAIN)
 
         # say hello
         os.system("cls" if os.name == "nt" else "clear")  # clear screen

@@ -4,6 +4,7 @@ Barebones management script for list servers
 Allows giving API commands via a command-line interface, a GUI would be nicer though
 """
 import socket
+import config
 import json
 import time
 import sys
@@ -21,7 +22,7 @@ def send(action, payload):
     """
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connection.settimeout(5)
-    ssl_sock = ssl.wrap_socket(connection, ca_certs="server.crt", cert_reqs=ssl.CERT_REQUIRED)
+    ssl_sock = ssl.wrap_socket(connection, certfile=config.CLIENTCERT, keyfile=config.CLIENTKEY, cert_reqs=ssl.CERT_NONE, server_side=False)
     ssl_sock.connect(("localhost", 10059))
 
     msg = json.dumps({"action": action, "data": [payload], "origin": "web"})
