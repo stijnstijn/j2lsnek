@@ -6,12 +6,12 @@ Thanks to DJazz for a reference implementation and zepect for some misc tips.
 """
 
 import importlib
-import json
 import logging
-import os
-import socket
 import sqlite3
+import socket
+import json
 import time
+import os
 from logging.handlers import RotatingFileHandler
 
 import config
@@ -103,10 +103,10 @@ class listserver():
         poller.start()
 
         while self.looping:
-            time = int(time.time())
-            if self.last_ping < time - 150:
+            current_time = int(time.time())
+            if self.last_ping < current_time - 150:
                 self.broadcast(action="ping", data=[{"from": self.address}])
-                self.last_ping = time
+                self.last_ping = current_time
 
             time.sleep(config.MICROSLEEP)
 
