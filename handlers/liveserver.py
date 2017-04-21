@@ -111,7 +111,7 @@ class server_handler(port_handler):
 
             # broadcast updates to connected mirrors
             if broadcast:
-                self.ls.broadcast(action="server", data=server.flush_updates())
+                self.ls.broadcast(action="server", data=[server.flush_updates()])
 
             time.sleep(config.MICROSLEEP)
 
