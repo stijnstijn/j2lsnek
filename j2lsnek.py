@@ -21,6 +21,7 @@ import helpers.servernet
 import helpers.functions
 import helpers.ports
 import helpers.interact
+import helpers.jj2
 
 
 class listserver():
@@ -114,11 +115,17 @@ class listserver():
         poller = helpers.interact.key_poller(ls=self)
         poller.start()
 
+        sync = int(time.time())
+
         while self.looping:
             current_time = int(time.time())
             if self.last_ping < current_time - 150:
                 self.broadcast(action="ping", data=[{"from": self.address}])
                 self.last_ping = current_time
+
+            if sync < current_time - 30:
+                sync = current_time
+                self.bridge()
 
             time.sleep(config.MICROSLEEP)
 
@@ -288,6 +295,62 @@ class listserver():
         else:
             self.log.warning("Reloading configuration...")
             importlib.reload(config)
+
+    def bridge(self):
+        """
+        Mirror server data from another list
+
+        For testing purposes only
+        :return:
+        """
+        listserver = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        listserver.settimeout(4)
+        listserver.connect(("178.32.55.196", 10057))
+
+        buffer = ""
+        while True:
+            add = listserver.recv(1024).decode("ascii")
+            if not add or add == "":
+                break
+            buffer += add
+
+        servers = buffer.split("\n")
+        payload = []
+        for server in servers:
+            try:
+                bits = server.split(" ")
+                if len(bits) < 9:
+                    continue
+                id = bits[0]
+                ip = bits[0].split(":")[0]
+                port = bits[0].split(":")[1]
+                private = 1 if bits[2] == "private" else 0
+                mode = bits[3]
+                version = bits[4]
+                rest = " ".join(bits[7:]) if bits[7] != " " else " ".join(bits[8:])
+                bits = rest.split(" ")
+                created = int(time.time()) - int(bits[0])
+                players = int(bits[1][1:-1].split("/")[0])
+                max = int(bits[1][1:-1].split("/")[1])
+                name = " ".join(bits[2:]).strip()
+                data = {"id": id, "ip": ip, "port": port, "created": created, "lifesign": int(time.time()),
+                     "private": private,
+                     "remote": 1, "origin": "bridge", "version": version, "mode": mode, "players": players, "max": max,
+                     "name": name}
+                payload.append(data)
+
+                srv = helpers.jj2.jj2server(id)
+                for key in data:
+                    if key != "id":
+                        srv.set(key, data[key])
+
+            except ValueError:
+                continue
+
+        self.broadcast(action="server", data=payload)
+        self.log.warning("Retrieved server data from external list")
+        listserver.shutdown(socket.SHUT_RDWR)
+        listserver.close()
 
 
 listserver()  # all systems go
