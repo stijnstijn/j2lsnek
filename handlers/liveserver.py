@@ -25,19 +25,17 @@ class server_handler(port_handler):
         self.ls.log.info("Server connected from %s" % self.key)
 
         # keep connection open until server disconnects (or times out)
-        ping = 0
         while self.looping:
             try:
                 data = self.client.recv(1024)
-                ping = 0
             except socket.timeout:
-                ping += 1
-                # if no lifesign for 20 seconds, ping to see if the server is still alive
-                if ping < 2:
-                    self.client.sendall(bytearray([0]))
+                # if no lifesign for 30 seconds, ping to see if the server is still alive
+                pinger = self.client.send(bytearray([0]))
+                self.ls.log.warning("Pinged %s bytes" % pinger)
+                if pinger == 1:
                     continue
                 else:
-                    self.ls.log.info("Server from %s timed out" % self.key)
+                    self.ls.log.warning("Server from %s timed out" % self.key)
                     break
 
             # new server wants to get listed
@@ -50,7 +48,7 @@ class server_handler(port_handler):
                     break
 
                 self.ls.log.info("Server listed from %s" % self.key)
-                self.client.settimeout(20)  # should have some form of communication every 20
+                self.client.settimeout(30)  # should have some form of communication every 20
 
                 new = False
 
