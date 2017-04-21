@@ -197,7 +197,7 @@ class listserver():
             test = db.execute("SELECT * FROM mirrors")
         except sqlite3.OperationalError:
             self.log.info("Table 'mirrors' does not exist yet, creating.")
-            db.execute("CREATE TABLE mirrors (name TEXT, address TEXT, lifesign INTEGER)")
+            db.execute("CREATE TABLE mirrors (name TEXT, address TEXT, lifesign INTEGER DEFAULT 0)")
 
         # if this method is run, it means the list server is restarted, which breaks all open connections, so clear all
         # servers and such - banlist will be synced upon restart

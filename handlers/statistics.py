@@ -55,7 +55,7 @@ class stats_handler(port_handler):
 
         for mirror in mirrors:
             stats += "                                     -> " + mirror["name"]
-            if mirror["lifesign"] < int(time.time()) - 600:
+            if int(mirror["lifesign"]) < int(time.time()) - 600:
                 stats += " (inactive)\n"
             else:
                 stats += "\n"
