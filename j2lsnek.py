@@ -199,6 +199,12 @@ class listserver():
             self.log.info("Table 'mirrors' does not exist yet, creating.")
             db.execute("CREATE TABLE mirrors (name TEXT, address TEXT, lifesign INTEGER DEFAULT 0)")
 
+            try:
+                master = socket.gethostbyname("list.jazzjackrabbit.com")
+                db.execute("INSERT INTO mirrors (name, address) VALUES (?, ?)", ("list.jazzjackrabbit.net", master))
+            except socket.gaierror:
+                self.log.error("Could not retrieve IP for list.jazzjackrabbit.com - no master list server available!")
+
         # if this method is run, it means the list server is restarted, which breaks all open connections, so clear all
         # servers and such - banlist will be synced upon restart
         db.execute("DELETE FROM banlist WHERE origin != ?", (self.address,))
