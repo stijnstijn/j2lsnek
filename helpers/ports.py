@@ -249,6 +249,9 @@ class port_listener(threading.Thread):
             server = socket.socket()
             address = ""
 
+        # this makes sure sockets are available immediate after closing instead of waiting for late packets
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
         try:
             server.bind((address, self.port))
         except OSError:
