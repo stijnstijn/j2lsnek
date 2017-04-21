@@ -111,6 +111,7 @@ class listserver():
         for port in ports:
             self.sockets[port] = helpers.ports.port_listener(port=port, ls=self)
             self.sockets[port].start()
+        self.log.warning("Listening.")
 
         # have a separate thread wait for input so this one can go on sending pings every so often
         poller = helpers.interact.key_poller(ls=self)
