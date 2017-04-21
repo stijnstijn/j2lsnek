@@ -4,8 +4,8 @@ import time
 
 from helpers.functions import decode_mode, decode_version, whitelisted
 
-from helpers.jj2server import jj2server
-from helpers.port_handler import port_handler
+from helpers.jj2 import jj2server
+from helpers.ports import port_handler
 
 
 class server_handler(port_handler):

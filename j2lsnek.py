@@ -5,20 +5,22 @@ By Stijn (https://stijn.chat)
 Thanks to DJazz for a reference implementation and zepect for some misc tips.
 """
 
+import subprocess
 import importlib
 import logging
 import sqlite3
 import socket
 import json
 import time
+import sys
 import os
 from logging.handlers import RotatingFileHandler
 
 import config
-from helpers.broadcaster import broadcaster
-from helpers.functions import get_own_ip
-from helpers.port_listener import port_listener
-from helpers.interact import interact
+import helpers.servernet
+import helpers.functions
+import helpers.ports
+import helpers.interact
 
 
 class listserver():
@@ -26,12 +28,11 @@ class listserver():
     Main list server thread
     Sets up port listeners and broadcasts data to connected mirror list servers
     """
-    looping = True
+    looping = True  # if False, will exit
     sockets = {}  # sockets the server is listening it
     mirrors = []  # ServerNet connections
-    log = None
-    can_auth = False
-    last_ping = 0
+    last_ping = 0  # last time this list server has sent a ping to ServerNet
+    reboot_mode = "quit"  # "quit" (default), "restart" (reload everything), or "reboot" (restart complete list server)
 
     def __init__(self):
         """
@@ -40,7 +41,7 @@ class listserver():
 
         self.start = int(time.time())
         self.address = socket.gethostname()
-        self.ip = get_own_ip()
+        self.ip = helpers.functions.get_own_ip()
 
         # initialise logger
         self.log = logging.getLogger("j2lsnek")
@@ -85,7 +86,17 @@ class listserver():
             ports.remove(10059)
             self.log.warning("Not listening on port 10059 as SSL certificate authentication is not available")
 
-        self.listen_to(ports)
+        # "restart" to begin with, then assume the script will quit afterwards. Value may be modified back to
+        # "restart" in the meantime, which will cause all port listeners to re-initialise when listen_to finishes
+        self.reboot_mode = "restart"
+        while self.reboot_mode == "restart":
+            self.reboot_mode = "quit"
+            self.looping = True
+            self.listen_to(ports)
+
+        # restart script if that mode was chosen
+        if self.reboot_mode == "reboot":
+            os.execvp(sys.executable, ["j2lsnek"] + sys.argv)
 
     def listen_to(self, ports):
         """
@@ -94,12 +105,13 @@ class listserver():
         :param ports: A list of ports to listen at
         :return: Nothing
         """
+        self.log.warning("Opening port listeners...")
         for port in ports:
-            self.sockets[port] = port_listener(port=port, ls=self)
+            self.sockets[port] = helpers.ports.port_listener(port=port, ls=self)
             self.sockets[port].start()
 
         # have a separate thread wait for input so this one can go on sending pings every so often
-        poller = interact(ls=self)
+        poller = helpers.interact.key_poller(ls=self)
         poller.start()
 
         while self.looping:
@@ -121,19 +133,23 @@ class listserver():
 
         return
 
-    def broadcast(self, action, data, recipients=None, ignore=[]):
+    def broadcast(self, action, data, recipients=None, ignore=None):
         """
         Send data to servers connected via ServerNET
 
         :param action: Action with which to call the API
         :param data: Data to send
         :param recipients: List of IPs to send to, will default to all known mirrors
+        :param ignore: List of IPs *not* to send to
         :return: Nothing
         """
         data = json.dumps({"action": action, "data": data, "origin": self.address})
 
         if not recipients:
             recipients = self.mirrors
+
+        if ignore is None:
+            ignore = []
 
         for ignored in ignore:
             if ignored in recipients:
@@ -144,7 +160,7 @@ class listserver():
         for mirror in recipients:
             if mirror == "localhost" or mirror == "127.0.0.1" or mirror == self.ip:
                 continue  # may be a mirror but should never be sent to because it risks infinite loops
-            transmitters[mirror] = broadcaster(ip=mirror, data=data, ls=self)
+            transmitters[mirror] = helpers.servernet.broadcaster(ip=mirror, data=data, ls=self)
             transmitters[mirror].start()
 
         return
@@ -223,7 +239,6 @@ class listserver():
                 except socket.gaierror:
                     self.log.error("Could not retrieve IP for mirror %s - ignoring" % mirror["name"])
 
-
         db.close()
         dbconn.close()
 
@@ -253,9 +268,26 @@ class listserver():
         if address in self.mirrors:
             self.mirrors.remove(address)
 
-    def reload(self):
-        self.log.warning("Reloading modules...")
-        importlib.reload(config)
+    def reload(self, mode=1):
+        if mode == 2 or mode == 3:
+            self.log.warning("Pulling latest code from github...")
+            subprocess.call("git pull origin master".split(" "))
+
+        if mode == 2:
+            self.log.warning("Reloading modules...")
+            importlib.reload(helpers.servernet)
+            importlib.reload(helpers.functions)
+            importlib.reload(helpers.ports)
+            importlib.reload(helpers.jj2)
+            self.reboot_mode = "restart"
+            self.halt()
+        elif mode == 3:
+            self.log.warning("Restarting list server...")
+            self.reboot_mode = "reboot"
+            self.halt()
+        else:
+            self.log.warning("Reloading configuration...")
+            importlib.reload(config)
 
 
 listserver()  # all systems go

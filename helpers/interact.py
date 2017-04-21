@@ -1,7 +1,7 @@
 import threading
 
 
-class interact(threading.Thread):
+class key_poller(threading.Thread):
     """
     Interaction poller
 

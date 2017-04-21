@@ -2,9 +2,9 @@ import socket
 import json
 import time
 
-from helpers.port_handler import port_handler
+from helpers.ports import port_handler
 
-from helpers.jj2server import jj2server
+from helpers.jj2 import jj2server
 
 
 class servernet_handler(port_handler):
@@ -250,7 +250,13 @@ class servernet_handler(port_handler):
 
         # reload config, etc
         elif action == "reload":
-            self.ls.reload()
+            if "mode" in data:
+                if data["mode"] == "restart":
+                    self.ls.reload(mode=2)
+                if data["mode"] == "reboot":
+                    self.ls.reload(mode=3)
+            else:
+                self.ls.reload()
 
         # retrieve server list
         elif action == "get-servers":

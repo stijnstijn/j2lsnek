@@ -1,6 +1,6 @@
 import time
 
-from helpers.port_handler import port_handler
+from helpers.ports import port_handler
 
 
 class ascii_handler(port_handler):
