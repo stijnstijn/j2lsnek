@@ -98,11 +98,7 @@ class listserver():
         # restart script if that mode was chosen
         if self.reboot_mode == "reboot":
             interpreter = sys.executable.split("/")[-1]
-<<<<<<< HEAD
             os.execvp(sys.executable, [interpreter] + sys.argv)
-=======
-            os.execvp(sys.executable, ["j2lsnek"] + sys.argv)
->>>>>>> 2a930a22c0d42af59acc3d5fe4190fa666951643
 
     def listen_to(self, ports):
         """
