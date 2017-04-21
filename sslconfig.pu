@@ -1,0 +1,6 @@
+CERTFILE = "/srv/tcp/list/ssl/intermediate/certs/listserver_serverside.cert.pem"
+CERTCHAIN = "/srv/tcp/list/ssl/intermediate/certs/ca-chain.cert.pem"
+CERTKEY = "/srv/tcp/lists/ssl/intermediate/private/list.jazz2online.com.key.pem"
+CLIENTCERT = "/srv/tcp/list/ssl/intermediate/certs/listserver_clientside.pem"
+CLIENTKEY = "/srv/tcp/lists/ssl/intermediate/private/list/listserver_clientside.key.pem"
+
