@@ -30,9 +30,8 @@ class server_handler(port_handler):
                 data = self.client.recv(1024)
             except socket.timeout:
                 # if no lifesign for 30 seconds, ping to see if the server is still alive
-                pinger = self.client.send(bytearray([0]))
-                self.ls.log.warning("Pinged %s bytes" % pinger)
-                if pinger == 1:
+                ping = self.client.send(bytearray([0]))
+                if ping == 1:
                     continue
                 else:
                     self.ls.log.warning("Server from %s timed out" % self.key)
@@ -98,12 +97,11 @@ class server_handler(port_handler):
             # server wants to be delisted, goes offline or sends strange data
             else:
                 if not new:
-                    self.ls.log.info("Server from %s was delisted; invalid data received" % self.key)
+                    # this usually means the server has closed
+                    self.ls.log.info("Server from %s was delisted; invalid/empty data received" % self.key)
                 else:
                     self.ls.log.warning("Server from %s provided faulty listing data: not listed" % self.key)
-
-                if data:
-                    self.error_msg("Invalid data received")  # all valid commands are either 42 or 2 bytes long
+                    self.error_msg("Invalid data received")
 
                 break
 
