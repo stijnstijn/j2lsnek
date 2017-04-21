@@ -209,7 +209,7 @@ class listserver():
             db.execute("SELECT * FROM banlist")
         except sqlite3.OperationalError:
             self.log.info("Table 'banlist' does not exist yet, creating.")
-            db.execute("CREATE TABLE banlist (address TEXT, type TEXT, origin TEXT, note TEXT, global INTEGER)")
+            db.execute("CREATE TABLE banlist (address TEXT, type TEXT, origin TEXT, note TEXT)")
 
         try:
             db.execute("SELECT * FROM mirrors")

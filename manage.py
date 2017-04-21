@@ -51,8 +51,8 @@ if len(sys.argv) < 2 or sys.argv[1] not in ["ban", "unban", "whitelist", "unwhit
     print("  set-motd [text]")
     print("")
     print(" Advanced commands:")
-    print("  add-banlist [IP] [ban/whitelist] [origin] [global: 1/0]")
-    print("  delete-banlist [IP] [ban/whitelist] [origin] [global: 1/0]")
+    print("  add-banlist [IP] [ban/whitelist] [origin]")
+    print("  delete-banlist [IP] [ban/whitelist] [origin]")
     print("  add-mirror [address]")
     print("  delete-mirror [name] [IP]")
     print("  reload")
@@ -68,14 +68,14 @@ if sys.argv[1] in ["ban", "unban", "whitelist", "unwhitelist"]:
         print("Syntax:\n %s [IP]" % sys.argv[1])
         sys.exit()
 
-    payload = {"address": sys.argv[2], "note": "(added via CLI)", "type": type, "global": 1}
+    payload = {"address": sys.argv[2], "note": "(added via CLI)", "type": type}
 
 elif sys.argv[1] in ["add-banlist", "delete-banlist"]:
     if len(sys.argv) != 3:
-        print("Syntax:\n %s [IP] [ban/whitelist] [origin] [global: 1/0]" % sys.argv[1])
+        print("Syntax:\n %s [IP] [ban/whitelist] [origin]" % sys.argv[1])
         sys.exit()
 
-    payload = {"address": sys.argv[2], "type": sys.argv[3], "origin": sys.argv[4], "global": int(sys.argv[5])}
+    payload = {"address": sys.argv[2], "type": sys.argv[3], "origin": sys.argv[4]}
 
 elif sys.argv[1] in ["add-mirror"]:
     if len(sys.argv) != 3:

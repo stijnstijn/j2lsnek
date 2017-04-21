@@ -133,10 +133,10 @@ class servernet_handler(port_handler):
 
             try:
                 if not self.fetch_one(
-                        "SELECT * FROM banlist WHERE address = ? AND origin = ? AND type = ? AND note = ? AND global = ?",
+                        "SELECT * FROM banlist WHERE address = ? AND origin = ? AND type = ? AND note = ?",
                         (data["address"], data["origin"], data["type"], data["note"])):
-                    self.query("INSERT INTO banlist (address, origin, type, note) VALUES (?, ?, ?, ?, ?)",
-                               (data["address"], data["origin"], data["type"], data["note"], data["global"]))
+                    self.query("INSERT INTO banlist (address, origin, type, note) VALUES (?, ?, ?, ?)",
+                               (data["address"], data["origin"], data["type"], data["note"]))
             except KeyError:
                 self.ls.log.error("Received incomplete banlist entry from ServerNet connection %s" % self.ip)
                 return False
@@ -237,7 +237,7 @@ class servernet_handler(port_handler):
                               recipients=[self.ip])
 
             # banlist
-            banlist = self.fetch_all("SELECT * FROM banlist WHERE global = 1 AND origin = ?", (self.ls.address,))
+            banlist = self.fetch_all("SELECT * FROM banlist WHERE origin = ?", (self.ls.address,))
             self.ls.broadcast(action="ban", data=[{key: ban[key] for key in ban.keys()} for ban in banlist],
                               recipients=[self.ip])
 
