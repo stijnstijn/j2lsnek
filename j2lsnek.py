@@ -339,7 +339,7 @@ class listserver():
                 name = " ".join(bits[2:]).strip()
                 data = {"id": id, "ip": ip, "port": port, "created": created, "lifesign": int(time.time()),
                      "private": private,
-                     "remote": 1, "origin": "bridge", "version": version, "mode": mode, "players": players, "max": max,
+                     "remote": 1, "origin": self.address, "version": version, "mode": mode, "players": players, "max": max,
                      "name": name}
                 payload.append(data)
 
