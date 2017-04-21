@@ -116,17 +116,11 @@ class listserver():
         poller = helpers.interact.key_poller(ls=self)
         poller.start()
 
-        sync = int(time.time())
-
         while self.looping:
             current_time = int(time.time())
             if self.last_ping < current_time - 150:
                 self.broadcast(action="ping", data=[{"from": self.address}])
                 self.last_ping = current_time
-
-            if sync < current_time - 30 and self.address == "fuzic":
-                sync = current_time
-                self.bridge()
 
             time.sleep(config.MICROSLEEP)
 
