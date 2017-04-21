@@ -97,7 +97,7 @@ class listserver():
 
         # restart script if that mode was chosen
         if self.reboot_mode == "reboot":
-            interpreter = sys.executable.split("/")[-1]
+            interpreter = sys.executable.split("\\" if os.name == "nt" else "/")[-1]
             os.execvp(sys.executable, [interpreter] + sys.argv)
 
     def listen_to(self, ports):
