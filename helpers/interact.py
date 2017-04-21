@@ -15,7 +15,7 @@ class interact(threading.Thread):
         """
         Set up interaction poller
 
-        :param ip: Reference to list server
+        :param ls: Reference to list server
         """
         self.ls = ls
         threading.Thread.__init__(self)
