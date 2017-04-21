@@ -1,7 +1,7 @@
 """
 Barebones management script for list servers
 
-Allows giving API commands via a command-line interface, a GUI would be nicer though
+Allows giving API commands via a command-line interface, requires the SSL config options to be set and valid
 """
 import socket
 import config
