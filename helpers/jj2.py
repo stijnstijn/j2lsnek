@@ -22,6 +22,7 @@ class jj2server():
         self.lock = threading.Lock()
 
         self.id = id
+        self.updated = {"id": id}
 
         self.data = self.fetch_one("SELECT * FROM servers WHERE id = ?", (self.id,))
 
@@ -33,10 +34,7 @@ class jj2server():
         if not self.data:
             raise NotImplementedError  # there's something very wrong if this happens
 
-        datadict = {}
-        for column in self.data.keys():
-            datadict[column] = self.data[column]
-
+        datadict = {key: self.data[key] for key in self.data.keys()}
         self.data = datadict
 
     def set(self, item, value):
@@ -60,6 +58,9 @@ class jj2server():
             if value < 1:
                 value = 1
 
+        if self.data[item] != value:
+            self.updated[item] = value
+
         self.data[item] = value
         self.query("UPDATE servers SET %s = ?, lifesign = ? WHERE id = ?" % item, (value, int(time.time()), self.id))
         # not escaping column names above is okay because the column name is always a key in self.data which is also
@@ -78,6 +79,16 @@ class jj2server():
             raise IndexError("%s is not a server property" % item)
 
         return self.data[item]
+
+    def flush_updates(self):
+        """
+        Get updates to server and reset track record
+
+        :return: Dictionary of updates, also always contains ID-field
+        """
+        updates = self.updated
+        self.updated = {"id": updates["id"]}
+        return updates
 
     def ping(self):
         """

@@ -97,8 +97,12 @@ class server_handler(port_handler):
             # server wants to be delisted, goes offline or sends strange data
             else:
                 if not new:
-                    # this usually means the server has closed
-                    self.ls.log.info("Server from %s was delisted; invalid/empty data received" % self.key)
+                    if data[0] == 0x00 and len(data) == 30:
+                        # this usually means the server has closed
+                        self.ls.log.info("Server from %s closed; delisting" % self.key)
+                    else:
+                        self.ls.log.info("Server from %s was delisted; invalid/empty data received" % self.key)
+                        self.error_msg("Invalid data received")
                 else:
                     self.ls.log.warning("Server from %s provided faulty listing data: not listed" % self.key)
                     self.error_msg("Invalid data received")
@@ -107,7 +111,7 @@ class server_handler(port_handler):
 
             # broadcast updates to connected mirrors
             if broadcast:
-                self.ls.broadcast(action="server", data=[server.data])
+                self.ls.broadcast(action="server", data=server.flush_updates())
 
             time.sleep(config.MICROSLEEP)
 
