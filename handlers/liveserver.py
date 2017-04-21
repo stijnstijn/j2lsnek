@@ -97,7 +97,7 @@ class server_handler(port_handler):
             # server wants to be delisted, goes offline or sends strange data
             else:
                 if not new:
-                    if len(data) == 0 or (data[0] == 0x00 and len(data) == 32):
+                    if len(data) == 0 or (data[0] == 0x00 and len(data) == 30):
                         # this usually means the server has closed
                         self.ls.log.info("Server from %s closed; delisting" % self.key)
                     else:
