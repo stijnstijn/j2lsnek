@@ -221,7 +221,7 @@ class listserver():
                 master = socket.gethostbyname("list.jazz2online.com")
                 if master != self.address:  # don't add if *this* is list.jazzjackrabbit.com
                     self.log.info("Adding list.jazzjackrabbit.com as mirror")
-                    db.execute("INSERT INTO mirrors (name, address) VALUES (?, ?)", ("list.jazzjackrabbit.net", master))
+                    db.execute("INSERT INTO mirrors (name, address) VALUES (?, ?)", ("list.jazz2online.com", master))
             except socket.gaierror:
                 self.log.error("Could not retrieve IP for list.jazzjackrabbit.com - no master list server available!")
 
