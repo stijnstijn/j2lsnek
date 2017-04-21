@@ -11,6 +11,7 @@ class servernet_handler(port_handler):
     """
     Sync data between list servers
     """
+    reload_mode = None
 
     def handle_data(self):
         """
@@ -93,6 +94,11 @@ class servernet_handler(port_handler):
             self.ls.broadcast(action=payload["action"], data=pass_on, ignore=[self.ip])
 
         self.end()
+
+        # was a reload command given?
+        if self.reload_mode is not None:
+            self.ls.reload(mode=self.reload_mode)
+            
         return
 
     def process_data(self, action, data):
@@ -252,11 +258,12 @@ class servernet_handler(port_handler):
         elif action == "reload":
             if "mode" in data:
                 if data["mode"] == "restart":
-                    self.ls.reload(mode=2)
+                    self.reload_mode = 2
                 if data["mode"] == "reboot":
-                    self.ls.reload(mode=3)
+                    self.reload_mode = 3
             else:
-                self.ls.reload()
+                self.reload_mode = 1
+            return True
 
         # retrieve server list
         elif action == "get-servers":
