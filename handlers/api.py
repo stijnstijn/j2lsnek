@@ -58,7 +58,7 @@ class servernet_handler(port_handler):
 
         # if API call not received or readable for whatever reason, give up
         if not payload:
-            self.ls.log.error("ServerNet update received from %s, but could not acquire valid payload" % self.ip)
+            self.ls.log.error("ServerNet update received from %s, but could not acquire valid payload (got %s)" % (self.ip, self.buffer.decode("ascii")))
             self.end()
             return
 
