@@ -1,7 +1,7 @@
 """
 Not a lot to configure
 """
-VERSION = "02"
+VERSION = "03"
 DATABASE = "servers.db"
 MICROSLEEP = 0.2
 MAXPLAYERS = 32
