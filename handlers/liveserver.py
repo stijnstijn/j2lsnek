@@ -34,7 +34,7 @@ class server_handler(port_handler):
                 ping += 1
                 # if no lifesign for 20 seconds, ping to see if the server is still alive
                 if ping < 2:
-                    self.client.sendall(bytearray[0])
+                    self.client.sendall(bytearray([0]))
                     continue
                 else:
                     self.ls.log.info("Server from %s timed out" % self.key)
