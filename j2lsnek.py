@@ -310,7 +310,10 @@ class listserver():
 
         buffer = ""
         while True:
-            add = listserver.recv(1024).decode("ascii")
+            try:
+                add = listserver.recv(1024).decode("ascii")
+            except UnicodeDecodeError:
+                break
             if not add or add == "":
                 break
             buffer += add
