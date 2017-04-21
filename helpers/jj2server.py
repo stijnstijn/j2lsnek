@@ -7,8 +7,9 @@ import re
 
 class jj2server():
     """
-    Class that represents a jj2 server: offers a few basic methods to transparently interface with the database
-    record that belongs to the server
+    Class that represents a jj2 server
+
+    Offers a few basic methods to transparently interface with the database record that belongs to the server
     """
 
     def __init__(self, id):
