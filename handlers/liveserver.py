@@ -49,7 +49,9 @@ class server_handler(port_handler):
                 new = False
 
                 port = int.from_bytes(data[0:2], byteorder="little")
-                name = data[2:35].decode('ascii')
+                try:
+                    name = data[2:35].decode("ascii", "ignore")
+
                 players = int(data[35])
                 max = int(data[36])
                 flags = int(data[37])
@@ -82,7 +84,7 @@ class server_handler(port_handler):
                         server.ping()
                 elif data[0] == 0x02:
                     self.ls.log.info("Updating server name for server %s" % self.key)
-                    server.set("name", data[1:33].decode("ascii"))
+                    server.set("name", data[1:33].decode("ascii", "ignore"))
                 elif data[0] == 0x03:
                     self.ls.log.info("Updating max players for server %s" % self.key)
                     server.set("max", data[1])
