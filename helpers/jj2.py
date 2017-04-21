@@ -50,7 +50,7 @@ class jj2server():
 
         if item == "name":
             value = re.sub(r'[^\x00-\x7f]', r' ', value)  # no funny business with crazy characters
-            value = re.sub(r"[ ]+", r" ", value).strip()
+            value = re.sub(r"[ ]+", r" ", value).strip(" \t\r\n\0")
 
         if item == "max" or item == "players":
             if value > config.MAXPLAYERS:
