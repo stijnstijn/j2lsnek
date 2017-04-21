@@ -49,8 +49,7 @@ class server_handler(port_handler):
                 new = False
 
                 port = int.from_bytes(data[0:2], byteorder="little")
-                try:
-                    name = data[2:35].decode("ascii", "ignore")
+                name = data[2:35].decode("ascii", "ignore")
 
                 players = int(data[35])
                 max = int(data[36])
