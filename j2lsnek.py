@@ -223,7 +223,7 @@ class listserver():
             db.execute("CREATE TABLE mirrors (name TEXT, address TEXT, lifesign INTEGER DEFAULT 0)")
 
             try:
-                master = socket.gethostbyname("list.jazzjackrabbit.com")
+                master = socket.gethostbyname("list.jazz2online.com")
                 if master != self.address:  # don't add if *this* is list.jazzjackrabbit.com
                     self.log.info("Adding list.jazzjackrabbit.com as mirror")
                     db.execute("INSERT INTO mirrors (name, address) VALUES (?, ?)", ("list.jazzjackrabbit.net", master))
