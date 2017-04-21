@@ -25,12 +25,19 @@ class server_handler(port_handler):
         self.ls.log.info("Server connected from %s" % self.key)
 
         # keep connection open until server disconnects (or times out)
+        timeouts = 0
         while self.looping:
             try:
                 data = self.client.recv(1024)
+                timeouts = 0
             except socket.timeout:
-                self.ls.log.info("Server from %s timed out" % self.key)
-                break
+                timeouts += 1
+                # if no lifesign for 20 seconds, ping to see if the server is still alive
+                if timeouts < 2:
+                    self.client.sendall(bytearray[0])
+                else:
+                    self.ls.log.info("Server from %s timed out" % self.key)
+                    break
 
             broadcast = False
 
