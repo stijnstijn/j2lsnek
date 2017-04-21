@@ -20,6 +20,7 @@ class stats_handler(port_handler):
         running_since = datetime.fromtimestamp(self.ls.start)
         self.cleanup()
         servers = self.fetch_all("SELECT * FROM servers WHERE players > 0")
+        mirrors = self.fetch_all("SELECT * FROM mirrors ORDER BY lifesign DESC")
 
         total = 0
         mirrored = 0
@@ -37,13 +38,6 @@ class stats_handler(port_handler):
             players += server["players"]
             max += server["max"]
 
-        # don't count yourself as mirror
-        mirrors = self.ls.mirrors
-        if self.ls.ip in mirrors:
-            mirrors.remove(self.ls.ip)
-        if "127.0.0.1" in mirrors:
-            mirrors.remove("127.0.0.1")
-
         stats = "+----------------------------------------------------------------------+\n\n"
         stats += "                Jazz Jackrabbit 2 List Server statistics\n"
         stats += "\n"
@@ -57,10 +51,14 @@ class stats_handler(port_handler):
         stats += "\n"
         stats += "  Players in servers               : [" + str(players) + "/" + str(max) + "]\n"
         stats += "\n"
-        stats += "  Connected list server mirrors    : " + str(len(mirrors)) + " remote list servers\n"
+        stats += "  Connected list server mirrors    : " + str(len(mirrors)) + " other list servers\n"
 
         for mirror in mirrors:
-            stats += "                                     -> " + mirror + "\n"
+            stats += "                                     -> " + mirror["name"]
+            if mirror["lifesign"] < int(time.time()) - 600:
+                stats += " (inactive)\n"
+            else:
+                stats += "\n"
 
         stats += "\n"
         stats += "  Running j2lsnek v" + config.VERSION + " by stijn\n"

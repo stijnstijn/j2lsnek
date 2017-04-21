@@ -158,10 +158,12 @@ class port_handler(threading.Thread):
             dbconn.close()
 
         except sqlite3.OperationalError as e:
-            self.ls.halt("SQLite error: %s" % str(e))
+            self.ls.error("SQLite error: %s" % str(e))
+            self.ls.halt()
 
         except sqlite3.ProgrammingError as e:
-            self.ls.halt("SQLite error: %s" % str(e))
+            self.ls.error("SQLite error: %s" % str(e))
+            self.ls.halt()
 
         if autolock:
             self.release_lock()

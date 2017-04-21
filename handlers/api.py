@@ -277,4 +277,8 @@ class servernet_handler(port_handler):
 
             self.msg(json.dumps([dict(mirrors[i]) for i, value in enumerate(mirrors)]))
 
+        # ping, no response required, lifesign already updated above
+        elif action == "ping":
+            return False
+
         return True

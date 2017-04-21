@@ -18,6 +18,7 @@ import config
 from helpers.broadcaster import broadcaster
 from helpers.functions import get_own_ip
 from helpers.port_listener import port_listener
+from helpers.interact import interact
 
 
 class listserver():
@@ -30,6 +31,7 @@ class listserver():
     mirrors = []  # ServerNet connections
     log = None
     can_auth = False
+    last_ping = 0
 
     def __init__(self):
         """
@@ -56,9 +58,6 @@ class listserver():
         handler.setFormatter(logging.Formatter("%(asctime)-15s | %(message)s", "%d-%M-%Y %H:%M:%S"))
         self.log.addHandler(handler)
 
-        # check if certificates are available for auth and encryption of port 10059 traffic
-        can_auth = os.path.isfile(config.CERTFILE) and os.path.isfile(config.CERTKEY) and os.path.isfile(config.CERTCHAIN)
-
         # say hello
         os.system("cls" if os.name == "nt" else "clear")  # clear screen
         print("\n                          .-=-.          .--.")
@@ -78,10 +77,13 @@ class listserver():
         self.broadcast(action="request", data=[{"from": self.address}])
 
         # only listen on port 10059 if auth mechanism is available
+        # check if certificates are available for auth and encryption of port 10059 traffic
+        can_auth = os.path.isfile(config.CERTFILE) and os.path.isfile(config.CERTKEY) and os.path.isfile(
+            config.CERTCHAIN)
         ports = [10053, 10054, 10055, 10056, 10057, 10058, 10059]
-        if self.can_auth:
+        if not can_auth:
             ports.remove(10059)
-            self.ls.log.warning("Not listening on port 10059 as auth files are not available")
+            self.log.warning("Not listening on port 10059 as auth files are not available")
 
         self.listen_to(ports)
 
@@ -96,10 +98,17 @@ class listserver():
             self.sockets[port] = port_listener(port=port, ls=self)
             self.sockets[port].start()
 
+        # have a separate thread wait for input so this one can go on sending pings every so often
+        poller = interact(ls=self)
+        poller.start()
+
         while self.looping:
-            cmd = input("")
-            if cmd == "q":
-                self.looping = False
+            time = int(time.time())
+            if self.last_ping < time - 150:
+                self.broadcast(action="ping", data=[{"from": self.address}])
+                self.last_ping = time
+
+            time.sleep(config.MICROSLEEP)
 
         self.log.warning("Waiting for listeners to finish...")
         for port in self.sockets:
@@ -140,18 +149,15 @@ class listserver():
 
         return
 
-    def halt(self, reason="Unknown error"):
+    def halt(self):
         """
         Halt program execution
 
-        Sets self.looping to False, which ends the main loop and allows the thread to start halting other threads. That
-        latter bit yet to be implemented.
+        Sets self.looping to False, which ends the main loop and allows the thread to start halting other threads.
 
-        :param reason: Reason for quitting, a stringitem
         :return:
         """
         self.looping = False
-        print("HALTED: %s" % reason)
 
     def prepare_database(self):
         """
