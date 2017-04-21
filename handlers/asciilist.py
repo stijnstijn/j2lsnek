@@ -26,7 +26,7 @@ class ascii_handler(port_handler):
             list += server['version'][:6].ljust(6, ' ') + ' '                       # version
             list += str(int(time.time()) - int(server['created'])) + ' '            # uptime in seconds
             list += '[' + str(server['players']) + '/' + str(server['max']) + '] '  # [players/max]
-            list += server['name']                                                  # server name
+            list += server['name'] + "\r\n"                                         # server name
 
-        self.msg(list+"\r\n")
+        self.msg(list)
         self.end()

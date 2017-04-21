@@ -123,7 +123,7 @@ class listserver():
                 self.broadcast(action="ping", data=[{"from": self.address}])
                 self.last_ping = current_time
 
-            if sync < current_time - 30:
+            if sync < current_time - 30 and self.address == "fuzic":
                 sync = current_time
                 self.bridge()
 
