@@ -83,7 +83,7 @@ class listserver():
         ports = [10053, 10054, 10055, 10056, 10057, 10058, 10059]
         if not can_auth:
             ports.remove(10059)
-            self.log.warning("Not listening on port 10059 as auth files are not available")
+            self.log.warning("Not listening on port 10059 as SSL certificate authentication is not available")
 
         self.listen_to(ports)
 
@@ -174,27 +174,27 @@ class listserver():
         db = dbconn.cursor()
 
         try:
-            test = db.execute("SELECT * FROM servers")
+            db.execute("SELECT * FROM servers")
         except sqlite3.OperationalError:
             self.log.info("Table 'servers' does not exist yet, creating.")
             db.execute(
                 "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, created INTEGER DEFAULT 0, lifesign INTEGER DEFAULT 0, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT)")
 
         try:
-            test = db.execute("SELECT * FROM settings")
+            db.execute("SELECT * FROM settings")
         except sqlite3.OperationalError:
             self.log.info("Table 'settings' does not exist yet, creating and populating.")
             db.execute("CREATE TABLE settings (item TEXT UNIQUE, value TEXT)")
             db.execute("INSERT INTO settings (item, value) VALUES (?, ?), (?, ?)", ("motd", "", "motd-updated", "0"))
 
         try:
-            test = db.execute("SELECT * FROM banlist")
+            db.execute("SELECT * FROM banlist")
         except sqlite3.OperationalError:
             self.log.info("Table 'banlist' does not exist yet, creating.")
             db.execute("CREATE TABLE banlist (address TEXT, type TEXT, origin TEXT, note TEXT, global INTEGER)")
 
         try:
-            test = db.execute("SELECT * FROM mirrors")
+            db.execute("SELECT * FROM mirrors")
         except sqlite3.OperationalError:
             self.log.info("Table 'mirrors' does not exist yet, creating.")
             db.execute("CREATE TABLE mirrors (name TEXT, address TEXT, lifesign INTEGER DEFAULT 0)")
@@ -202,6 +202,7 @@ class listserver():
             try:
                 master = socket.gethostbyname("list.jazzjackrabbit.com")
                 if master != self.address:  # don't add if *this* is list.jazzjackrabbit.com
+                    self.log.info("Adding list.jazzjackrabbit.com as mirror")
                     db.execute("INSERT INTO mirrors (name, address) VALUES (?, ?)", ("list.jazzjackrabbit.net", master))
             except socket.gaierror:
                 self.log.error("Could not retrieve IP for list.jazzjackrabbit.com - no master list server available!")
@@ -213,9 +214,15 @@ class listserver():
 
         result = dbconn.commit()
 
+        # this doesn't necessarily belong here but else we'd need to set up another database connection
         mirrors = db.execute("SELECT * FROM mirrors").fetchall()
         if mirrors:
-            self.mirrors = [socket.gethostbyname(mirror["address"]) for mirror in mirrors]  # use IPs
+            for mirror in mirrors:
+                try:
+                    self.mirrors.append(socket.gethostbyname(mirror["address"]))  # always use IPs
+                except socket.gaierror:
+                    self.log.error("Could not retrieve IP for mirror %s - ignoring" % mirror["name"])
+
 
         db.close()
         dbconn.close()
