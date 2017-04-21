@@ -46,7 +46,7 @@ class broadcaster(threading.Thread):
                 if length_sent == 0:
                     break
                 sent += length_sent
-            self.ls.log.info("Sent message to mirror %s" % self.ip)
+            self.ls.log.info("Sent message to mirror %s (%s)" % (self.ip, self.data))
         except socket.timeout:
             self.ls.log.warning("Timeout while sending to ServerNet mirror %s" % self.ip)
         except ConnectionRefusedError:
