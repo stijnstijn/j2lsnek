@@ -5,6 +5,8 @@ By Stijn (https://stijn.chat)
 Thanks to DJazz for a reference implementation and zepect for some misc tips.
 """
 
+import urllib.request
+import urllib.error
 import subprocess
 import importlib
 import logging
@@ -42,7 +44,12 @@ class listserver():
 
         self.start = int(time.time())
         self.address = socket.gethostname()
-        self.ip = helpers.functions.get_own_ip()
+
+        # try to get own IP
+        try:
+            self.ip = json.load(urllib.request.urlopen("http://httpbin.org/ip"))["origin"]
+        except (ValueError, urllib.error.URLError):
+            self.ip = helpers.functions.get_own_ip()  # may be wrong, but best we got
 
         # initialise logger
         self.log = logging.getLogger("j2lsnek")
@@ -68,7 +75,7 @@ class listserver():
         print("     ( \   / .-.  \   / 2 /   \ k \   /  /   |\\ ssssssssssssss")
         print("      \ `-` /   \  `-' j /     \   `-`  /")
         print("       `-.-`     '.____.'       `.____.'\n")
-        self.log.warning("Starting list server! Address for this server: %s" % self.address)
+        self.log.warning("Starting list server! This one's name is: %s (%s)" % (self.address, self.ip))
         self.log.warning("Current time: %s" % time.strftime("%d-%M-%Y %H:%M:%S"))
         self.log.warning("Enter 'q' to quit (q + enter).")
         self.log.warning("")
