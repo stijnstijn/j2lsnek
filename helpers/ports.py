@@ -1,8 +1,17 @@
 import threading
 import sqlite3
 import socket
-import config
 import time
+import ssl
+
+import config
+from handlers.api import servernet_handler
+from handlers.asciilist import ascii_handler
+from handlers.binarylist import binary_handler
+from handlers.liveserver import server_handler
+from handlers.motd import motd_handler
+from handlers.statistics import stats_handler
+from helpers.functions import whitelisted, banned
 
 
 class port_handler(threading.Thread):
@@ -134,6 +143,7 @@ class port_handler(threading.Thread):
         :param query: Query string
         :param replacements: Replacements, viz. sqlite3.execute()'s second parameter
         :param autolock: Acquire lock? Can be set to False if locking is done manually, e.g. for batches of queries
+        :param mode: Return mode: "fetchone" (one row), "fetchall" (list of rows), "execute" (raw query result)
         :return: Query result
         """
         if autolock:
@@ -160,10 +170,12 @@ class port_handler(threading.Thread):
         except sqlite3.OperationalError as e:
             self.ls.error("SQLite error: %s" % e.message)
             self.ls.halt()
+            return False
 
         except sqlite3.ProgrammingError as e:
             self.ls.error("SQLite error: %s" % e.message)
             self.ls.halt()
+            return False
 
         if autolock:
             self.release_lock()
@@ -191,21 +203,6 @@ class port_handler(threading.Thread):
         :return: Query result, list of dictionaries
         """
         return self.query(query, replacements, autolock, "fetchall")
-
-
-import socket
-import ssl
-import threading
-import time
-
-import config
-from handlers.api import servernet_handler
-from handlers.asciilist import ascii_handler
-from handlers.binarylist import binary_handler
-from handlers.liveserver import server_handler
-from handlers.motd import motd_handler
-from handlers.statistics import stats_handler
-from helpers.functions import whitelisted, banned
 
 
 class port_listener(threading.Thread):

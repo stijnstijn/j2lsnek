@@ -5,14 +5,15 @@ import time
 import re
 
 
-class jj2server():
+class jj2server:
     """
     Class that represents a jj2 server
 
     Offers a few basic methods to transparently interface with the database record that belongs to the server
     """
+    locked = False
 
-    def __init__(self, id):
+    def __init__(self, key):
         """
         Set up database connection (they're not thread-safe) and retrieve server info from database. If not available
         (which is likely), create a new record
@@ -21,8 +22,8 @@ class jj2server():
         """
         self.lock = threading.Lock()
 
-        self.id = id
-        self.updated = {"id": id}
+        self.id = key
+        self.updated = {"id": key}
 
         self.data = self.fetch_one("SELECT * FROM servers WHERE id = ?", (self.id,))
 
@@ -143,6 +144,7 @@ class jj2server():
         :param query: Query string
         :param replacements: Replacements, viz. sqlite3.execute()'s second parameter
         :param autolock: Acquire lock? Can be set to False if locking is done manually, e.g. for batches of queries
+        :param mode: Return mode: "fetchone" (one row), "fetchall" (list of rows), "execute" (raw query result)
         :return: Query result
         """
         if autolock:

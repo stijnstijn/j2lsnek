@@ -26,7 +26,7 @@ class stats_handler(port_handler):
         mirrored = 0
         local = 0
         players = 0
-        max = 0
+        max_players = 0
 
         for server in servers:
             total += 1
@@ -36,7 +36,7 @@ class stats_handler(port_handler):
                 local += 1
 
             players += server["players"]
-            max += server["max"]
+            max_players += server["max"]
 
         stats = "+----------------------------------------------------------------------+\n\n"
         stats += "                Jazz Jackrabbit 2 List Server statistics\n"
@@ -49,7 +49,7 @@ class stats_handler(port_handler):
         stats += "  Servers in list                  : " + str(local) + "\n"
         stats += "  Mirrored servers                 : " + str(mirrored) + "\n"
         stats += "\n"
-        stats += "  Players in servers               : [" + str(players) + "/" + str(max) + "]\n"
+        stats += "  Players in servers               : [" + str(players) + "/" + str(max_players) + "]\n"
         stats += "\n"
         stats += "  Connected list server mirrors    : " + str(len(mirrors)) + " other list servers\n"
 

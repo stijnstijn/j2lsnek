@@ -101,9 +101,9 @@ def banned(ip, whitelisted=False):
     lock.acquire()
     dbconn = sqlite3.connect(config.DATABASE)
     db = dbconn.cursor()
-    type = "ban" if not whitelisted else "whitelist"
+    bantype = "ban" if not whitelisted else "whitelist"
     matches = db.execute("SELECT COUNT(*) FROM banlist WHERE ? LIKE REPLACE(address, '*', '%') AND type = ?",
-                         (ip, type)).fetchone()[0]
+                         (ip, bantype)).fetchone()[0]
     lock.release()
 
     return matches > 0

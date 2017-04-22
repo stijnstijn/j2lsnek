@@ -23,6 +23,7 @@ class server_handler(port_handler):
         new = True  # server is always new when connection is opened
         self.client.settimeout(10)  # time out in 10 seconds unless further data is received
         self.ls.log.info("Server connected from %s" % self.key)
+        broadcast = False
 
         # keep connection open until server disconnects (or times out)
         while self.looping:
@@ -57,7 +58,7 @@ class server_handler(port_handler):
                 name = data[2:35].decode("ascii", "ignore")
 
                 players = int(data[35])
-                max = int(data[36])
+                max_players = int(data[36])
                 flags = int(data[37])
                 version = data[38:]
 
@@ -69,7 +70,7 @@ class server_handler(port_handler):
                 server.set("ip", self.ip)
                 server.set("port", port)
                 server.set("players", players)
-                server.set("max", max)
+                server.set("max", max_players)
                 server.set("mode", decode_mode(mode))
                 server.set("version", decode_version(version))
                 server.set("origin", self.ls.address)

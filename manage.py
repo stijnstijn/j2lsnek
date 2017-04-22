@@ -22,7 +22,8 @@ def send(action, payload):
     """
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connection.settimeout(5)
-    ssl_sock = ssl.wrap_socket(connection, certfile=config.CLIENTCERT, keyfile=config.CLIENTKEY, cert_reqs=ssl.CERT_NONE, server_side=False)
+    ssl_sock = ssl.wrap_socket(connection, certfile=config.CLIENTCERT, keyfile=config.CLIENTKEY,
+                               cert_reqs=ssl.CERT_NONE, server_side=False)
     ssl_sock.connect(("localhost", 10059))
 
     msg = json.dumps({"action": action, "data": [payload], "origin": "web"})
@@ -61,14 +62,14 @@ if len(sys.argv) < 2 or sys.argv[1] not in ["ban", "unban", "whitelist", "unwhit
 action = sys.argv[1]
 if sys.argv[1] in ["ban", "unban", "whitelist", "unwhitelist"]:
     action = \
-    {"ban": "add-banlist", "unban": "delete-banlist", "whitelist": "add-banlist", "unwhitelist": "delete-whitelist"}[
-        action]
-    type = "ban" if action.split("-")[1] == "banlist" else "whitelist"
+        {"ban": "add-banlist", "unban": "delete-banlist", "whitelist": "add-banlist",
+         "unwhitelist": "delete-whitelist"}[action]
+    bantype = "ban" if action.split("-")[1] == "banlist" else "whitelist"
     if len(sys.argv) != 3:
         print("Syntax:\n %s [IP]" % sys.argv[1])
         sys.exit()
 
-    payload = {"address": sys.argv[2], "note": "(added via CLI)", "type": type}
+    payload = {"address": sys.argv[2], "note": "(added via CLI)", "type": bantype}
 
 elif sys.argv[1] in ["add-banlist", "delete-banlist"]:
     if len(sys.argv) != 3:

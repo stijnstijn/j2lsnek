@@ -58,7 +58,8 @@ class servernet_handler(port_handler):
 
         # if API call not received or readable for whatever reason, give up
         if not payload:
-            self.ls.log.error("ServerNet update received from %s, but could not acquire valid payload (got %s)" % (self.ip, self.buffer.decode("ascii")))
+            self.ls.log.error("ServerNet update received from %s, but could not acquire valid payload (got %s)" % (
+                self.ip, self.buffer.decode("ascii")))
             self.end()
             return
 
@@ -98,7 +99,7 @@ class servernet_handler(port_handler):
         # was a reload command given?
         if self.reload_mode is not None:
             self.ls.reload(mode=self.reload_mode)
-            
+
         return
 
     def process_data(self, action, data):
@@ -121,7 +122,8 @@ class servernet_handler(port_handler):
                 [server.set(key, data[key]) for key in data]
             except IndexError:
                 self.ls.log.error(
-                    "Received incomplete server data from ServerNet connection %s (unknown field %s)" % (self.ip, key))
+                    "Received incomplete server data from ServerNet connection %s (unknown field in %s)" % (
+                        self.ip, repr(data)))
                 server.forget()
                 return False
             server.set("remote", 1)

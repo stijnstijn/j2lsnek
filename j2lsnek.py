@@ -26,7 +26,7 @@ import helpers.interact
 import helpers.jj2
 
 
-class listserver():
+class listserver:
     """
     Main list server thread
     Sets up port listeners and broadcasts data to connected mirror list servers
@@ -204,7 +204,7 @@ class listserver():
         except sqlite3.OperationalError:
             self.log.info("Table 'servers' does not exist yet, creating.")
             db.execute(
-                "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, created INTEGER DEFAULT 0, lifesign INTEGER DEFAULT 0, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', plusonly INTEGER default 0, mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT)")
+                "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, created INTEGER DEFAULT 0, lifesign INTEGER DEFAULT 0, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', plusonly INTEGER DEFAULT 0, mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT)")
 
         try:
             db.execute("SELECT * FROM settings")
@@ -327,7 +327,7 @@ class listserver():
                 bits = server.split(" ")
                 if len(bits) < 9:
                     continue
-                id = bits[0]
+                key = bits[0]
                 ip = bits[0].split(":")[0]
                 port = bits[0].split(":")[1]
                 private = 1 if bits[2] == "private" else 0
@@ -337,17 +337,16 @@ class listserver():
                 bits = rest.split(" ")
                 created = int(time.time()) - int(bits[0])
                 players = int(bits[1][1:-1].split("/")[0])
-                max = int(bits[1][1:-1].split("/")[1])
+                max_players = int(bits[1][1:-1].split("/")[1])
                 name = " ".join(bits[2:]).strip()
-                data = {"id": id, "ip": ip, "port": port, "created": created, "lifesign": int(time.time()),
-                     "private": private,
-                     "remote": 1, "origin": self.address, "version": version, "mode": mode, "players": players, "max": max,
-                     "name": name}
+                data = {"id": key, "ip": ip, "port": port, "created": created, "lifesign": int(time.time()),
+                        "private": private, "remote": 1, "origin": self.address, "version": version, "mode": mode,
+                        "players": players, "max": max_players, "name": name}
                 payload.append(data)
 
-                srv = helpers.jj2.jj2server(id)
-                for key in data:
-                    if key != "id":
+                srv = helpers.jj2.jj2server(key)
+                for item in data:
+                    if item != "id":
                         srv.set(key, data[key])
 
             except ValueError:
