@@ -54,6 +54,8 @@ class stats_handler(port_handler):
         stats += "  Connected list server mirrors    : " + str(len(mirrors)) + " other list servers\n"
 
         for mirror in mirrors:
+            if mirror["address"] == self.ls.address:
+                continue
             stats += "                                     -> " + mirror["name"]
             if int(mirror["lifesign"]) < int(time.time()) - 600:
                 stats += " (inactive)\n"
