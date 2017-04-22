@@ -38,6 +38,10 @@ class stats_handler(port_handler):
             players += server["players"]
             max_players += server["max"]
 
+        # don't count ourselves
+        mirror_count = len(mirrors) - 1
+        suffix = "" if mirror_count == 1 else "s"
+
         stats = "+----------------------------------------------------------------------+\n\n"
         stats += "                Jazz Jackrabbit 2 List Server statistics\n"
         stats += "\n"
@@ -51,10 +55,10 @@ class stats_handler(port_handler):
         stats += "\n"
         stats += "  Players in servers               : [" + str(players) + "/" + str(max_players) + "]\n"
         stats += "\n"
-        stats += "  Connected list server mirrors    : " + str(len(mirrors) - 1) + " other list servers\n"
+        stats += "  Connected list server mirrors    : " + str(mirror_count) + " other list server" + suffix + "\n"
 
         for mirror in mirrors:
-            if mirror["address"] == self.ls.ip:
+            if mirror["address"] == self.ls.ip:  # don't count ourselves
                 continue
             stats += "                                     -> " + mirror["name"]
             if int(mirror["lifesign"]) < int(time.time()) - 600:
