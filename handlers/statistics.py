@@ -51,7 +51,7 @@ class stats_handler(port_handler):
         stats += "\n"
         stats += "  Players in servers               : [" + str(players) + "/" + str(max_players) + "]\n"
         stats += "\n"
-        stats += "  Connected list server mirrors    : " + str(len(mirrors)) + " other list servers\n"
+        stats += "  Connected list server mirrors    : " + str(len(mirrors) - 1) + " other list servers\n"
 
         for mirror in mirrors:
             if mirror["address"] == self.ls.ip:
