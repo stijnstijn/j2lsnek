@@ -45,12 +45,6 @@ class listserver:
         self.start = int(time.time())
         self.address = socket.gethostname()
 
-        # try to get own IP
-        try:
-            self.ip = json.load(urllib.request.urlopen("http://httpbin.org/ip"))["origin"]
-        except (ValueError, urllib.error.URLError):
-            self.ip = helpers.functions.get_own_ip()  # may be wrong, but best we got
-
         # initialise logger
         self.log = logging.getLogger("j2lsnek")
         self.log.setLevel(logging.INFO)
@@ -66,6 +60,13 @@ class listserver:
         handler.setLevel(logging.INFO)
         handler.setFormatter(logging.Formatter("%(asctime)-15s | %(message)s", "%d-%M-%Y %H:%M:%S"))
         self.log.addHandler(handler)
+
+        # try to get own IP
+        try:
+            self.ip = json.loads(str(urllib.request.urlopen("http://httpbin.org/ip")))["origin"]
+        except (ValueError, urllib.error.URLError):
+            self.log.info("Could not retrieve own IP via online API - guessing")
+            self.ip = helpers.functions.get_own_ip()  # may be wrong, but best we got
 
         # say hello
         os.system("cls" if os.name == "nt" else "clear")  # clear screen
