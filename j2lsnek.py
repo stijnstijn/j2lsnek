@@ -21,7 +21,7 @@ from logging.handlers import RotatingFileHandler
 import config
 import helpers.servernet
 import helpers.functions
-import helpers.ports
+import helpers.listener
 import helpers.interact
 import helpers.jj2
 
@@ -116,7 +116,7 @@ class listserver:
         """
         self.log.warning("Opening port listeners...")
         for port in ports:
-            self.sockets[port] = helpers.ports.port_listener(port=port, ls=self)
+            self.sockets[port] = helpers.listener.port_listener(port=port, ls=self)
             self.sockets[port].start()
         self.log.warning("Listening.")
 
@@ -287,7 +287,7 @@ class listserver:
             self.log.warning("Reloading modules...")
             importlib.reload(helpers.servernet)
             importlib.reload(helpers.functions)
-            importlib.reload(helpers.ports)
+            importlib.reload(helpers.listener)
             importlib.reload(helpers.jj2)
             self.reboot_mode = "restart"
             self.halt()
