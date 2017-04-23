@@ -44,7 +44,7 @@ class server_handler(port_handler):
             if new and data and len(data) == 42:
                 # check for spamming
                 other = self.fetch_one("SELECT COUNT(*) FROM servers WHERE ip = ?", (self.ip,))[0]
-                if other >= 2 and not whitelisted(self.ip):
+                if other >= config.MAXSERVERS and not whitelisted(self.ip):
                     self.ls.log.warning("IP %s attempted to list server, but has 2 listed servers already" % self.ip)
                     self.error_msg("Too many connections from this IP address")
                     break
