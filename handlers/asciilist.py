@@ -20,14 +20,18 @@ class ascii_handler(port_handler):
         asciilist = ""
 
         for server in servers:
-            asciilist += server['ip'] + ':' + str(server['port']) + ' '  # ip:port
-            asciilist += 'local ' if server['remote'] == 0 else 'mirror '  # 'local' or 'mirror'
-            asciilist += 'public ' if server['private'] == 0 else 'private '  # 'public' or 'private'
-            asciilist += server['mode'] + ' '  # game mode
-            asciilist += server['version'][:6].ljust(6, ' ') + ' '  # version
-            asciilist += str(int(time.time()) - int(server['created'])) + ' '  # uptime in seconds
-            asciilist += '[' + str(server['players']) + '/' + str(server['max']) + '] '  # [players/max]
-            asciilist += server['name'] + "\r\n"  # server name
+            try:
+                entry = server['ip'] + ':' + str(server['port']) + ' '  # ip:port
+                entry += 'local ' if server['remote'] == 0 else 'mirror '  # 'local' or 'mirror'
+                entry += 'public ' if server['private'] == 0 else 'private '  # 'public' or 'private'
+                entry += server['mode'] + ' '  # game mode
+                entry += server['version'][:6].ljust(6, ' ') + ' '  # version
+                entry += str(int(time.time()) - int(server['created'])) + ' '  # uptime in seconds
+                entry += '[' + str(server['players']) + '/' + str(server['max']) + '] '  # [players/max]
+                entry += server['name'] + "\r\n"  # server name
+                entry += entry
+            except TypeError:
+                continue
 
         self.msg(asciilist)
         self.end()
