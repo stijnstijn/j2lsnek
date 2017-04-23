@@ -335,9 +335,7 @@ class listserver:
             return False
 
         for mask in self.banlist:
-            self.log.error("Matching ban: %s" % mask)
             if fnmatch.filter([address], mask) and whitelisted == self.banlist[mask]:
-                self.log.error("Matches ban: %s" % mask)
                 return True
         return False
 
