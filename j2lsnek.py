@@ -285,6 +285,7 @@ class listserver:
     def reload(self, mode=1):
         if mode == 2 or mode == 3:
             self.log.warning("Pulling latest code from github...")
+            subprocess.call("git reset HEAD --hard".split(" "))
             subprocess.call("git pull origin master".split(" "))
 
         if mode == 2:
