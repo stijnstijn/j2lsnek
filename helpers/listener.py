@@ -69,7 +69,7 @@ class port_listener(threading.Thread):
                 server.bind((address, self.port))
             except OSError:
                 if has_time:
-                    self.ls.log.info("Could not open port %s yet (%s), retrying in 5 seconds" % (self.port, OSError))
+                    self.ls.log.info("Could not open port %s yet (%s), retrying in 5 seconds" % (self.port, OSError.strerror))
                     time.sleep(5.0)  # wait a few seconds before retrying
                     continue
                 self.ls.log.error(
