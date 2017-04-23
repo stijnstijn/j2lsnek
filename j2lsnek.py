@@ -233,7 +233,7 @@ class listserver:
                 self.add_ban(ban["address"], ban["type"] == "whitelist")
         except sqlite3.OperationalError:
             self.log.info("Table 'banlist' does not exist yet, creating.")
-            db.execute("CREATE TABLE banlist (address TEXT, type TEXT, note TEXT)")
+            db.execute("CREATE TABLE banlist (address TEXT, type TEXT, note TEXT, origin TEXT)")
 
         try:
             db.execute("SELECT * FROM mirrors")
@@ -251,7 +251,7 @@ class listserver:
 
         # if this method is run, it means the list server is restarted, which breaks all open connections, so clear all
         # servers and such - banlist will be synced upon restart
-        db.execute("DELETE FROM banlist")
+        db.execute("DELETE FROM banlist WHERE origin != ?", (self.address, ))
         db.execute("DELETE FROM servers")
 
         result = dbconn.commit()
