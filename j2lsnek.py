@@ -105,8 +105,6 @@ class listserver:
 
         # restart script if that mode was chosen
         if self.reboot_mode == "reboot":
-            self.log.warning("Waiting five minutes so all ports can be released")
-            time.sleep(60.0 * 5.0)
             interpreter = sys.executable.split("\\" if os.name == "nt" else "/")[-1]
             os.execvp(sys.executable, [interpreter] + sys.argv)
 
@@ -158,7 +156,7 @@ class listserver:
         """
         if not self.looping:
             return False  # shutting down
-        
+
         data = json.dumps({"action": action, "data": data, "origin": self.address})
 
         if not recipients:
