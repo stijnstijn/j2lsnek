@@ -29,7 +29,7 @@ def decode_version(version):
     :param version: Version as sent by the client
     :return: Version string as used by list server
     """
-    version = version.decode("ascii")
+    version = version.decode("ascii", "ignore")
     version_string = ""
 
     if version_string[0:2] == "21":

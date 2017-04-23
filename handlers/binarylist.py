@@ -30,7 +30,7 @@ class binary_handler(port_handler):
                 binlist.append(int(component))
 
                 binlist.extend(server["port"].to_bytes(2, byteorder="little"))
-                binlist.extend(server["name"].encode("ascii"))
+                binlist.extend(server["name"].encode("ascii", "ignore"))
 
         self.client.sendall(binlist)  # can't use client.msg here, that's for text messages
         self.end()

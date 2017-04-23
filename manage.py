@@ -27,11 +27,11 @@ def send(action, payload):
     ssl_sock.connect(("localhost", 10059))
 
     msg = json.dumps({"action": action, "data": [payload], "origin": "web"})
-    ssl_sock.sendall(msg.encode("ascii"))
+    ssl_sock.sendall(msg.encode("ascii", "ignore"))
 
     try:
         response = ssl_sock.recv(2048)
-        response = response.decode("ascii")
+        response = response.decode("ascii", "ignore")
     except socket.timeout:
         response = "(Connection timed out)"
 
