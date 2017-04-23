@@ -29,7 +29,7 @@ class ascii_handler(port_handler):
                 entry += str(int(time.time()) - int(server['created'])) + ' '  # uptime in seconds
                 entry += '[' + str(server['players']) + '/' + str(server['max']) + '] '  # [players/max]
                 entry += server['name'] + "\r\n"  # server name
-                entry += entry
+                asciilist += entry
             except TypeError:
                 continue
 
