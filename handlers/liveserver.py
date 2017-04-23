@@ -29,7 +29,7 @@ class server_handler(port_handler):
         while self.looping:
             try:
                 data = self.client.recv(1024)
-            except socket.timeout:
+            except (socket.timeout, TimeoutError):
                 # if no lifesign for 30 seconds, ping to see if the server is still alive
                 data = None
                 ping = self.client.send(bytearray([0]))

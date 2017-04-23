@@ -41,7 +41,7 @@ class servernet_handler(port_handler):
             try:
                 self.buffer.extend(self.client.recv(2048))
                 loops += 1
-            except socket.timeout:
+            except (socket.timeout, TimeoutError):
                 self.ls.log.warning("Server from %s timed out" % self.key)
                 break
 

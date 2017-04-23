@@ -32,7 +32,7 @@ def send(action, payload):
     try:
         response = ssl_sock.recv(2048)
         response = response.decode("ascii", "ignore")
-    except socket.timeout:
+    except (socket.timeout, TimeoutError):
         response = "(Connection timed out)"
 
     ssl_sock.shutdown(socket.SHUT_RDWR)

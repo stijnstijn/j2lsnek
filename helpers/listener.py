@@ -94,7 +94,7 @@ class port_listener(threading.Thread):
             try:
                 client, address = server.accept()
                 self.connecting = True  # make sure no one else works with self.connections while we're busy
-            except socket.timeout:
+            except (socket.timeout, TimeoutError):
                 if not self.looping:
                     break
                 continue  # no problemo, just listen again - this only times out so it won't hang the entire app when
