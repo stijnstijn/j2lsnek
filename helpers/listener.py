@@ -57,16 +57,26 @@ class port_listener(threading.Thread):
         # this makes sure sockets are available immediate after closing instead of waiting for late packets
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        try:
-            server.bind((address, self.port))
-        except OSError:
-            self.ls.log.error("WARNING! Port %s:%s is already in use! List server is NOT listening at this port!" % (
-                address, self.port))
-            return
-        except ConnectionRefusedError:
-            self.ls.log.error("WARNING! OS refused listening at %s:%s! List server is NOT listening at this port!" % (
-                address, self.port))
-            return
+        has_time = True
+        start_trying = int(time.time())
+        while has_time:
+            has_time = start_trying > time.time() - 300  # stop trying after 5 minutes
+            try:
+                server.bind((address, self.port))
+            except OSError:
+                if has_time:
+                    self.ls.log.info("Could not open port %s yet, retrying in 5 seconds" % self.port)
+                    time.sleep(5.0)  # wait a few seconds before retrying
+                    continue
+                self.ls.log.error(
+                    "WARNING! Port %s:%s is already in use and could not be released! List server is NOT listening at this port!" % (
+                        address, self.port))
+                return
+            except ConnectionRefusedError:
+                self.ls.log.error(
+                    "WARNING! OS refused listening at %s:%s! List server is NOT listening at this port!" % (
+                        address, self.port))
+                return
 
         server.listen(5)
         server.settimeout(5)
