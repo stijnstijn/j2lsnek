@@ -105,8 +105,16 @@ class listserver:
 
         # restart script if that mode was chosen
         if self.reboot_mode == "reboot":
-            interpreter = sys.executable.split("\\" if os.name == "nt" else "/")[-1]
-            os.execvp(sys.executable, [interpreter] + sys.argv)
+            if os.name == "nt":
+                from subprocess import Popen
+                import signal
+                p = Popen([sys.executable] + sys.argv)
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
+                p.wait()
+                sys.exit(p.returncode)
+            else:
+                interpreter = sys.executable.split("/")[-1]
+                os.execvp(sys.executable, [interpreter] + sys.argv)
 
     def listen_to(self, ports):
         """
