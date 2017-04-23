@@ -29,8 +29,8 @@ class binary_handler(port_handler):
             for component in ip:
                 binlist.append(int(component))
 
-                binlist.extend(server["port"].to_bytes(2, byteorder="little"))
-                binlist.extend(server["name"].encode("ascii", "ignore"))
+            binlist.extend(server["port"].to_bytes(2, byteorder="little"))
+            binlist.extend(server["name"].encode("ascii", "ignore"))
 
         self.client.sendall(binlist)  # can't use client.msg here, that's for text messages
         self.end()
