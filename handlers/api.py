@@ -238,7 +238,7 @@ class servernet_handler(port_handler):
                               recipients=[self.ip])
 
             # banlist
-            banlist = self.fetch_all("SELECT * FROM banlist", (self.ls.address,))
+            banlist = self.fetch_all("SELECT * FROM banlist")
             self.ls.broadcast(action="ban", data=[{key: ban[key] for key in ban.keys()} for ban in banlist],
                               recipients=[self.ip])
 
