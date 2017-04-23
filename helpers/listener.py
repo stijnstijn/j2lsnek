@@ -100,6 +100,9 @@ class port_listener(threading.Thread):
                 self.ls.log.error("Could not establish SSL connection: %s" % e)
                 continue
 
+            if not self.looping:
+                break  # shutting down, don't accept new connections
+
             # check if banned (unless whitelisted)
             is_whitelisted = whitelisted(address[0])  # needed later, so save value
             if banned(address[0]) and not is_whitelisted:
@@ -167,7 +170,9 @@ class port_listener(threading.Thread):
             del stale_connections
 
             time.sleep(config.MICROSLEEP)
-
+            
+        server.shutdown(socket.SHUT_RDWR)
+        server.close()
         return
 
     def halt(self):
