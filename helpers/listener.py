@@ -43,6 +43,10 @@ class port_listener(threading.Thread):
 
         :return: Nothing
         """
+        if not self.looping:
+            return False  # shutting down, don't accept new connections
+
+        
         # in case of port 10059, we authenticate via SSL certificates, since else anyone running on localhost
         # may interact with the list server API
         if self.port == 10059:
