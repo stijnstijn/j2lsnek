@@ -148,7 +148,6 @@ class port_listener(threading.Thread):
             else:
                 raise NotImplementedError("No handler class available for port %s" % self.port)
             self.connections[key].start()
-            self.connecting = False
 
             # remove IPs that haven't been seen for a long time
             for ip in self.ticker:
@@ -163,6 +162,7 @@ class port_listener(threading.Thread):
 
             for key in stale_connections:
                 del self.connections[key]
+            self.connecting = False
 
             del stale_connections
 
