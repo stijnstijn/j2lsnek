@@ -43,6 +43,10 @@ class server_handler(port_handler):
                 self.ls.log("Server %s closed: connection error (%s)" % e)
                 break
 
+            if self.ls.banned(self.ip):
+                self.ls.log("Delisting banned server from %s" % self.ip)
+                break
+
             # new server wants to get listed
             if new and data and len(data) == 42:
                 # check for spamming
