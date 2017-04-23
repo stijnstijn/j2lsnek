@@ -114,8 +114,7 @@ class port_listener(threading.Thread):
                 break  # shutting down, don't accept new connections
 
             # check if banned (unless whitelisted)
-            is_whitelisted = self.ls.whitelisted(address[0])  # needed later, so save value
-            if self.ls.banned(address[0]) and not is_whitelisted:
+            if self.ls.banned(address[0]):
                 self.ls.log.warning("IP %s attempted to connect but matches banlist, refused" % address[0])
                 continue
 
@@ -123,7 +122,7 @@ class port_listener(threading.Thread):
             # connection is refused until the tick count decays below that max value
             now = int(time.time())
             ticks = 0
-            if not is_whitelisted and address[0] in self.ticker:
+            if not self.ls.whitelisted(address[0]) and address[0] in self.ticker:
                 ticks = self.ticker[address[0]][0]
                 last_tick = self.ticker[address[0]][1]
                 decay = (now - last_tick) * config.TICKSDECAY
@@ -134,7 +133,7 @@ class port_listener(threading.Thread):
                     self.ticker[address[0]] = [ticks, now]
                     continue
 
-            if not is_whitelisted:
+            if not self.ls.whitelisted:
                 self.ticker[address[0]] = [max(ticks + 1, 1), now]
 
             key = address[0] + ":" + str(address[1])
