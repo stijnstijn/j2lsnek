@@ -90,18 +90,17 @@ class port_listener(threading.Thread):
         self.ls.log.info("Opening socket listening at port %s" % self.port)
 
         while self.looping:
+            self.connecting = False
             try:
                 client, address = server.accept()
                 self.connecting = True  # make sure no one else works with self.connections while we're busy
             except socket.timeout:
                 if not self.looping:
-                    self.connecting = False
                     break
                 continue  # no problemo, just listen again - this only times out so it won't hang the entire app when
                 # trying to exit, as there's no other way to easily interrupt accept()
             except ssl.SSLError as e:
                 if not self.looping:
-                    self.connecting = False
                     break
                 self.ls.log.error("Could not establish SSL connection: %s" % e)
                 continue
@@ -178,6 +177,7 @@ class port_listener(threading.Thread):
             time.sleep(config.MICROSLEEP)
 
         server.close()
+        self.connecting = False  # just in case
         return
 
     def halt(self):
