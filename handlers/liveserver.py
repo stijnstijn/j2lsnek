@@ -39,6 +39,9 @@ class server_handler(port_handler):
                 else:
                     self.ls.log.warning("Server from %s timed out" % self.key)
                     break
+            except ConnectionError as e:
+                self.ls.log("Server %s closed: connection error (%s)" % e)
+                break
 
             # new server wants to get listed
             if new and data and len(data) == 42:
