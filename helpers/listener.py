@@ -10,7 +10,6 @@ from handlers.binarylist import binary_handler
 from handlers.liveserver import server_handler
 from handlers.motd import motd_handler
 from handlers.statistics import stats_handler
-from helpers.functions import whitelisted, banned
 
 
 class port_listener(threading.Thread):
@@ -93,19 +92,31 @@ class port_listener(threading.Thread):
         while self.looping:
             try:
                 client, address = server.accept()
+                self.connecting = True  # make sure no one else works with self.connections while we're busy
             except socket.timeout:
+                if not self.looping:
+                    self.connecting = False
+                    break
                 continue  # no problemo, just listen again - this only times out so it won't hang the entire app when
                 # trying to exit, as there's no other way to easily interrupt accept()
             except ssl.SSLError as e:
+                if not self.looping:
+                    self.connecting = False
+                    break
                 self.ls.log.error("Could not establish SSL connection: %s" % e)
                 continue
 
+            # if halt signal was given between calling server.accept() and someone connecting
             if not self.looping:
+                self.connecting = False
+                self.ls.log.info("Not accepting connection from %s, restarting has priority" % address[0])
+                client.shutdown(socket.SHUT_RDWR)
+                client.close()
                 break  # shutting down, don't accept new connections
 
             # check if banned (unless whitelisted)
-            is_whitelisted = whitelisted(address[0])  # needed later, so save value
-            if banned(address[0]) and not is_whitelisted:
+            is_whitelisted = self.ls.whitelisted(address[0])  # needed later, so save value
+            if self.ls.banned(address[0]) and not is_whitelisted:
                 self.ls.log.warning("IP %s attempted to connect but matches banlist, refused" % address[0])
                 continue
 
@@ -129,11 +140,6 @@ class port_listener(threading.Thread):
 
             key = address[0] + ":" + str(address[1])
 
-            if not self.looping:
-                self.ls.log.info("Not accepting connection, restarting has priority")
-                return False
-
-            self.connecting = True
             if self.port == 10053:
                 self.connections[key] = binary_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10054:
@@ -165,13 +171,12 @@ class port_listener(threading.Thread):
 
             for key in stale_connections:
                 del self.connections[key]
-            self.connecting = False
-
             del stale_connections
 
+            # do some housekeeping
+            self.connecting = False  # we're done working with self.connections
             time.sleep(config.MICROSLEEP)
-            
-        server.shutdown(socket.SHUT_RDWR)
+
         server.close()
         return
 
@@ -187,8 +192,8 @@ class port_listener(threading.Thread):
 
         self.ls.log.info("Waiting for handlers on port %s to finish..." % self.port)
 
-        while self.connecting:
-            pass
+        while self.connecting:  # wait until handle_data() has finished its loop
+            time.sleep(config.MICROSLEEP)
 
         for key in self.connections:
             self.connections[key].halt()

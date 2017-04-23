@@ -5,3 +5,4 @@ servers.db
 *.log
 ssl
 sslconfig.py
+tests

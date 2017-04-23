@@ -11,6 +11,7 @@ import subprocess
 import importlib
 import logging
 import sqlite3
+import fnmatch
 import socket
 import json
 import time
@@ -36,6 +37,7 @@ class listserver:
     mirrors = []  # ServerNet connections
     last_ping = 0  # last time this list server has sent a ping to ServerNet
     reboot_mode = "quit"  # "quit" (default), "restart" (reload everything), or "reboot" (restart complete list server)
+    banlist = {}
 
     def __init__(self):
         """
@@ -226,10 +228,12 @@ class listserver:
             db.execute("INSERT INTO settings (item, value) VALUES (?, ?), (?, ?)", ("motd", "", "motd-updated", "0"))
 
         try:
-            db.execute("SELECT * FROM banlist")
+            bans = db.execute("SELECT * FROM banlist").fetchall()
+            for ban in bans:
+                self.add_ban(ban["address"], ban["type"] == "whitelist")
         except sqlite3.OperationalError:
             self.log.info("Table 'banlist' does not exist yet, creating.")
-            db.execute("CREATE TABLE banlist (address TEXT, type TEXT, origin TEXT, note TEXT)")
+            db.execute("CREATE TABLE banlist (address TEXT, type TEXT, note TEXT)")
 
         try:
             db.execute("SELECT * FROM mirrors")
@@ -241,13 +245,13 @@ class listserver:
                 master = socket.gethostbyname("list.jazz2online.com")
                 if master != self.address:  # don't add if *this* is list.jazzjackrabbit.com
                     self.log.info("Adding list.jazzjackrabbit.com as mirror")
-                    db.execute("INSERT INTO mirrors (name, address) VALUES (?, ?)", ("list.jazz2online.com", master))
+                    db.execute("INSERT INTO mirrors (name, address) VALUES (?, ?)", ("localhost", "127.0.0.1"))  # master))
             except socket.gaierror:
                 self.log.error("Could not retrieve IP for list.jazzjackrabbit.com - no master list server available!")
 
         # if this method is run, it means the list server is restarted, which breaks all open connections, so clear all
         # servers and such - banlist will be synced upon restart
-        db.execute("DELETE FROM banlist WHERE origin != ?", (self.address,))
+        db.execute("DELETE FROM banlist")
         db.execute("DELETE FROM servers")
 
         result = dbconn.commit()
@@ -290,7 +294,76 @@ class listserver:
         if address in self.mirrors:
             self.mirrors.remove(address)
 
+    def add_ban(self, address, whitelisted=False):
+        """
+        Add address to banlist
+
+        Only adds to banlist in memory; database is handled by API
+
+        :param address: IP address to add, may be partial (* wildcards)
+        :param whitelisted: Boolean; whitelisted or ordinary ban?
+        :return:
+        """
+        if address not in self.banlist:
+            self.banlist[address] = whitelisted
+
+    def delete_ban(self, address, whitelisted):
+        """
+        Delete address from banlist
+
+        Only removes from banlist in memory; database is handled by API
+
+        :param address: IP address to delete, may be partial (* wildcards). Must exactly match what was added though add_ban
+        :param whitelisted: Boolean; whitelisted or ordinary ban?
+        :return:
+        """
+        if address in self.banlist:
+            del self.banlist[address]
+
+    def banned(self, address, whitelisted=False):
+        """
+        Check if address is banned
+
+        Compares to the banlist in memory; actual banlist isn't checked to avoid using the database. Mirrors are never
+        banned.
+
+        :param address: Complete IP address
+        :param whitelisted: Check if whitelisted, defaults to False
+        :return: True if banned/whitelisted, else False
+        """
+        if address in self.mirrors:
+            return False
+
+        for mask in self.banlist:
+            self.log.error("Matching ban: %s" % mask)
+            if fnmatch.filter([address], mask) and whitelisted == self.banlist[mask]:
+                self.log.error("Matches ban: %s" % mask)
+                return True
+        return False
+
+    def whitelisted(self, address):
+        """
+        Shorthand for banned(address, True)
+
+        Mirrors are always whitelisted.
+
+        :param address: Complete IP address
+        :return: True if whitelisted, else False
+        """
+        if address in self.mirrors:
+            return False
+
+        return self.banned(address, True)
+
     def reload(self, mode=1):
+        """
+        Reload list server
+
+        Depending on the mode, the configuration is reload; modules are re-imported; or the list server is shut down and
+        completely restarted.
+        :param mode: "reload" (config only), "restart" (reload modules), "reboot" (restart list server
+        :return:
+        """
         if mode == 2 or mode == 3:
             self.log.warning("Pulling latest code from github...")
             subprocess.call("git reset HEAD --hard".split(" "))

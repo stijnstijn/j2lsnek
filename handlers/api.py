@@ -129,15 +129,13 @@ class servernet_handler(port_handler):
 
         # ban list (and whitelist) entries
         elif action == "add-banlist":
-            if "origin" not in data:
-                data["origin"] = self.ls.address
-
             try:
                 if not self.fetch_one(
-                        "SELECT * FROM banlist WHERE address = ? AND origin = ? AND type = ? AND note = ?",
-                        (data["address"], data["origin"], data["type"], data["note"])):
-                    self.query("INSERT INTO banlist (address, origin, type, note) VALUES (?, ?, ?, ?)",
-                               (data["address"], data["origin"], data["type"], data["note"]))
+                        "SELECT * FROM banlist WHERE address = ? AND type = ? AND note = ?",
+                        (data["address"], data["type"], data["note"])):
+                    self.query("INSERT INTO banlist (address, type, note) VALUES (?, ?, ?)",
+                               (data["address"], data["type"], data["note"]))
+                    self.ls.add_ban(data["address"], data["type"] == "whitelist")
             except KeyError:
                 self.ls.log.error("Received incomplete banlist entry from ServerNet connection %s" % self.ip)
                 return False
@@ -146,12 +144,10 @@ class servernet_handler(port_handler):
 
         # removal of ban/whitelist entries
         elif action == "delete-banlist":
-            if "origin" not in data:
-                data["origin"] = self.ls.address
-
             try:
-                self.fetch_one("DELETE FROM banlist WHERE address = ? AND origin = ? AND type = ? AND note = ?",
-                               (data["address"], data["origin"], data["type"], data["note"]))
+                self.fetch_one("DELETE FROM banlist WHERE address = ? AND type = ? AND note = ?",
+                               (data["address"], data["type"], data["note"]))
+                self.ls.delete_ban(data["address"], data["type"] == "whitelist")
             except KeyError:
                 self.ls.log.error("Received incomplete banlist deletion request from ServerNet connection %s" % self.ip)
                 return False
