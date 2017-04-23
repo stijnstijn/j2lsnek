@@ -21,6 +21,7 @@ class port_listener(threading.Thread):
     connections = {}
     ticker = {}
     looping = True
+    connecting = False
 
     def __init__(self, port=None, ls=None):
         """
@@ -61,6 +62,8 @@ class port_listener(threading.Thread):
         # this makes sure sockets are available immediate after closing instead of waiting for late packets
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
+        # because we may still run into TIME_WAIT, try opening the socket every 5 seconds until we have a connection
+        # or 5 minutes have passed, in the latter case we assume there's something wrong and give up
         has_time = True
         start_trying = int(time.time())
         while has_time:
@@ -123,6 +126,11 @@ class port_listener(threading.Thread):
 
             key = address[0] + ":" + str(address[1])
 
+            if not self.looping:
+                self.ls.log.info("Not accepting connection, restarting has priority")
+                return False
+
+            self.connecting = True
             if self.port == 10053:
                 self.connections[key] = binary_handler(client=client, address=address, ls=self.ls, port=self.port)
             elif self.port == 10054:
@@ -140,6 +148,7 @@ class port_listener(threading.Thread):
             else:
                 raise NotImplementedError("No handler class available for port %s" % self.port)
             self.connections[key].start()
+            self.connecting = False
 
             # remove IPs that haven't been seen for a long time
             for ip in self.ticker:
@@ -172,6 +181,10 @@ class port_listener(threading.Thread):
         self.looping = False
 
         self.ls.log.info("Waiting for handlers on port %s to finish..." % self.port)
+
+        while self.connecting:
+            pass
+
         for key in self.connections:
             self.connections[key].halt()
             self.connections[key].join()
