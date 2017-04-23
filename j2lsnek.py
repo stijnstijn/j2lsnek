@@ -156,6 +156,9 @@ class listserver:
         :param ignore: List of IPs *not* to send to
         :return: Nothing
         """
+        if not self.looping:
+            return False  # shutting down
+        
         data = json.dumps({"action": action, "data": data, "origin": self.address})
 
         if not recipients:

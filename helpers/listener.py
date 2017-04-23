@@ -46,7 +46,7 @@ class port_listener(threading.Thread):
         if not self.looping:
             return False  # shutting down, don't accept new connections
 
-        
+
         # in case of port 10059, we authenticate via SSL certificates, since else anyone running on localhost
         # may interact with the list server API
         if self.port == 10059:
@@ -69,7 +69,7 @@ class port_listener(threading.Thread):
                 server.bind((address, self.port))
             except OSError:
                 if has_time:
-                    self.ls.log.info("Could not open port %s yet, retrying in 5 seconds" % self.port)
+                    self.ls.log.info("Could not open port %s yet (%s), retrying in 5 seconds" % (self.port, OSError))
                     time.sleep(5.0)  # wait a few seconds before retrying
                     continue
                 self.ls.log.error(
