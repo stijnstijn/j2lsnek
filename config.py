@@ -6,7 +6,7 @@ DATABASE = "servers.db"
 MICROSLEEP = 0.2
 MAXPLAYERS = 32
 TIMEOUT = 40  # time until a server is delisted
-MAXSERVERS = 5  # max servers per IP
+MAXSERVERS = 2  # max servers per IP
 
 # ssl chain (for the server), certificates and keys that are used to authenticate remote admin interfaces - these
 # can be left empty and the list server will still work, port 10059 will just be unavailable if they're empty
