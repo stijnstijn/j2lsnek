@@ -242,12 +242,13 @@ class listserver:
             db.execute("CREATE TABLE mirrors (name TEXT, address TEXT, lifesign INTEGER DEFAULT 0)")
 
             try:
-                master = socket.gethostbyname("list.jazz2online.com")
+                master_fqdn = "list.jazz2online.com"
+                master = socket.gethostbyname(master_fqdn)
                 if master != self.address:  # don't add if *this* is list.jazzjackrabbit.com
-                    self.log.info("Adding list.jazzjackrabbit.com as mirror")
-                    db.execute("INSERT INTO mirrors (name, address) VALUES (?, ?)", ("localhost", "127.0.0.1"))  # master))
+                    self.log.info("Adding %s as mirror" % master_fqdn)
+                    db.execute("INSERT INTO mirrors (name, address) VALUES (?, ?)", (master_fqdn, master))  # master))
             except socket.gaierror:
-                self.log.error("Could not retrieve IP for list.jazzjackrabbit.com - no master list server available!")
+                self.log.error("Could not retrieve IP for %s - no master list server available!" % master_fqdn)
 
         # if this method is run, it means the list server is restarted, which breaks all open connections, so clear all
         # servers and such - banlist will be synced upon restart
