@@ -65,8 +65,8 @@ class listserver:
 
         # try to get own IP
         try:
-            self.ip = json.loads(str(urllib.request.urlopen("http://httpbin.org/ip")))["origin"]
-        except (ValueError, urllib.error.URLError):
+            self.ip = json.loads(str(urllib.request.urlopen("http://httpbin.org/ip").read().decode("ascii", "ignore")))["origin"]
+        except (ValueError, urllib.error.URLError) as e:
             self.log.info("Could not retrieve own IP via online API - guessing")
             self.ip = helpers.functions.get_own_ip()  # may be wrong, but best we got
 
