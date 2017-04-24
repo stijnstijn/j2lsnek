@@ -12,6 +12,7 @@ class port_handler(threading.Thread):
     """
     buffer = bytearray()
     locked = False
+    looping = True
 
     def __init__(self, client=None, address=None, ls=None, port=None):
         """
@@ -53,7 +54,7 @@ class port_handler(threading.Thread):
 
         :return:
         """
-        pass
+        self.looping = False
 
     def msg(self, string):
         """
