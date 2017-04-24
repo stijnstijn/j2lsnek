@@ -1,4 +1,5 @@
 import threading
+import fnmatch
 import sqlite3
 import socket
 import config
@@ -92,3 +93,80 @@ def get_own_ip():
     s.close()
 
     return ip
+
+
+def banned(address, whitelisted=False):
+    """
+    Check if address is banned
+
+    Checks the database and sees whether the address matches a banlist entry. Mirrors are never banned and always
+    whitelisted
+
+    :param address: Complete IP address to check
+    :param whitelisted: Check for whitelist instead of ban
+    :return: True if banned/whitelisted, False if not
+    """
+    lock = threading.Lock()
+    lock.acquire()
+
+    dbconn = sqlite3.connect(config.DATABASE)
+    dbconn.row_factory = sqlite3.Row
+    cursor = dbconn.cursor()
+
+    mirrors = cursor.execute("SELECT * FROM mirrors").fetchall()
+    banlist = cursor.execute("SELECT * FROM banlist").fetchall()
+
+    mirrors = [mirrors[i]["address"] for i, value in enumerate(mirrors)]
+    banlist = [dict(banlist[i]) for i, value in enumerate(banlist)]
+
+    cursor.close()
+    dbconn.close()
+
+    lock.release()
+
+    if address in mirrors:
+        return whitelisted
+
+    for ban in banlist:
+        if fnmatch.filter([address], ban["address"]) and whitelisted == (banlist["type"] == "whitelist"):
+            return True
+
+    return False
+
+
+def whitelisted(address):
+    """
+    Check if address is whitelisted
+
+    Alias for banned(address, True)
+
+    :param address: Complete IP address to check
+    :return: True if whitelisted, False if not
+    """
+    return banned(address, True)
+
+
+def all_mirrors(address):
+    """
+    Get list of mirrors
+
+    Checks the database and returns all mirror IP addresses
+
+    :return: List of addresses
+    """
+    lock = threading.Lock()
+    lock.acquire()
+
+    dbconn = sqlite3.connect(config.DATABASE)
+    dbconn.row_factory = sqlite3.Row
+    cursor = dbconn.cursor()
+
+    mirrors = cursor.execute("SELECT * FROM mirrors").fetchall()
+    mirrors = [mirrors[i]["address"] for i, value in enumerate(mirrors)]
+
+    cursor.close()
+    dbconn.close()
+
+    lock.release()
+
+    return mirrors

@@ -6,6 +6,7 @@ from helpers.functions import decode_mode, decode_version
 
 from helpers.jj2 import jj2server
 from helpers.handler import port_handler
+from helpers.functions import banned, whitelisted
 
 
 class server_handler(port_handler):
@@ -42,7 +43,7 @@ class server_handler(port_handler):
                 self.ls.log("Server %s closed: connection error (%s)" % e)
                 break
 
-            if self.ls.banned(self.ip):
+            if banned(self.ip):
                 self.ls.log.info("Delisting server from banned IP %s" % self.ip)
                 break
 
@@ -50,7 +51,7 @@ class server_handler(port_handler):
             if new and data and len(data) == 42:
                 # check for spamming
                 other = self.fetch_one("SELECT COUNT(*) FROM servers WHERE ip = ?", (self.ip,))[0]
-                if other >= config.MAXSERVERS and not self.ls.whitelisted(self.ip):
+                if other >= config.MAXSERVERS and not whitelisted(self.ip):
                     self.ls.log.warning("IP %s attempted to list server, but has 2 listed servers already" % self.ip)
                     self.error_msg("Too many connections from this IP address")
                     break

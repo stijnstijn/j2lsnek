@@ -170,7 +170,7 @@ class listserver:
         data = json.dumps({"action": action, "data": data, "origin": self.address})
 
         if not recipients:
-            recipients = self.mirrors
+            recipients = helpers.functions.all_mirrors()
 
         if ignore is None:
             ignore = []
@@ -256,102 +256,10 @@ class listserver:
 
         result = dbconn.commit()
 
-        # this doesn't necessarily belong here but else we'd need to set up another database connection
-        mirrors = db.execute("SELECT * FROM mirrors").fetchall()
-        if mirrors:
-            for mirror in mirrors:
-                try:
-                    self.mirrors.append(socket.gethostbyname(mirror["address"]))  # always use IPs
-                except socket.gaierror:
-                    self.log.error("Could not retrieve IP for mirror %s - ignoring" % mirror["name"])
-
         db.close()
         dbconn.close()
 
         return result
-
-    def add_mirror(self, address):
-        """
-        Add ServerNet mirror
-
-        Does not add mirror to database (that's the APIs' job) but only to internal list
-
-        :param address: Address (IP) of ServerNet mirror
-        :return:
-        """
-        if address not in self.mirrors:
-            self.mirrors.append(address)
-
-    def delete_mirror(self, address):
-        """
-        Delete ServerNet mirror
-
-        Does not delete mirror from database (that's the APIs' job) but only from internal list
-
-        :param address: Address (IP) of ServerNet mirror
-        :return:
-        """
-        if address in self.mirrors:
-            self.mirrors.remove(address)
-
-    def add_ban(self, address, whitelisted=False):
-        """
-        Add address to banlist
-
-        Only adds to banlist in memory; database is handled by API
-
-        :param address: IP address to add, may be partial (* wildcards)
-        :param whitelisted: Boolean; whitelisted or ordinary ban?
-        :return:
-        """
-        if address not in self.banlist:
-            self.banlist[address] = whitelisted
-
-    def delete_ban(self, address, whitelisted):
-        """
-        Delete address from banlist
-
-        Only removes from banlist in memory; database is handled by API
-
-        :param address: IP address to delete, may be partial (* wildcards). Must exactly match what was added though add_ban
-        :param whitelisted: Boolean; whitelisted or ordinary ban?
-        :return:
-        """
-        if address in self.banlist:
-            del self.banlist[address]
-
-    def banned(self, address, whitelisted=False):
-        """
-        Check if address is banned
-
-        Compares to the banlist in memory; actual banlist isn't checked to avoid using the database. Mirrors are never
-        banned.
-
-        :param address: Complete IP address
-        :param whitelisted: Check if whitelisted, defaults to False
-        :return: True if banned/whitelisted, else False
-        """
-        if address in self.mirrors:
-            return False
-
-        for mask in self.banlist:
-            if fnmatch.filter([address], mask) and whitelisted == self.banlist[mask]:
-                return True
-        return False
-
-    def whitelisted(self, address):
-        """
-        Shorthand for banned(address, True)
-
-        Mirrors are always whitelisted.
-
-        :param address: Complete IP address
-        :return: True if whitelisted, else False
-        """
-        if address in self.mirrors:
-            return False
-
-        return self.banned(address, True)
 
     def reload(self, mode=1):
         """

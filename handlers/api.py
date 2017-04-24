@@ -4,6 +4,7 @@ import time
 
 from helpers.handler import port_handler
 from helpers.jj2 import jj2server
+from helpers.functions import all_mirrors
 
 
 class servernet_handler(port_handler):
@@ -30,7 +31,7 @@ class servernet_handler(port_handler):
                 self.end()
                 return
         elif self.port == 10056:
-            if self.ip not in self.ls.mirrors or self.ip == "127.0.0.1" or self.ip == self.ls.ip:
+            if self.ip not in all_mirrors() or self.ip == "127.0.0.1" or self.ip == self.ls.ip:
                 self.ls.log.error("Unauthorized ServerNet connection from %s:%s" % (self.ip, self.port))
                 self.end()
                 return
@@ -136,7 +137,6 @@ class servernet_handler(port_handler):
                         (data["address"], data["type"], data["note"], data["origin"])):
                     self.query("INSERT INTO banlist (address, type, note, origin) VALUES (?, ?, ?, ?)",
                                (data["address"], data["type"], data["note"], data["origin"]))
-                    self.ls.add_ban(data["address"], data["type"] == "whitelist")
             except KeyError:
                 self.ls.log.error("Received incomplete banlist entry from ServerNet connection %s" % self.ip)
                 return False
@@ -150,7 +150,6 @@ class servernet_handler(port_handler):
             try:
                 self.fetch_one("DELETE FROM banlist WHERE address = ? AND type = ? AND note = ? AND origin = ?",
                                (data["address"], data["type"], data["note"], data["origin"]))
-                self.ls.delete_ban(data["address"], data["type"] == "whitelist")
             except KeyError:
                 self.ls.log.error("Received incomplete banlist deletion request from ServerNet connection %s" % self.ip)
                 return False
@@ -186,7 +185,6 @@ class servernet_handler(port_handler):
                 return False
 
             self.query("INSERT INTO mirrors (name, address) VALUES (?, ?)", (data["name"], data["address"]))
-            self.ls.add_mirror(data["address"])
             self.ls.broadcast(action="hello", data=[{"from": self.ls.address}], recipients=[data["address"]])
 
             self.ls.log.info("Added mirror %s via ServerNet connection %s" % (data["address"], self.ip))
@@ -203,7 +201,6 @@ class servernet_handler(port_handler):
                 return False
 
             self.query("DELETE FROM mirrors WHERE name = ? AND address = ?", (data["name"], data["address"]))
-            self.ls.delete_mirror(data["address"])
 
             self.ls.log.info("Deleted mirror %s via ServerNet connection %s" % (data["address"], self.ip))
 

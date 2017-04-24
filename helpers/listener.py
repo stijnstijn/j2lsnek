@@ -10,6 +10,7 @@ from handlers.binarylist import binary_handler
 from handlers.liveserver import server_handler
 from handlers.motd import motd_handler
 from handlers.statistics import stats_handler
+from helpers.functions import banned, whitelisted
 
 
 class port_listener(threading.Thread):
@@ -109,7 +110,7 @@ class port_listener(threading.Thread):
                 break  # shutting down, don't accept new connections
 
             # check if banned, don't start handler if so
-            if self.ls.banned(address[0]):
+            if banned(address[0]):
                 self.ls.log.warning("IP %s attempted to connect but matches banlist, refused" % address[0])
                 continue
 
@@ -117,7 +118,8 @@ class port_listener(threading.Thread):
             # connection is refused until the tick count decays below that max value
             now = int(time.time())
             ticks = 0
-            if not self.ls.whitelisted(address[0]) and address[0] in self.ticker:
+            is_whitelisted = whitelisted(address[0])
+            if not is_whitelisted and address[0] in self.ticker:
                 ticks = self.ticker[address[0]][0]
                 last_tick = self.ticker[address[0]][1]
                 decay = (now - last_tick) * config.TICKSDECAY
@@ -128,7 +130,7 @@ class port_listener(threading.Thread):
                     self.ticker[address[0]] = [ticks, now]
                     continue
 
-            if not self.ls.whitelisted:
+            if not is_whitelisted:
                 self.ticker[address[0]] = [max(ticks + 1, 1), now]
 
             key = address[0] + ":" + str(address[1])
