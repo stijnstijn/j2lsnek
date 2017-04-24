@@ -124,11 +124,11 @@ def banned(address, whitelisted=False):
 
     lock.release()
 
-    #if address in mirrors:
-    #    return whitelisted
+    if address in mirrors:
+        return whitelisted
 
     for ban in banlist:
-        if fnmatch.filter([address], ban["address"]):# and whitelisted == (banlist["type"] == "whitelist"):
+        if fnmatch.filter([address], ban["address"]) and whitelisted == (banlist["type"] == "whitelist"):
             return True
 
     return False

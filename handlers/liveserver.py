@@ -135,7 +135,6 @@ class server_handler(port_handler):
             time.sleep(config.MICROSLEEP)
 
         # server presumed dead, remove from database
-        self.error_msg("Forgetting server and delisting")
         server.forget()
 
         # make sure mirrors also delist the server
