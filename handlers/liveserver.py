@@ -32,7 +32,11 @@ class server_handler(port_handler):
             except (socket.timeout, TimeoutError):
                 # if no lifesign for 30 seconds, ping to see if the server is still alive
                 data = None
-                ping = self.client.send(bytearray([0]))
+                try:
+                    ping = self.client.send(bytearray([0]))
+                except (socket.timeout, TimeoutError, ConnectionError):
+                    self.ls.log("Server %s did not respond to ping, delisting")
+                    break
                 if ping == 1:
                     self.ls.log.info("Ping from server %s" % self.key)
                     server.ping()
@@ -121,6 +125,8 @@ class server_handler(port_handler):
                     self.error_msg("Invalid data received")
 
                 break
+            else:
+                break  # this never really happens, but if it does something's wrong, so delist the server
 
             # broadcast updates to connected mirrors
             if broadcast:
