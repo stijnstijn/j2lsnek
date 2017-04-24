@@ -169,7 +169,7 @@ class port_listener(threading.Thread):
 
             time.sleep(config.MICROSLEEP)
 
-        self.ls.log.error("Waiting for handlers on port %s to finish..." % self.port)
+        self.ls.log.info("Waiting for handlers on port %s to finish..." % self.port)
         server.close()
 
         # give all handlers the signal to stop whatever they're doing
