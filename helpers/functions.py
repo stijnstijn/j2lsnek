@@ -128,7 +128,7 @@ def banned(address, whitelisted=False):
         return whitelisted
 
     for ban in banlist:
-        if fnmatch.filter([address], ban["address"]) and whitelisted == (banlist["type"] == "whitelist"):
+        if fnmatch.filter([address], ban["address"]) and whitelisted == (ban["type"] == "whitelist"):
             return True
 
     return False
