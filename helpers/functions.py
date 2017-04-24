@@ -146,7 +146,7 @@ def whitelisted(address):
     return banned(address, True)
 
 
-def all_mirrors(address):
+def all_mirrors():
     """
     Get list of mirrors
 
