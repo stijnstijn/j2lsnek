@@ -160,7 +160,7 @@ class servernet_handler(port_handler):
         elif action == "delist":
             try:
                 server = jj2server(data["id"])
-                if server.get("remote") == 1 or server.get("remote") is None:
+                if server.get("remote") == 1 or server.new:
                     server.forget()
             except KeyError:
                 self.ls.log.error("Received incomplete server data from ServerNet connection %s" % self.ip)

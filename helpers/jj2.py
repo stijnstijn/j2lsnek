@@ -12,6 +12,7 @@ class jj2server:
     Offers a few basic methods to transparently interface with the database record that belongs to the server
     """
     locked = False
+    new = False
 
     def __init__(self, key):
         """
@@ -31,6 +32,7 @@ class jj2server:
             self.query("INSERT INTO servers (id, created, lifesign) VALUES (?, ?, ?)",
                        (self.id, int(time.time()), int(time.time())))
             self.data = self.fetch_one("SELECT * FROM servers WHERE id = ?", (self.id,))
+            self.new = True
 
         if not self.data:
             raise NotImplementedError  # there's something very wrong if this happens
