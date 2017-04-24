@@ -20,7 +20,6 @@ class port_listener(threading.Thread):
     connections = {}
     ticker = {}
     looping = True
-    connecting = False
 
     def __init__(self, port=None, ls=None):
         """
@@ -45,7 +44,6 @@ class port_listener(threading.Thread):
         """
         if not self.looping:
             return False  # shutting down, don't accept new connections
-
 
         # in case of port 10059, we authenticate via SSL certificates, since else anyone running on localhost
         # may interact with the list server API
@@ -90,10 +88,8 @@ class port_listener(threading.Thread):
         self.ls.log.info("Opening socket listening at port %s" % self.port)
 
         while self.looping:
-            self.connecting = False
             try:
                 client, address = server.accept()
-                self.connecting = True  # make sure no one else works with self.connections while we're busy
             except (socket.timeout, TimeoutError):
                 if not self.looping:
                     break
@@ -107,13 +103,12 @@ class port_listener(threading.Thread):
 
             # if halt signal was given between calling server.accept() and someone connecting
             if not self.looping:
-                self.connecting = False
                 self.ls.log.info("Not accepting connection from %s, restarting has priority" % address[0])
                 client.shutdown(socket.SHUT_RDWR)
                 client.close()
                 break  # shutting down, don't accept new connections
 
-            # check if banned (unless whitelisted)
+            # check if banned, don't start handler if so
             if self.ls.banned(address[0]):
                 self.ls.log.warning("IP %s attempted to connect but matches banlist, refused" % address[0])
                 continue
@@ -154,6 +149,7 @@ class port_listener(threading.Thread):
                 self.connections[key] = servernet_handler(client=client, address=address, ls=self.ls, port=self.port)
             else:
                 raise NotImplementedError("No handler class available for port %s" % self.port)
+
             self.connections[key].start()
 
             # remove IPs that haven't been seen for a long time
@@ -171,12 +167,20 @@ class port_listener(threading.Thread):
                 del self.connections[key]
             del stale_connections
 
-            # do some housekeeping
-            self.connecting = False  # we're done working with self.connections
             time.sleep(config.MICROSLEEP)
 
+        self.ls.log.error("Waiting for handlers on port %s to finish..." % self.port)
         server.close()
-        self.connecting = False  # just in case
+
+        # give all handlers the signal to stop whatever they're doing
+        for key in self.connections:
+            if self.connections[key].looping:
+                self.connections[key].halt()
+
+        # now make sure they're all finished
+        for key in self.connections:
+            self.connections[key].join()
+
         return
 
     def halt(self):
@@ -188,12 +192,3 @@ class port_listener(threading.Thread):
         :return:
         """
         self.looping = False
-
-        self.ls.log.info("Waiting for handlers on port %s to finish..." % self.port)
-
-        while self.connecting:  # wait until handle_data() has finished its loop
-            time.sleep(config.MICROSLEEP)
-
-        for key in self.connections:
-            self.connections[key].halt()
-            self.connections[key].join()
