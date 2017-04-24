@@ -229,8 +229,6 @@ class listserver:
 
         try:
             bans = db.execute("SELECT * FROM banlist").fetchall()
-            for ban in bans:
-                self.add_ban(ban["address"], ban["type"] == "whitelist")
         except sqlite3.OperationalError:
             self.log.info("Table 'banlist' does not exist yet, creating.")
             db.execute("CREATE TABLE banlist (address TEXT, type TEXT, note TEXT, origin TEXT)")

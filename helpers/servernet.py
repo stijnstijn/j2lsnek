@@ -53,7 +53,6 @@ class broadcaster(threading.Thread):
             self.ls.log.warning("ServerNet mirror %s refused connection: likely not listening" % self.ip)
         except (socket.gaierror, OSError):
             self.ls.log.error("ServerNet mirror address %s does not seem to be valid" % self.ip)
-            self.ls.delete_mirror(self.ip)
 
         connection.close()
 
