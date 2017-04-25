@@ -128,6 +128,10 @@ class servernet_handler(port_handler):
                 return False
             server.set("remote", 1)
 
+            # we can't do anything with partial data
+            if server.new and (server.get("ip") is None or server.get("port") is None):
+                server.forget()
+
         # ban list (and whitelist) entries
         elif action == "add-banlist":
             if "origin" not in data:
