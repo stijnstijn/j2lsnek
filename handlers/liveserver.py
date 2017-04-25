@@ -35,13 +35,13 @@ class server_handler(port_handler):
                 try:
                     ping = self.client.send(bytearray([0]))
                 except (socket.timeout, TimeoutError, ConnectionError):
-                    self.ls.log("Server %s did not respond to ping, delisting")
+                    self.ls.log.info("Server %s did not respond to ping, delisting")
                     break
                 if ping == 1:
                     self.ls.log.info("Ping from server %s" % self.key)
                     server.ping()
                 else:
-                    self.ls.log.warning("Server from %s timed out" % self.key)
+                    self.ls.log.info("Server from %s timed out" % self.key)
                     break
             except ConnectionError as e:
                 self.ls.log("Server %s closed: connection error (%s)" % e)
