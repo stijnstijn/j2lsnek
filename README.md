@@ -21,9 +21,9 @@ repository).
 Program logic
 ---
 ```
-,-------------,                     ,-> Client connection handler 1
+,-------------,                       ,-> Client connection handler 1
 | Main thread |-+---> Port listener 1 +-> Client connection handler 2
-`-------------` |                   `-> etc
+`-------------` |                     `-> etc
        |        |
        |        `---> Port listener 2 ,-> Client connection handler 1
        |          `-> etc             `-> etc
