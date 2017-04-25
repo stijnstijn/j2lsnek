@@ -84,7 +84,7 @@ class port_listener(threading.Thread):
                         address, self.port))
                 return
 
-        server.listen(5)
+        server.listen()
         server.settimeout(5)
         self.ls.log.info("Opening socket listening at port %s" % self.port)
 

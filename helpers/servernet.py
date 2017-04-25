@@ -48,9 +48,9 @@ class broadcaster(threading.Thread):
                 sent += length_sent
             self.ls.log.info("Sent message to mirror %s (%s)" % (self.ip, self.data))
         except (socket.timeout, TimeoutError):
-            self.ls.log.warning("Timeout while sending to ServerNet mirror %s" % self.ip)
+            self.ls.log.info("Timeout while sending to ServerNet mirror %s" % self.ip)
         except ConnectionRefusedError:
-            self.ls.log.warning("ServerNet mirror %s refused connection: likely not listening" % self.ip)
+            self.ls.log.info("ServerNet mirror %s refused connection: likely not listening" % self.ip)
         except (socket.gaierror, OSError):
             self.ls.log.error("ServerNet mirror address %s does not seem to be valid" % self.ip)
 
