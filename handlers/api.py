@@ -265,7 +265,7 @@ class servernet_handler(port_handler):
         # retrieve server list
         elif action == "get-servers":
             self.cleanup()
-            servers = self.fetch_all("SELECT * FROM servers ORDER BY private ASC, players DESC, created ASC")
+            servers = self.fetch_all("SELECT * FROM servers ORDER BY private ASC, (players = max) ASC, players DESC, created ASC")
 
             self.msg(json.dumps([dict(servers[i]) for i, value in enumerate(servers)]))
 
