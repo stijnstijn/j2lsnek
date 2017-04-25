@@ -54,13 +54,13 @@ class listserver:
         # first handler: output to console, only show warnings (i.e. noteworthy messages)
         console = logging.StreamHandler()
         console.setLevel(logging.WARNING)
-        console.setFormatter(logging.Formatter("%(asctime)-15s | %(message)s", "%d-%M-%Y %H:%M:%S"))
+        console.setFormatter(logging.Formatter("%(asctime)-15s | %(message)s", "%d-%m-%Y %H:%M:%S"))
         self.log.addHandler(console)
 
         # second handler: rotating log file, max 5MB big, log all messages
         handler = RotatingFileHandler("j2lsnek.log", maxBytes=5242880)
         handler.setLevel(logging.INFO)
-        handler.setFormatter(logging.Formatter("%(asctime)-15s | %(message)s", "%d-%M-%Y %H:%M:%S"))
+        handler.setFormatter(logging.Formatter("%(asctime)-15s | %(message)s", "%d-%m-%Y %H:%M:%S"))
         self.log.addHandler(handler)
 
         # try to get own IP
