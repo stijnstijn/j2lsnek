@@ -44,7 +44,7 @@ class server_handler(port_handler):
                     self.ls.log.info("Server from %s timed out" % self.key)
                     break
             except ConnectionError as e:
-                self.ls.log("Server %s closed: connection error (%s)" % e)
+                self.ls.log("Server %s closed: connection error (%s)" % (self.key, e))
                 break
 
             if banned(self.ip):
