@@ -67,7 +67,7 @@ class port_handler(threading.Thread):
         """
         try:
             return self.client.sendall(string.encode("ascii"))
-        except (ConnectionError, socket.timeout, TimeoutError):
+        except Exception:
             self.end()
             return False
 
@@ -97,7 +97,7 @@ class port_handler(threading.Thread):
         try:
             self.client.shutdown(socket.SHUT_RDWR)
             return self.client.close()
-        except (ConnectionError, socket.timeout, TimeoutError):
+        except Exception:
             return False
 
     def cleanup(self):
