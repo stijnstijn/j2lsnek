@@ -1,3 +1,5 @@
+import socket
+
 from helpers.handler import port_handler
 
 
@@ -32,5 +34,8 @@ class binary_handler(port_handler):
             binlist.extend(server["port"].to_bytes(2, byteorder="little"))
             binlist.extend(server["name"].encode("ascii", "ignore"))
 
-        self.client.sendall(binlist)  # can't use client.msg here, that's for text messages
+        try:
+            self.client.sendall(binlist)  # can't use client.msg here, that's for text messages
+        except (socket.timeout, TimeoutError, ConnectionError):
+            pass
         self.end()

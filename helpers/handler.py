@@ -65,7 +65,11 @@ class port_handler(threading.Thread):
         :param string: Text message, will be encoded as ascii
         :return: Return result of socket.sendall()
         """
-        return self.client.sendall(string.encode("ascii"))
+        try:
+            return self.client.sendall(string.encode("ascii"))
+        except (ConnectionError, socket.timeout, TimeoutError):
+            self.end()
+            return False
 
     def error_msg(self, string):
         """
@@ -90,8 +94,11 @@ class port_handler(threading.Thread):
 
         :return: Return result of socket.close()
         """
-        self.client.shutdown(socket.SHUT_RDWR)
-        return self.client.close()
+        try:
+            self.client.shutdown(socket.SHUT_RDWR)
+            return self.client.close()
+        except (ConnectionError, socket.timeout, TimeoutError):
+            return False
 
     def cleanup(self):
         """
