@@ -16,7 +16,7 @@ class ascii_handler(port_handler):
 
         self.cleanup()
         servers = self.fetch_all(
-            "SELECT * FROM servers WHERE players > 0 ORDER BY private ASC, (players = max) ASC, players DESC, created ASC")
+            "SELECT * FROM servers WHERE max > 0 ORDER BY private ASC, (players = max) ASC, players DESC, created ASC")
         asciilist = ""
 
         for server in servers:
