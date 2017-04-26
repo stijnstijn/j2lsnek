@@ -58,8 +58,8 @@ class jj2server:
         if item == "max" or item == "players":
             if value > config.MAXPLAYERS:
                 value = config.MAXPLAYERS
-            if value < 1:
-                value = 1
+            if value < 0:
+                value = 0
 
         if self.data[item] != value:
             self.updated[item] = value
