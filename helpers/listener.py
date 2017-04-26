@@ -116,22 +116,22 @@ class port_listener(threading.Thread):
 
             # check if to be throttled - each connection made adds a "tick", and when those exceed a max value
             # connection is refused until the tick count decays below that max value
-            now = int(time.time())
-            ticks = 0
-            is_whitelisted = whitelisted(address[0])
-            if not is_whitelisted and address[0] in self.ticker:
-                ticks = self.ticker[address[0]][0]
-                last_tick = self.ticker[address[0]][1]
-                decay = (now - last_tick) * config.TICKSDECAY
-                ticks -= decay
+            #now = int(time.time())
+            #ticks = 0
+            #is_whitelisted = whitelisted(address[0])
+            #if not is_whitelisted and address[0] in self.ticker:
+            #    ticks = self.ticker[address[0]][0]
+            #    last_tick = self.ticker[address[0]][1]
+            #    decay = (now - last_tick) * config.TICKSDECAY
+            #    ticks -= decay
 
-                if ticks > config.TICKSMAX:
-                    self.ls.log.warning("IP %s hit rate limit, throttled" % address[0])
-                    self.ticker[address[0]] = [ticks, now]
-                    continue
+            #    if ticks > config.TICKSMAX:
+            #        self.ls.log.warning("IP %s hit rate limit, throttled" % address[0])
+            #        self.ticker[address[0]] = [ticks, now]
+            #        continue
 
-            if not is_whitelisted:
-                self.ticker[address[0]] = [max(ticks + 1, 1), now]
+            #if not is_whitelisted:
+            #    self.ticker[address[0]] = [max(ticks + 1, 1), now]
 
             key = address[0] + ":" + str(address[1])
 
