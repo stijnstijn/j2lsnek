@@ -5,14 +5,42 @@ import socket
 import config
 import math
 
-
+1
 def decode_mode(mode):
     """
     JJ2 uses numbers instead of strings, but strings are easier for humans to work with
+    
+    CANNOT use spaces here, as list server scripts may not expect spaces in modes in port 10057 response
 
     :param mode: Mode number as sent by the client
-    :return: Mode string ("ctf", "treasure", "battle" or "unknown")
+    :return: Mode string
     """
+    if mode == 16:
+        return "headhunters"
+    if mode == 15:
+        return "domination"
+    if mode == 14:
+        return "tlrs"
+    if mode == 13:
+        return "flagrun"
+    if mode == 12:
+        return "deathctf"
+    if mode == 11:
+        return "jailbreak"
+    if mode == 10:
+        return "teambattle"
+    if mode == 9:
+        return "pestilence"
+    if mode == 8:
+        return "xlrs"
+    if mode == 7:
+        return "lrs"
+    if mode == 6:
+        return "roasttag"
+    if mode == 5:
+        return "coop"
+    if mode == 4:
+        return "race"
     if mode == 3:
         return "ctf"
     if mode == 2:
@@ -31,9 +59,8 @@ def decode_version(version):
     :return: Version string as used by list server
     """
     version = version.decode("ascii", "ignore")
-    version_string = ""
 
-    if version_string[0:2] == "21":
+    if version[0:2] == "21":
         version_string = "1.23"
     else:
         version_string = "1.24"
