@@ -240,7 +240,7 @@ class listserver:
             db.execute("CREATE TABLE mirrors (name TEXT, address TEXT, lifesign INTEGER DEFAULT 0)")
 
             try:
-                master_fqdn = "list.jazz2online.com"
+                master_fqdn = "list.jj2.plus"
                 master = socket.gethostbyname(master_fqdn)
                 if master != self.address:  # don't add if *this* is list.jazzjackrabbit.com
                     self.log.info("Adding %s as mirror" % master_fqdn)
