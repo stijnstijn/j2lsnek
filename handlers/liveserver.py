@@ -73,11 +73,11 @@ class server_handler(port_handler):
                 flags = int(data[37])
                 version = data[38:]
 
-                mode = (flags >> 1) & 3
-                mode = 0 if mode > 3 else mode
+                mode = (flags >> 1) & 31
 
                 server.set("name", name)
                 server.set("private", flags & 1)
+                server.set("plusonly", flags & 128)
                 server.set("ip", self.ip)
                 server.set("port", port)
                 server.set("players", players)
@@ -98,6 +98,9 @@ class server_handler(port_handler):
                     else:
                         self.ls.log.info("Received ping from server %s" % self.key)
                         server.ping()
+                elif data[0] == 0x01:
+                    self.ls.log.info("Updating game mode for server %s" % self.key)
+                    server.set("mode", decode_mode(int(data[1])))
                 elif data[0] == 0x02:
                     self.ls.log.info("Updating server name for server %s" % self.key)
                     server.set("name", data[1:33].decode("ascii", "ignore"))
