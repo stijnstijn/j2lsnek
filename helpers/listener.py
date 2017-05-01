@@ -105,7 +105,7 @@ class port_listener(threading.Thread):
             # if halt signal was given between calling server.accept() and someone connecting
             if not self.looping:
                 self.ls.log.info("Not accepting connection from %s, restarting has priority" % address[0])
-                client.shutdown(socket.SHUT_RDWR)
+                client.shutdown(socket.SHUT_WR)
                 client.close()
                 break  # shutting down, don't accept new connections
 
@@ -116,7 +116,7 @@ class port_listener(threading.Thread):
 
             # check if to be throttled - each connection made adds a "tick", and when those exceed a max value
             # connection is refused until the tick count decays below that max value
-            #now = int(time.time())
+            now = int(time.time())
             #ticks = 0
             #is_whitelisted = whitelisted(address[0])
             #if not is_whitelisted and address[0] in self.ticker:
