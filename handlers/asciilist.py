@@ -17,8 +17,10 @@ class ascii_handler(port_handler):
         self.cleanup()
         servers = self.fetch_all(
             "SELECT * FROM servers WHERE max > 0 ORDER BY private ASC, (players = max) ASC, players DESC, created ASC")
+
         asciilist = ""
 
+        server_count = 0
         for server in servers:
             try:
                 entry = server['ip'] + ':' + str(server['port']) + ' '  # ip:port
@@ -30,8 +32,12 @@ class ascii_handler(port_handler):
                 entry += '[' + str(server['players']) + '/' + str(server['max']) + '] '  # [players/max]
                 entry += server['name'] + "\r\n"  # server name
                 asciilist += entry
+                server_count += 1
             except TypeError:
                 continue
+
+        if server_count == 0:
+            asciilist += " "
 
         self.msg(asciilist)
         self.end()

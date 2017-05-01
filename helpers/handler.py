@@ -95,7 +95,7 @@ class port_handler(threading.Thread):
         :return: Return result of socket.close()
         """
         try:
-            self.client.shutdown(socket.SHUT_RDWR)
+            self.client.shutdown(socket.SHUT_WR)
             return self.client.close()
         except Exception:
             return False
