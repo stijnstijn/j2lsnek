@@ -5,7 +5,7 @@ import socket
 import config
 import math
 
-1
+
 def decode_mode(mode):
     """
     JJ2 uses numbers instead of strings, but strings are easier for humans to work with
