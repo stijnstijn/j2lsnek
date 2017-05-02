@@ -52,7 +52,7 @@ class jj2server:
             raise IndexError("%s is not a server property" % item)
 
         if item == "name":
-            value = re.sub(r'[^\x32-\x7f]', r' ', value)  # no funny business with crazy characters
+            value = re.sub(r'[^\x20-\x7f]', r' ', value)  # no funny business with crazy characters
             value = re.sub(r"[ ]+", r" ", value).strip(" \t\r\n\0")
 
         if item == "max" or item == "players":
