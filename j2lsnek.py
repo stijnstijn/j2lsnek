@@ -225,7 +225,12 @@ class listserver:
         except sqlite3.OperationalError:
             self.log.info("Table 'settings' does not exist yet, creating and populating.")
             db.execute("CREATE TABLE settings (item TEXT UNIQUE, value TEXT)")
-            db.execute("INSERT INTO settings (item, value) VALUES (?, ?), (?, ?)", ("motd", "", "motd-updated", "0"))
+            db.execute("INSERT INTO settings (item, value) VALUES (?, ?), (?, ?), (?, ?)", ("motd", "", "motd-updated", "0", "motd-expires", int(time.time()) + (3 * 86400)))
+
+        # was not a setting initially, so may need to add entry
+        setting = db.execute("SELECT * FROM settings WHERE item = ?", ("motd-expires", )).fetchone()
+        if not setting:
+            db.execute("INSERT INTO settings (item, value) VALUES (?, ?)", ("motd-expires", int(time.time()) + (3 * 86400)))
 
         try:
             bans = db.execute("SELECT * FROM banlist").fetchall()

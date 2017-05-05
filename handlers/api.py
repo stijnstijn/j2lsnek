@@ -1,3 +1,4 @@
+import datetime
 import socket
 import json
 import time
@@ -211,6 +212,9 @@ class servernet_handler(port_handler):
 
         # motd updates
         elif action == "set-motd":
+            if "expires" not in data or data["expires"] == "":
+                t = datetime.datetime.utcfromtimestamp(time.time() + 86400 * 3)
+                data["expires"] = t.strftime("%d-%m-%Y %H:%M")
             try:
                 timestamp = self.fetch_one("SELECT value FROM settings WHERE item = ?", ("motd-updated",))
                 if timestamp and int(timestamp["value"]) > int(data["motd-updated"]):
@@ -220,8 +224,15 @@ class servernet_handler(port_handler):
                 self.ls.log.error("Received incomplete MOTD from ServerNet connection %s" % self.ip)
                 return False
 
+            try:
+                expires = datetime.datetime.strptime(data["expires"], "%d-%m-%Y %H:%M")
+                expires = expires.timestamp()
+            except (ValueError, OSError):
+                expires = int(time.time()) + 86400 * 3
+
             self.query("UPDATE settings SET value = ? WHERE item = ?", (data["motd"], "motd"))
             self.query("UPDATE settings SET value = ? WHERE item = ?", (int(time.time()), "motd-updated"))
+            self.query("UPDATE settings SET value = ? WHERE item = ?", (int(expires), "motd-expires"))
 
             self.ls.log.info("Updated MOTD via ServerNet connection %s" % self.ip)
 
@@ -282,9 +293,27 @@ class servernet_handler(port_handler):
 
         # retrieve motd
         elif action == "get-motd":
-            motd = self.fetch_one("SELECT * FROM settings WHERE item = ?", ("motd",))
+            expires = self.fetch_one("SELECT * FROM settings WHERE item = ?", ("motd-expires",))
+            if not expires:
+                expires = time.time() + 10  # idk
+            else:
+                expires = expires["value"]
+
+            if time.time() > int(expires):
+                motd = {"value": ""}
+            else:
+                motd = self.fetch_one("SELECT * FROM settings WHERE item = ?", ("motd",))
 
             self.msg(json.dumps(motd["value"]))
+
+        # retrieve motd
+        elif action == "get-motd-expires":
+            motd = self.fetch_one("SELECT * FROM settings WHERE item = ?", ("motd-expires",))
+
+            if not motd or motd["value"] == "":
+                self.msg(json.dumps(int(time.time())))
+            else:
+                self.msg(json.dumps(motd["value"]))
 
         # retrieve mirrors
         elif action == "get-mirrors":
