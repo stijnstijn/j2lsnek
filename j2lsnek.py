@@ -24,6 +24,7 @@ import helpers.servernet
 import helpers.functions
 import helpers.listener
 import helpers.interact
+import helpers.serverpinger
 import helpers.jj2
 
 
@@ -135,8 +136,14 @@ class listserver:
         poller = helpers.interact.key_poller(ls=self)
         poller.start()
 
+        # have a separate thread ping servers every so often
+        pinger = helpers.serverpinger.pinger(ls=self)
+        pinger.start()
+
         while self.looping:
             current_time = int(time.time())
+
+
             if self.last_ping < current_time - 150:
                 self.broadcast(action="ping", data=[{"from": self.address}])
                 self.last_ping = current_time
@@ -149,6 +156,9 @@ class listserver:
 
         for port in self.sockets:
             self.sockets[port].join()
+
+        pinger.halt()
+        pinger.join()
 
         self.log.warning("Bye!")
 
@@ -218,7 +228,17 @@ class listserver:
         except sqlite3.OperationalError:
             self.log.info("Table 'servers' does not exist yet, creating.")
             db.execute(
-                "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, created INTEGER DEFAULT 0, lifesign INTEGER DEFAULT 0, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', plusonly INTEGER DEFAULT 0, mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT)")
+                "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, created INTEGER DEFAULT 0, lifesign INTEGER DEFAULT 0, last_ping INTEGER DEFAULT 0, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', plusonly INTEGER DEFAULT 0, mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT, prefer INTEGER DEFAULT 1)")
+
+        # was not a setting initially, so may need to add entry
+        try:
+            setting = db.execute("SELECT last_ping FROM servers WHERE last_ping")
+        except sqlite3.OperationalError:
+            db.execute("ALTER TABLE servers ADD COLUMN last_ping INTEGER DEFAULT 0")
+        try:
+            setting = db.execute("SELECT prefer FROM servers WHERE last_ping")
+        except sqlite3.OperationalError:
+            db.execute("ALTER TABLE servers ADD COLUMN prefer INTEGER DEFAULT 0")
 
         try:
             db.execute("SELECT * FROM settings")
@@ -243,7 +263,6 @@ class listserver:
         except sqlite3.OperationalError:
             self.log.info("Table 'mirrors' does not exist yet, creating.")
             db.execute("CREATE TABLE mirrors (name TEXT, address TEXT, lifesign INTEGER DEFAULT 0)")
-
             try:
                 master_fqdn = "list.jj2.plus"
                 master = socket.gethostbyname(master_fqdn)
