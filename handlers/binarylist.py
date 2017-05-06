@@ -1,6 +1,7 @@
 import socket
 
 from helpers.handler import port_handler
+from helpers.functions import fetch_all
 
 
 class binary_handler(port_handler):
@@ -15,7 +16,7 @@ class binary_handler(port_handler):
         self.ls.log.info("Sending binary server list to %s" % self.ip)
 
         self.cleanup()
-        servers = self.fetch_all(
+        servers = fetch_all(
             "SELECT * FROM servers WHERE max > 0 ORDER BY private ASC, (players = max) ASC, players DESC, created ASC")
 
         binlist = bytearray([7])

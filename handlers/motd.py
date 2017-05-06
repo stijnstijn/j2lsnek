@@ -1,6 +1,7 @@
 import time
 
 from helpers.handler import port_handler
+from helpers.functions import fetch_one
 
 
 class motd_handler(port_handler):
@@ -14,8 +15,8 @@ class motd_handler(port_handler):
         """
         self.ls.log.info("Sending MOTD to %s" % self.ip)
 
-        motd = self.fetch_one("SELECT value FROM settings WHERE item = ?", ('motd',))
-        expires = self.fetch_one("SELECT value FROM settings WHERE item = ?", ('motd_expires',))
+        motd = fetch_one("SELECT value FROM settings WHERE item = ?", ('motd',))
+        expires = fetch_one("SELECT value FROM settings WHERE item = ?", ('motd_expires',))
 
         if not expires:
             expires = {"value": time.time() + 10}

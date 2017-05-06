@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 
 import config
-from helpers.functions import fancy_time
+from helpers.functions import fancy_time, fetch_all
 from helpers.handler import port_handler
 
 
@@ -19,8 +19,8 @@ class stats_handler(port_handler):
 
         running_since = datetime.fromtimestamp(self.ls.start)
         self.cleanup()
-        servers = self.fetch_all("SELECT * FROM servers WHERE players > 0")
-        mirrors = self.fetch_all("SELECT * FROM mirrors ORDER BY lifesign DESC")
+        servers = fetch_all("SELECT * FROM servers WHERE players > 0")
+        mirrors = fetch_all("SELECT * FROM mirrors ORDER BY lifesign DESC")
 
         total = 0
         mirrored = 0

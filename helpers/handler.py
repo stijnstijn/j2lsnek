@@ -1,8 +1,9 @@
 import threading
-import sqlite3
 import socket
 import config
 import time
+
+from helpers.functions import query
 
 
 class port_handler(threading.Thread):
@@ -107,98 +108,4 @@ class port_handler(threading.Thread):
         Not critical, but should be called before some user-facing actions (e.g. retrieving server lists)
         :return:
         """
-        self.query("DELETE FROM servers WHERE remote = 1 AND lifesign < ?", (int(time.time()) - config.TIMEOUT,))
-
-    def acquire_lock(self):
-        """
-        Acquire lock
-
-        To be used before the database is manipulated.
-        """
-        self.locked = True
-        self.lock.acquire()
-
-    def release_lock(self):
-        """
-        Release lock
-
-        To be done when done manipulating the database.
-        """
-        self.locked = False
-        self.lock.release()
-
-    def query(self, query, replacements=tuple(), autolock=True, mode="execute"):
-        """
-        Execute sqlite query
-
-        Acquires a Lock before querying, so the database doesn't run into concurrent reads/writes etc. Database
-        connection is set up and closed for each query - the overhead is not too bad and this way we can be sure that
-        there will be no conflicts
-
-        .fetchone() and .fetchall() can't be used once the cursor is closed, so this method accepts an optional
-        parameter to return the result of either of those instead of the raw query result, which is in most cases
-        useless.
-
-        :param query: Query string
-        :param replacements: Replacements, viz. sqlite3.execute()'s second parameter
-        :param autolock: Acquire lock? Can be set to False if locking is done manually, e.g. for batches of queries
-        :param mode: Return mode: "fetchone" (one row), "fetchall" (list of rows), "execute" (raw query result)
-        :return: Query result
-        """
-        if autolock:
-            self.acquire_lock()
-
-        try:
-            dbconn = sqlite3.connect(config.DATABASE)
-            dbconn.row_factory = sqlite3.Row
-
-            db = dbconn.cursor()
-
-            if mode == "fetchone":
-                result = db.execute(query, replacements).fetchone()
-            elif mode == "fetchall":
-                result = db.execute(query, replacements).fetchall()
-            else:
-                result = db.execute(query, replacements)
-
-            dbconn.commit()
-
-            db.close()
-            dbconn.close()
-
-        except sqlite3.OperationalError as e:
-            self.ls.log.error("SQLite error: %s" % e.message)
-            self.ls.halt()
-            return False
-
-        except sqlite3.ProgrammingError as e:
-            self.ls.log.error("SQLite error: %s" % e.message)
-            self.ls.halt()
-            return False
-
-        if autolock:
-            self.release_lock()
-
-        return result
-
-    def fetch_one(self, query, replacements=tuple(), autolock=True):
-        """
-        Fetch one row resulting from a database query
-
-        :param query: Query string
-        :param replacements: Replacements, viz. sqlite3.execute()'s second parameter
-        :param autolock: Acquire lock? Can be set to False if locking is done manually, e.g. for batches of queries
-        :return: Query result, dictionary
-        """
-        return self.query(query, replacements, autolock, "fetchone")
-
-    def fetch_all(self, query, replacements=tuple(), autolock=True):
-        """
-        Fetch all rows resulting from a database query
-
-        :param query: Query string
-        :param replacements: Replacements, viz. sqlite3.execute()'s second parameter
-        :param autolock: Acquire lock? Can be set to False if locking is done manually, e.g. for batches of queries
-        :return: Query result, list of dictionaries
-        """
-        return self.query(query, replacements, autolock, "fetchall")
+        query("DELETE FROM servers WHERE remote = 1 AND lifesign < ?", (int(time.time()) - config.TIMEOUT,))

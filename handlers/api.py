@@ -5,7 +5,7 @@ import time
 
 from helpers.handler import port_handler
 from helpers.jj2 import jj2server
-from helpers.functions import all_mirrors
+from helpers.functions import all_mirrors, query, fetch_all, fetch_one
 
 
 class servernet_handler(port_handler):
@@ -36,7 +36,7 @@ class servernet_handler(port_handler):
                 self.ls.log.error("Unauthorized ServerNet connection from %s:%s" % (self.ip, self.port))
                 self.end()
                 return
-            self.query("UPDATE mirrors SET lifesign = ? WHERE address = ?", (int(time.time()), self.ip))
+            query("UPDATE mirrors SET lifesign = ? WHERE address = ?", (int(time.time()), self.ip))
 
         # receive API call
         while True:
@@ -138,10 +138,10 @@ class servernet_handler(port_handler):
             if "origin" not in data:
                 data["origin"] = self.ls.address
             try:
-                if not self.fetch_one(
+                if not fetch_one(
                         "SELECT * FROM banlist WHERE address = ? AND type = ? AND note = ? AND origin = ?",
                         (data["address"], data["type"], data["note"], data["origin"])):
-                    self.query("INSERT INTO banlist (address, type, note, origin) VALUES (?, ?, ?, ?)",
+                    query("INSERT INTO banlist (address, type, note, origin) VALUES (?, ?, ?, ?)",
                                (data["address"], data["type"], data["note"], data["origin"]))
             except KeyError:
                 self.ls.log.error("Received incomplete banlist entry from ServerNet connection %s" % self.ip)
@@ -154,7 +154,7 @@ class servernet_handler(port_handler):
             if "origin" not in data:
                 data["origin"] = self.ls.address
             try:
-                self.fetch_one("DELETE FROM banlist WHERE address = ? AND type = ? AND note = ? AND origin = ?",
+                fetch_one("DELETE FROM banlist WHERE address = ? AND type = ? AND note = ? AND origin = ?",
                                (data["address"], data["type"], data["note"], data["origin"]))
             except KeyError:
                 self.ls.log.error("Received incomplete banlist deletion request from ServerNet connection %s" % self.ip)
@@ -177,7 +177,7 @@ class servernet_handler(port_handler):
         # add mirror
         elif action == "add-mirror":
             try:
-                if self.fetch_one("SELECT * FROM mirrors WHERE name = ? OR address = ?",
+                if fetch_one("SELECT * FROM mirrors WHERE name = ? OR address = ?",
                                   (data["name"], data["address"])):
                     self.ls.log.info("Mirror %s tried adding mirror %s, but name or address already known" % (
                         self.ip, data["address"]))
@@ -190,7 +190,7 @@ class servernet_handler(port_handler):
                 self.ls.log.error("'web' is a reserved name for mirrors, %s tried using it" % self.ip)
                 return False
 
-            self.query("INSERT INTO mirrors (name, address) VALUES (?, ?)", (data["name"], data["address"]))
+            query("INSERT INTO mirrors (name, address) VALUES (?, ?)", (data["name"], data["address"]))
             self.ls.broadcast(action="hello", data=[{"from": self.ls.address}], recipients=[data["address"]])
 
             self.ls.log.info("Added mirror %s via ServerNet connection %s" % (data["address"], self.ip))
@@ -198,7 +198,7 @@ class servernet_handler(port_handler):
         # delete mirror
         elif action == "delete-mirror":
             try:
-                if not self.fetch_one("SELECT * FROM mirrors WHERE name = ? AND address = ?",
+                if not fetch_one("SELECT * FROM mirrors WHERE name = ? AND address = ?",
                                       (data["name"], data["address"])):
                     self.ls.log.info("Mirror %s tried removing mirror %s, but not known" % (self.ip, data["address"]))
                     return True
@@ -206,7 +206,7 @@ class servernet_handler(port_handler):
                 self.ls.log.error("Received incomplete mirror deletion request from ServerNet connection %s" % self.ip)
                 return False
 
-            self.query("DELETE FROM mirrors WHERE name = ? AND address = ?", (data["name"], data["address"]))
+            query("DELETE FROM mirrors WHERE name = ? AND address = ?", (data["name"], data["address"]))
 
             self.ls.log.info("Deleted mirror %s via ServerNet connection %s" % (data["address"], self.ip))
 
@@ -216,7 +216,7 @@ class servernet_handler(port_handler):
                 t = datetime.datetime.utcfromtimestamp(time.time() + 86400 * 3)
                 data["expires"] = t.strftime("%d-%m-%Y %H:%M")
             try:
-                timestamp = self.fetch_one("SELECT value FROM settings WHERE item = ?", ("motd-updated",))
+                timestamp = fetch_one("SELECT value FROM settings WHERE item = ?", ("motd-updated",))
                 if timestamp and int(timestamp["value"]) > int(data["motd-updated"]):
                     self.ls.log.info("Received MOTD update from %s, but own MOTD was more recent" % self.ip)
                     return False
@@ -230,9 +230,9 @@ class servernet_handler(port_handler):
             except (ValueError, OSError):
                 expires = int(time.time()) + 86400 * 3
 
-            self.query("UPDATE settings SET value = ? WHERE item = ?", (data["motd"], "motd"))
-            self.query("UPDATE settings SET value = ? WHERE item = ?", (int(time.time()), "motd-updated"))
-            self.query("UPDATE settings SET value = ? WHERE item = ?", (int(expires), "motd-expires"))
+            query("UPDATE settings SET value = ? WHERE item = ?", (data["motd"], "motd"))
+            query("UPDATE settings SET value = ? WHERE item = ?", (int(time.time()), "motd-updated"))
+            query("UPDATE settings SET value = ? WHERE item = ?", (int(expires), "motd-expires"))
 
             self.ls.log.info("Updated MOTD via ServerNet connection %s" % self.ip)
 
@@ -245,23 +245,23 @@ class servernet_handler(port_handler):
             self.cleanup()  # removes stale servers, etc
 
             # servers
-            servers = self.fetch_all("SELECT * FROM servers WHERE players > 0 AND origin = ?", (self.ls.address,))
+            servers = fetch_all("SELECT * FROM servers WHERE players > 0 AND origin = ?", (self.ls.address,))
             self.ls.broadcast(action="server", data=[{key: server[key] for key in server.keys()} for server in servers],
                               recipients=[self.ip])
 
             # banlist
-            banlist = self.fetch_all("SELECT * FROM banlist")
+            banlist = fetch_all("SELECT * FROM banlist")
             self.ls.broadcast(action="add-banlist", data=[{key: ban[key] for key in ban.keys()} for ban in banlist],
                               recipients=[self.ip])
 
             # mirrors
-            mirrors = self.fetch_all("SELECT name, address FROM mirrors")
+            mirrors = fetch_all("SELECT name, address FROM mirrors")
             self.ls.broadcast(action="add-mirror",
                               data=[{key: mirror[key] for key in mirror.keys()} for mirror in mirrors],
                               recipients=[self.ip])
 
             # motd
-            settings = self.fetch_all("SELECT * FROM settings WHERE item IN (?, ?)", ("motd", "motd-updated"))
+            settings = fetch_all("SELECT * FROM settings WHERE item IN (?, ?)", ("motd", "motd-updated"))
             self.ls.broadcast(action="set-motd", data=[{item["item"]: item["value"] for item in settings}],
                               recipients=[self.ip])
 
@@ -281,19 +281,19 @@ class servernet_handler(port_handler):
         # retrieve server list
         elif action == "get-servers":
             self.cleanup()
-            servers = self.fetch_all("SELECT * FROM servers ORDER BY private ASC, (players = max) ASC, players DESC, created ASC")
+            servers = fetch_all("SELECT * FROM servers ORDER BY private ASC, (players = max) ASC, players DESC, created ASC")
 
             self.msg(json.dumps([dict(servers[i]) for i, value in enumerate(servers)]))
 
         # retrieve banlist
         elif action == "get-banlist":
-            banlist = self.fetch_all("SELECT * FROM banlist")
+            banlist = fetch_all("SELECT * FROM banlist")
 
             self.msg(json.dumps([dict(banlist[i]) for i, value in enumerate(banlist)]))
 
         # retrieve motd
         elif action == "get-motd":
-            expires = self.fetch_one("SELECT * FROM settings WHERE item = ?", ("motd-expires",))
+            expires = fetch_one("SELECT * FROM settings WHERE item = ?", ("motd-expires",))
             if not expires:
                 expires = time.time() + 10  # idk
             else:
@@ -302,13 +302,13 @@ class servernet_handler(port_handler):
             if time.time() > int(expires):
                 motd = {"value": ""}
             else:
-                motd = self.fetch_one("SELECT * FROM settings WHERE item = ?", ("motd",))
+                motd = fetch_one("SELECT * FROM settings WHERE item = ?", ("motd",))
 
             self.msg(json.dumps(motd["value"]))
 
         # retrieve motd
         elif action == "get-motd-expires":
-            motd = self.fetch_one("SELECT * FROM settings WHERE item = ?", ("motd-expires",))
+            motd = fetch_one("SELECT * FROM settings WHERE item = ?", ("motd-expires",))
 
             if not motd or motd["value"] == "":
                 self.msg(json.dumps(int(time.time())))
@@ -317,7 +317,7 @@ class servernet_handler(port_handler):
 
         # retrieve mirrors
         elif action == "get-mirrors":
-            mirrors = self.fetch_all("SELECT name, address FROM mirrors")
+            mirrors = fetch_all("SELECT name, address FROM mirrors")
 
             self.msg(json.dumps([dict(mirrors[i]) for i, value in enumerate(mirrors)]))
 
