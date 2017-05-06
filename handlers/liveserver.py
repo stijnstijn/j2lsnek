@@ -109,7 +109,7 @@ class server_handler(port_handler):
                     server.set("max", data[1])
                 elif data[0] == 0x04:
                     self.ls.log.info("Updating public/private for server %s" % self.key)
-                    server.set("private", data[1] & 1)
+                    #server.set("private", data[1] & 1)
                 elif data[0] == 0x05:
                     self.ls.log.info("Updating plusonly for server %s" % self.key)
                     server.set("plusonly", data[1] & 1)
