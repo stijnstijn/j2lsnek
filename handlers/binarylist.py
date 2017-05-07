@@ -17,7 +17,7 @@ class binary_handler(port_handler):
 
         self.cleanup()
         servers = fetch_all(
-            "SELECT * FROM servers WHERE max > 0 ORDER BY prefer DESC, private ASC, (players = max) ASC, players DESC, created ASC")
+            "SELECT * FROM servers WHERE max > 0 AND plusonly = 0 ORDER BY prefer DESC, private ASC, (players = max) ASC, players DESC, created ASC")
 
         binlist = bytearray([7])
         binlist.extend("LIST".encode("ascii"))
