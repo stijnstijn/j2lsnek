@@ -69,11 +69,9 @@ class pinger(threading.Thread):
                 if jj2server.get("private") != private:
                     jj2server.set("private", private)
                 jj2server.set("prefer", 1)
-                print("Received response from %s!" % jj2server.get("id"))
             except(socket.timeout, TimeoutError, ConnectionError) as e:
-                print("NO response from %s!" % jj2server.get("id"))
                 self.ls.log("Server %s did not respond to ping packet (%s)" % (jj2server.get("ip"), e))
-                jj2server.set("order", 0)
+                jj2server.set("prefer", 0)  # don't delist, but make sure it's sorted to the bottom
                 pass
             finally:
                 querysocket.shutdown(socket.SHUT_WR)

@@ -139,10 +139,10 @@ class servernet_handler(port_handler):
                 data["origin"] = self.ls.address
             try:
                 if not fetch_one(
-                        "SELECT * FROM banlist WHERE address = ? AND type = ? AND note = ? AND origin = ?",
-                        (data["address"], data["type"], data["note"], data["origin"])):
-                    query("INSERT INTO banlist (address, type, note, origin) VALUES (?, ?, ?, ?)",
-                               (data["address"], data["type"], data["note"], data["origin"]))
+                        "SELECT * FROM banlist WHERE address = ? AND type = ? AND note = ? AND origin = ? AND reserved = ?",
+                        (data["address"], data["type"], data["note"], data["origin"], data["reserved"])):
+                    query("INSERT INTO banlist (address, type, note, origin, reserved) VALUES (?, ?, ?, ?, ?)",
+                               (data["address"], data["type"], data["note"], data["origin"], data["reserved"]))
             except KeyError:
                 self.ls.log.error("Received incomplete banlist entry from ServerNet connection %s" % self.ip)
                 return False
@@ -154,8 +154,8 @@ class servernet_handler(port_handler):
             if "origin" not in data:
                 data["origin"] = self.ls.address
             try:
-                fetch_one("DELETE FROM banlist WHERE address = ? AND type = ? AND note = ? AND origin = ?",
-                               (data["address"], data["type"], data["note"], data["origin"]))
+                fetch_one("DELETE FROM banlist WHERE address = ? AND type = ? AND note = ? AND origin = ? AND reserved = ?",
+                               (data["address"], data["type"], data["note"], data["origin"], data["reserved"]))
             except KeyError:
                 self.ls.log.error("Received incomplete banlist deletion request from ServerNet connection %s" % self.ip)
                 return False

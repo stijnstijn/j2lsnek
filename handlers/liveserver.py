@@ -66,7 +66,8 @@ class server_handler(port_handler):
                 new = False
 
                 port = int.from_bytes(data[0:2], byteorder="little")
-                name = data[2:32].decode("ascii", "ignore")
+                name = server.validate_name(data[2:32].decode("ascii", "ignore"), self.ip,
+                                            "Server on %s" % self.ip)
 
                 players = int(data[35])
                 max_players = int(data[36])
@@ -74,6 +75,7 @@ class server_handler(port_handler):
                 version = data[38:]
 
                 mode = (flags >> 1) & 31
+
 
                 server.set("name", name)
                 server.set("private", flags & 1)
@@ -103,13 +105,15 @@ class server_handler(port_handler):
                     server.set("mode", decode_mode(int(data[1])))
                 elif data[0] == 0x02:
                     self.ls.log.info("Updating server name for server %s" % self.key)
-                    server.set("name", data[1:33].decode("ascii", "ignore"))
+                    name = server.validate_name(data[1:33].decode("ascii", "ignore"), self.ip,
+                                                "Server on %s" % self.ip)
+                    server.set("name", name)
                 elif data[0] == 0x03:
                     self.ls.log.info("Updating max players for server %s" % self.key)
                     server.set("max", data[1])
                 elif data[0] == 0x04:
                     self.ls.log.info("Updating public/private for server %s" % self.key)
-                    #server.set("private", data[1] & 1)
+                    server.set("private", data[1] & 1)
                 elif data[0] == 0x05:
                     self.ls.log.info("Updating plusonly for server %s" % self.key)
                     server.set("plusonly", data[1] & 1)

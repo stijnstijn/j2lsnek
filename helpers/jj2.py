@@ -1,4 +1,5 @@
 import threading
+import fnmatch
 import sqlite3
 import config
 import time
@@ -14,6 +15,7 @@ class jj2server:
     Offers a few basic methods to transparently interface with the database record that belongs to the server
     """
     new = False
+    forbidden_characters = "#%&[]^{}~"  # not displayed by jj2 and should therefore never be part of server names
 
     def __init__(self, key):
         """
@@ -29,7 +31,7 @@ class jj2server:
 
         if not self.data:
             query("INSERT INTO servers (id, created, lifesign) VALUES (?, ?, ?)",
-                       (self.id, int(time.time()), int(time.time())))
+                  (self.id, int(time.time()), int(time.time())))
             self.data = fetch_one("SELECT * FROM servers WHERE id = ?", (self.id,))
             self.new = True
 
@@ -51,8 +53,7 @@ class jj2server:
             raise IndexError("%s is not a server property" % item)
 
         if item == "name":
-            value = re.sub(r'[^\x20-\x7f]', r' ', value)  # no funny business with crazy characters
-            value = re.sub(r"[ ]+", r" ", value).strip(" \t\r\n\0")
+            value = self.strip(value)
 
         if item == "max" or item == "players":
             if value > config.MAXPLAYERS:
@@ -69,6 +70,34 @@ class jj2server:
         # a valid column name
 
         return
+
+    def validate_name(self, name, ip, alternative):
+        """
+        Checks if a name is not reserved
+        
+        If the name is reserved (i.e. a whitelist entry's reserved filter matches the server name) an alternative
+        server name is returned, otherwise the original name is.
+        
+        :param name: Server name as sent by host 
+        :param ip: Server IP
+        :param alternative: Alternative name to use if name is reserved by someone else
+        :return: Either the original or alternative name
+        """
+        reserved = fetch_all("SELECT * FROM banlist WHERE type = ? AND reserved != ''", ('whitelist',))
+        name = self.strip(name)
+        check = name.replace(" ", "").replace("|", "")
+
+        if check == "":
+            return alternative
+
+        for mask in reserved:
+            check_against = mask["reserved"].replace(" ", "")
+            ip_matches = fnmatch.filter([ip], mask["address"]) != []
+            name_matches = fnmatch.filter([check.lower()], check_against.lower()) != []
+            if name_matches and not ip_matches:
+                return alternative
+
+        return name
 
     def get(self, item):
         """
@@ -111,3 +140,20 @@ class jj2server:
         query("DELETE FROM servers WHERE id = ?", (self.id,))
 
         return
+
+    def strip(self, string):
+        """
+        Remove unwanted characters from string (e.g. server name)
+        
+        Removes anything not between ascii values 32 (space) and 126, and collapses repeated spaces
+        
+        :param string: String to strip
+        :return: Stripped string
+        """
+        string = re.sub(r'[^\x20-\x7d]', r' ', string)
+        string = re.sub(r"[ ]+", r" ", string).strip(" \t\r\n\0")
+
+        invisible = str.maketrans(dict.fromkeys(self.forbidden_characters))
+        string = string.translate(invisible)
+
+        return string

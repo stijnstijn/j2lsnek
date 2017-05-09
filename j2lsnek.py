@@ -11,7 +11,6 @@ import subprocess
 import importlib
 import logging
 import sqlite3
-import fnmatch
 import socket
 import json
 import time
@@ -232,11 +231,11 @@ class listserver:
 
         # was not a setting initially, so may need to add entry
         try:
-            setting = db.execute("SELECT last_ping FROM servers WHERE last_ping")
+            db.execute("SELECT last_ping FROM servers")
         except sqlite3.OperationalError:
             db.execute("ALTER TABLE servers ADD COLUMN last_ping INTEGER DEFAULT 0")
         try:
-            setting = db.execute("SELECT prefer FROM servers WHERE last_ping")
+            setting = db.execute("SELECT prefer FROM servers")
         except sqlite3.OperationalError:
             db.execute("ALTER TABLE servers ADD COLUMN prefer INTEGER DEFAULT 0")
 
@@ -253,10 +252,14 @@ class listserver:
             db.execute("INSERT INTO settings (item, value) VALUES (?, ?)", ("motd-expires", int(time.time()) + (3 * 86400)))
 
         try:
-            bans = db.execute("SELECT * FROM banlist").fetchall()
+            db.execute("SELECT * FROM banlist").fetchall()
         except sqlite3.OperationalError:
             self.log.info("Table 'banlist' does not exist yet, creating.")
             db.execute("CREATE TABLE banlist (address TEXT, type TEXT, note TEXT, origin TEXT)")
+        try:
+            db.execute("SELECT reserved FROM banlist")
+        except sqlite3.OperationalError:
+            db.execute("ALTER TABLE banlist ADD COLUMN reserved TEXT DEFAULT ''")
 
         try:
             db.execute("SELECT * FROM mirrors")
