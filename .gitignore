@@ -6,3 +6,4 @@ servers.db
 ssl
 sslconfig.py
 tests
+localconfig.py
