@@ -74,8 +74,11 @@ class pinger(threading.Thread):
                 jj2server.set("prefer", 0)  # don't delist, but make sure it's sorted to the bottom
                 pass
             finally:
-                querysocket.shutdown(socket.SHUT_WR)
-                querysocket.close()
+                try:
+                    querysocket.shutdown(socket.SHUT_WR)
+                    querysocket.close()
+                except Exception:
+                    pass
 
     def halt(self):
         self.looping = False
