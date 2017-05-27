@@ -58,7 +58,7 @@ class listserver:
         self.log.addHandler(console)
 
         # second handler: rotating log file, max 5MB big, log all messages
-        handler = RotatingFileHandler("j2lsnek.log", maxBytes=5242880)
+        handler = RotatingFileHandler("j2lsnek.log", maxBytes=5242880, backupCount=1)
         handler.setLevel(logging.INFO)
         handler.setFormatter(logging.Formatter("%(asctime)-15s | %(message)s", "%d-%m-%Y %H:%M:%S"))
         self.log.addHandler(handler)
