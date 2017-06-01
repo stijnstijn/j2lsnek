@@ -70,7 +70,7 @@ class pinger(threading.Thread):
                     jj2server.set("private", private)
                 jj2server.set("prefer", 1)
             except(socket.timeout, TimeoutError, ConnectionError) as e:
-                self.ls.log("Server %s did not respond to ping packet (%s)" % (jj2server.get("ip"), e))
+                self.ls.log.warning("Server %s did not respond to ping packet (%s)" % (jj2server.get("ip"), e))
                 jj2server.set("prefer", 0)  # don't delist, but make sure it's sorted to the bottom
                 pass
             finally:
