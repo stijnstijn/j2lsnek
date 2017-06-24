@@ -54,10 +54,17 @@ class pinger(threading.Thread):
                 continue
 
             jj2server = jj2.jj2server(server["id"])
+            jj2server.set("last_ping", current_time)
 
             querysocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             querysocket.settimeout(5)
-            address = (jj2server.get("ip"), int(jj2server.get("port")))
+            try:
+                address = (jj2server.get("ip"), int(jj2server.get("port")))
+            except Exception:
+                jj2server.forget()
+                querysocket.close()
+                continue
+
             dgram = udpchecksum(bytearray(
                 [0x79, 0x79, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x32, 0x34, 0x20, 0x20]))
             #                 ^- ping command                     ^-----^- version
@@ -69,6 +76,7 @@ class pinger(threading.Thread):
                 if jj2server.get("private") != private:
                     jj2server.set("private", private)
                 jj2server.set("prefer", 1)
+                self.ls.log.info("Pinged server %s" % jj2server.get("ip"))
             except(socket.timeout, TimeoutError, ConnectionError) as e:
                 self.ls.log.warning("Server %s did not respond to ping packet (%s)" % (jj2server.get("ip"), e))
                 jj2server.set("prefer", 0)  # don't delist, but make sure it's sorted to the bottom
