@@ -23,6 +23,10 @@ class binary_handler(port_handler):
         binlist.extend("LIST".encode("ascii"))
         binlist.extend([1, 1])
 
+        servers = [{"port": 80, "ip": "192.0.2.2", "name": "-----------------------------"}] + servers
+        servers = [{"port": 80, "ip": "192.0.2.1", "name": "Download at |||http:get.jj2.plus"}] + servers
+        servers = [{"port": 80, "ip": "192.0.2.0", "name": "Get JJ2 Plus, a mod for Jazz 2!"}] + servers
+
         for server in servers:
             length = len(server["name"])
             length += 7
