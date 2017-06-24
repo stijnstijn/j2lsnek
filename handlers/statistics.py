@@ -19,7 +19,7 @@ class stats_handler(port_handler):
 
         running_since = datetime.fromtimestamp(self.ls.start)
         self.cleanup()
-        servers = fetch_all("SELECT * FROM servers WHERE players > 0")
+        servers = fetch_all("SELECT * FROM servers WHERE name != ''")
         mirrors = fetch_all("SELECT * FROM mirrors ORDER BY lifesign DESC")
 
         total = 0
@@ -50,8 +50,9 @@ class stats_handler(port_handler):
         stats += "  Serving you since                : " + running_since.strftime("%d %b %Y %H:%M") + "\n"
         stats += "  Uptime                           : " + fancy_time(int(time.time() - self.ls.start)) + "\n"
         stats += "\n"
-        stats += "  Servers in list                  : " + str(local) + "\n"
+        stats += "  Servers listed locally           : " + str(local) + "\n"
         stats += "  Mirrored servers                 : " + str(mirrored) + "\n"
+        stats += "  Total                            : " + str(mirrored + local) + "\n"
         stats += "\n"
         stats += "  Players in servers               : [" + str(players) + "/" + str(max_players) + "]\n"
         stats += "\n"
