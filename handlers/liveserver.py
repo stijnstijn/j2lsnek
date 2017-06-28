@@ -76,7 +76,6 @@ class server_handler(port_handler):
 
                 mode = (flags >> 1) & 31
 
-
                 server.set("name", name)
                 server.set("private", flags & 1)
                 server.set("plusonly", flags & 128)
@@ -132,8 +131,13 @@ class server_handler(port_handler):
                     self.error_msg("Invalid data received")
 
                 break
+            elif data is None:
+                # this only happens for vanilla servers - no data received, or timeout, but ping was successful so no
+                # need to delist
+                pass
             else:
-                self.ls.log.warning("Unexpected branch for server connection to %s: delisting - received: %s" % (self.key, repr(data)))
+                self.ls.log.warning(
+                    "Unexpected branch for server connection to %s: delisting - received: %s" % (self.key, repr(data)))
                 break  # this never really happens, but if it does something's wrong, so delist the server
 
             # broadcast updates to connected mirrors
