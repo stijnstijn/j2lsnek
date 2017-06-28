@@ -133,6 +133,7 @@ class server_handler(port_handler):
 
                 break
             else:
+                self.ls.log.warning("Unexpected branch for server connection to %s: delisting" % self.key)
                 break  # this never really happens, but if it does something's wrong, so delist the server
 
             # broadcast updates to connected mirrors
