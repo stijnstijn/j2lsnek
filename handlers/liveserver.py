@@ -27,6 +27,7 @@ class server_handler(port_handler):
 
         # keep connection open until server disconnects (or times out)
         while self.looping:
+            pinged = False
             try:
                 data = self.client.recv(1024)
             except (socket.timeout, TimeoutError):
@@ -39,6 +40,7 @@ class server_handler(port_handler):
                     break
                 if ping == 1:
                     self.ls.log.info("Ping from server %s" % self.key)
+                    pinged = True
                     server.ping()
                 else:
                     self.ls.log.info("Server from %s timed out" % self.key)
@@ -131,7 +133,7 @@ class server_handler(port_handler):
                     self.error_msg("Invalid data received")
 
                 break
-            else:
+            elif not pinged:
                 self.ls.log.warning("Unexpected branch for server connection to %s: delisting - received: %s" % (self.key, repr(data)))
                 break  # this never really happens, but if it does something's wrong, so delist the server
 
