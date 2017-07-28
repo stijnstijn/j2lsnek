@@ -35,8 +35,8 @@ class server_handler(port_handler):
                 data = None
                 try:
                     ping = self.client.send(bytearray([0]))
-                except (socket.timeout, TimeoutError, ConnectionError):
-                    self.ls.log.info("Server %s did not respond to ping, delisting")
+                except (socket.timeout, TimeoutError, ConnectionError) as e:
+                    self.ls.log.info("Server %s did not respond to ping (%s), delisting" % (repr(e), self.key))
                     break
                 if ping == 1:
                     self.ls.log.info("Ping from server %s" % self.key)
@@ -63,7 +63,7 @@ class server_handler(port_handler):
                     break
 
                 self.ls.log.info("Server listed from %s" % self.key)
-                self.client.settimeout(30)  # should have some form of communication every 30 seconds
+                self.client.settimeout(32)  # should have some form of communication every 30 seconds, with some leeway
 
                 new = False
 
