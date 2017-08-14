@@ -44,6 +44,8 @@ class pinger(threading.Thread):
 
         :return: Nothing
         """
+        self.ls.log.info("Starting server pinger")
+
         while self.looping:
             time.sleep(10)
             current_time = int(time.time())
@@ -51,6 +53,7 @@ class pinger(threading.Thread):
             server = fetch_one("SELECT id FROM servers WHERE origin = ? AND last_ping < ? ORDER BY last_ping ASC",
                                (self.ls.address, current_time - 300))
             if not server:
+                self.ls.log.info("No servers to request ping of")
                 continue
 
             jj2server = jj2.jj2server(server["id"])
@@ -61,6 +64,7 @@ class pinger(threading.Thread):
             try:
                 address = (jj2server.get("ip"), int(jj2server.get("port")))
             except Exception:
+                self.ls.log.warning("Server %s could not be initialised in server pinger!" % repr(jj2server))
                 jj2server.forget()
                 querysocket.close()
                 continue
