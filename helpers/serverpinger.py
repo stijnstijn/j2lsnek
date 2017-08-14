@@ -89,8 +89,10 @@ class pinger(threading.Thread):
                 try:
                     querysocket.shutdown(socket.SHUT_WR)
                     querysocket.close()
+                    self.ls.broadcast(action="server", data=[jj2server.flush_updates()])
                 except Exception:
                     pass
+
 
     def halt(self):
         self.looping = False
