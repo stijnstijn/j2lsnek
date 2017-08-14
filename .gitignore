@@ -8,3 +8,4 @@ ssl
 sslconfig.py
 tests
 localconfig.py
+*.sh
