@@ -90,7 +90,7 @@ class pinger(threading.Thread):
                     querysocket.shutdown(socket.SHUT_WR)
                     querysocket.close()
                 except Exception as e:
-                    self.ls.log.info("Could not properly close socket after requesting status from server %s (%s)" % (jj2server.get("ip"), repr(e)))
+                    pass
 
                 self.ls.broadcast(action="server", data=[jj2server.flush_updates()])
 
