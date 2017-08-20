@@ -3,7 +3,7 @@ import socket
 import time
 
 from helpers import jj2
-from helpers.functions import fetch_one, udpchecksum, whitelisted
+from helpers.functions import fetch_one, udpchecksum, preferred
 
 
 class pinger(threading.Thread):
@@ -79,7 +79,10 @@ class pinger(threading.Thread):
                 private = (data[8] >> 5) & 1
                 if jj2server.get("private") != private:
                     jj2server.set("private", private)
-                jj2server.set("prefer", 1)
+                if preferred(jj2server.get("ip"), jj2server.get("name")):
+                    jj2server.set("prefer", 2)
+                else:
+                    jj2server.set("prefer", 1)
                 self.ls.log.info("Requested status packet from server %s" % jj2server.get("ip"))
             except(socket.timeout, TimeoutError, ConnectionError) as e:
                 self.ls.log.warning("Server %s did not respond to status packet request (%s)" % (jj2server.get("ip"), e))

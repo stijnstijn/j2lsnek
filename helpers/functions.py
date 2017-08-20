@@ -7,6 +7,7 @@ import math
 
 lock = threading.Lock();
 
+
 def decode_mode(mode):
     """
     JJ2 uses numbers instead of strings, but strings are easier for humans to work with
@@ -50,6 +51,7 @@ def decode_mode(mode):
         return "battle"
 
     return "unknown"
+
 
 def encode_mode(mode):
     """
@@ -190,7 +192,7 @@ def get_own_ip():
     return ip
 
 
-def banned(address, whitelisted=False):
+def banned(address, type="ban", name=False):
     """
     Check if address is banned
 
@@ -218,11 +220,20 @@ def banned(address, whitelisted=False):
 
     lock.release()
 
+    if type == "prefer":
+        for ban in banlist:
+            if fnmatch.filter([address], ban["address"]) and ban["type"] == type:
+                if name and ban["reserved"] != "":
+                    return (fnmatch.filter([name.lower()], ban["reserved"].lower()) != [])
+                else:
+                    return True
+        return False
+
     if address in mirrors:
-        return whitelisted
+        return True if type == "whitelist" else False
 
     for ban in banlist:
-        if fnmatch.filter([address], ban["address"]) and whitelisted == (ban["type"] == "whitelist"):
+        if fnmatch.filter([address], ban["address"]) and ban["type"] == type:
             return True
 
     return False
@@ -232,12 +243,24 @@ def whitelisted(address):
     """
     Check if address is whitelisted
 
-    Alias for banned(address, True)
+    Alias for banned(address, "whitelist")
 
     :param address: Complete IP address to check
     :return: True if whitelisted, False if not
     """
-    return banned(address, True)
+    return banned(address, "whitelist")
+
+
+def preferred(address=False, name=False):
+    """
+    Check if address is preferred
+
+    Alias for banned(address, "prefer")
+
+    :param address: Complete IP address to check
+    :return: True if whitelisted, False if not
+    """
+    return banned(address, "prefer", name)
 
 
 def all_mirrors():
@@ -265,6 +288,7 @@ def all_mirrors():
 
     return mirrors
 
+
 def acquire_lock():
     """
     Acquire lock
@@ -273,6 +297,7 @@ def acquire_lock():
     """
     lock.acquire()
 
+
 def release_lock():
     """
     Release lock
@@ -280,6 +305,7 @@ def release_lock():
     To be done when done manipulating the database.
     """
     lock.release()
+
 
 def query(sqlquery, replacements=tuple(), autolock=True, mode="execute"):
     """
@@ -324,6 +350,7 @@ def query(sqlquery, replacements=tuple(), autolock=True, mode="execute"):
 
     return result
 
+
 def fetch_one(sqlquery, replacements=tuple(), autolock=True):
     """
     Fetch one row resulting from a database query
@@ -334,6 +361,7 @@ def fetch_one(sqlquery, replacements=tuple(), autolock=True):
     :return: Query result, dictionary
     """
     return query(sqlquery, replacements, autolock, "fetchone")
+
 
 def fetch_all(sqlquery, replacements=tuple(), autolock=True):
     """
