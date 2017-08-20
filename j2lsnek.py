@@ -222,22 +222,11 @@ class listserver:
         dbconn.row_factory = sqlite3.Row
         db = dbconn.cursor()
 
-        try:
-            db.execute("SELECT * FROM servers")
-        except sqlite3.OperationalError:
-            self.log.info("Table 'servers' does not exist yet, creating.")
-            db.execute(
-                "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, created INTEGER DEFAULT 0, lifesign INTEGER DEFAULT 0, last_ping INTEGER DEFAULT 0, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', plusonly INTEGER DEFAULT 0, mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT, prefer INTEGER DEFAULT 1)")
+        # servers is emptied on restart, so no harm in recreating the table (just in case any columns were added/changed)
+        db.execute("DROP TABLE servers")
+        db.execute(
+                "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, created INTEGER DEFAULT 0, lifesign INTEGER DEFAULT 0, last_ping INTEGER DEFAULT 0, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', plusonly INTEGER DEFAULT 0, mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT, prefer INTEGER DEFAULT 0)")
 
-        # was not a setting initially, so may need to add entry
-        try:
-            db.execute("SELECT last_ping FROM servers")
-        except sqlite3.OperationalError:
-            db.execute("ALTER TABLE servers ADD COLUMN last_ping INTEGER DEFAULT 0")
-        try:
-            setting = db.execute("SELECT prefer FROM servers")
-        except sqlite3.OperationalError:
-            db.execute("ALTER TABLE servers ADD COLUMN prefer INTEGER DEFAULT 0")
 
         try:
             db.execute("SELECT * FROM settings")
