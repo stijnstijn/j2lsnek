@@ -69,10 +69,6 @@ class pinger(threading.Thread):
                 querysocket.close()
                 continue
 
-            if whitelisted(jj2server.get("ip")):
-                jj2server.set("prefer", 1)
-                continue
-
             dgram = udpchecksum(bytearray(
                 [0x79, 0x79, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x32, 0x34, 0x20, 0x20]))
             #                 ^- ping command                     ^-----^- version
@@ -93,10 +89,10 @@ class pinger(threading.Thread):
                 try:
                     querysocket.shutdown(socket.SHUT_WR)
                     querysocket.close()
-                    self.ls.broadcast(action="server", data=[jj2server.flush_updates()])
                 except Exception as e:
                     self.ls.log.info("Could not properly close socket after requesting status from server %s (%s)" % (jj2server.get("ip"), repr(e)))
-                    pass
+
+                self.ls.broadcast(action="server", data=[jj2server.flush_updates()])
 
 
     def halt(self):
