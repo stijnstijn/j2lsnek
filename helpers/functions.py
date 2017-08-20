@@ -232,6 +232,9 @@ def banned(address, type="ban", name=False):
     if address in mirrors:
         return True if type == "whitelist" else False
 
+    if type == "ban" and (address == "127.0.0.1" or address == "localhost"):
+        return False
+
     for ban in banlist:
         if fnmatch.filter([address], ban["address"]) and ban["type"] == type:
             return True
