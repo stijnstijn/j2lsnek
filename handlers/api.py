@@ -168,6 +168,8 @@ class servernet_handler(port_handler):
                 server = jj2server(data["id"])
                 if server.get("remote") == 1 or server.new:
                     server.forget()
+                else:
+                    self.ls.log.error("Mirror %s tried delisting server %s, but server is not remote!" % (self.ip, data["id"]))
             except KeyError:
                 self.ls.log.error("Received incomplete server data from ServerNet connection %s" % self.ip)
                 return False
