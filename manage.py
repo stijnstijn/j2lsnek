@@ -79,14 +79,14 @@ elif sys.argv[1] in ["add-banlist", "delete-banlist"]:
     payload = {"address": sys.argv[2], "type": sys.argv[3], "origin": sys.argv[4]}
 
 elif sys.argv[1] in ["add-mirror"]:
-    if len(sys.argv) != 3:
-        print("Syntax:\n %s [address]" % sys.argv[1])
+    if len(sys.argv) != 4:
+        print("Syntax:\n %s [name] [IP]" % sys.argv[1])
         sys.exit()
 
     try:
-        payload = {"name": sys.argv[1], "address": socket.gethostbyname(sys.argv[1])}
+        payload = {"name": sys.argv[2], "address": socket.gethostbyname(sys.argv[3])}
     except socket.gaierror:
-        print("Could not retrieve IP address for name %s" % sys.argv[1])
+        print("Could not retrieve IP address for name %s" % sys.argv[2])
         sys.exit()
 
 elif sys.argv[1] in ["delete-mirror"]:
