@@ -244,7 +244,7 @@ class listserver:
             db.execute("SELECT * FROM banlist").fetchall()
         except sqlite3.OperationalError:
             self.log.info("Table 'banlist' does not exist yet, creating.")
-            db.execute("CREATE TABLE banlist (address TEXT, type TEXT, note TEXT, origin TEXT)")
+            db.execute("CREATE TABLE banlist (address TEXT, type TEXT, note TEXT, origin TEXT, reserved TEXT DEFAULT '')")
         try:
             db.execute("SELECT reserved FROM banlist")
         except sqlite3.OperationalError:
