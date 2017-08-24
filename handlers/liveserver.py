@@ -68,6 +68,12 @@ class server_handler(port_handler):
                 new = False
 
                 port = int.from_bytes(data[0:2], byteorder="little")
+                exists = fetch_one("SELECT COUNT(*) FROM servers WHERE ip = ? AND port = ?", (self.ip, port))[0]
+                if exists > 0:
+                    self.ls.log.warning("Server %s tried to connect on port %s, but port already in use; refusing" % (self.ip, port))
+                    self.error_msg("Reconnecting too fast: please wait a few seconds before relisting")
+                    break
+
                 name = server.validate_name(data[2:32].decode("ascii", "ignore"), self.ip,
                                             "Server on %s" % self.ip)
 
