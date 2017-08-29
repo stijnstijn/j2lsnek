@@ -73,6 +73,7 @@ class pinger(threading.Thread):
                 [0x79, 0x79, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x32, 0x34, 0x20, 0x20]))
             #                 ^- ping command                     ^-----^- version
 
+            old_prefer = jj2server.get("prefer")
             try:
                 querysocket.sendto(dgram, address)
                 data, srv = querysocket.recvfrom(1024)
@@ -95,7 +96,9 @@ class pinger(threading.Thread):
                 except Exception as e:
                     pass
 
-                self.ls.broadcast(action="server", data=[jj2server.flush_updates()])
+                new_prefer = jj2server.get("prefer")
+                if new_prefer != old_prefer:
+                    self.ls.broadcast(action="server", data=[jj2server.flush_updates()])
 
 
     def halt(self):

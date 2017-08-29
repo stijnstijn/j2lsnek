@@ -142,6 +142,8 @@ class server_handler(port_handler):
             elif not pinged:
                 self.ls.log.warning("Unexpected branch for server connection to %s: delisting - received: %s" % (self.key, repr(data)))
                 break  # this never really happens, but if it does something's wrong, so delist the server
+            else:
+                self.ls.log.info("Unexpected data from server %s: %s" % (self.key, repr(data)))
 
             # broadcast updates to connected mirrors
             if broadcast:
