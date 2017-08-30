@@ -220,7 +220,7 @@ def banned(address, type="ban", name=False):
 
     lock.release()
 
-    if type == "prefer":
+    if type == "prefer" or type == "unprefer":
         for ban in banlist:
             if fnmatch.filter([address], ban["address"]) and ban["type"] == type:
                 if name and ban["reserved"] != "":
@@ -264,6 +264,18 @@ def preferred(address=False, name=False):
     :return: True if whitelisted, False if not
     """
     return banned(address, "prefer", name)
+
+
+def unpreferred(address=False, name=False):
+    """
+    Check if address is preferred
+
+    Alias for banned(address, "prefer")
+
+    :param address: Complete IP address to check
+    :return: True if whitelisted, False if not
+    """
+    return banned(address, "unprefer", name)
 
 
 def all_mirrors():

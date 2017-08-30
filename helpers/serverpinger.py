@@ -3,7 +3,7 @@ import socket
 import time
 
 from helpers import jj2
-from helpers.functions import fetch_one, udpchecksum, preferred
+from helpers.functions import fetch_one, udpchecksum, preferred, unpreferred
 
 
 class pinger(threading.Thread):
@@ -82,6 +82,8 @@ class pinger(threading.Thread):
                     jj2server.set("private", private)
                 if preferred(jj2server.get("ip"), jj2server.get("name")):
                     jj2server.set("prefer", 2)
+                elif unpreferred(jj2server.get("ip"), jj2server.get("name")):
+                    jj2server.set("prefer", -1)
                 else:
                     jj2server.set("prefer", 1)
                 self.ls.log.info("Requested status packet from server %s" % jj2server.get("ip"))
