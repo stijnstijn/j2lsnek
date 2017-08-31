@@ -144,6 +144,9 @@ class server_handler(port_handler):
                 break  # this never really happens, but if it does something's wrong, so delist the server
             else:
                 self.ls.log.info("Unexpected data from server %s: %s" % (self.key, repr(data)))
+                self.error_msg("Invalid data received")
+                break
+
 
             # broadcast updates to connected mirrors
             if broadcast:
