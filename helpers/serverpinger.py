@@ -1,5 +1,6 @@
 import threading
 import socket
+import random
 import time
 
 from helpers import jj2
@@ -69,8 +70,9 @@ class pinger(threading.Thread):
                 querysocket.close()
                 continue
 
+            index = random.choice(range(1, 7))
             dgram = udpchecksum(bytearray(
-                [0x79, 0x79, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x32, 0x34, 0x20, 0x20]))
+                [0x79, 0x79, 0x03, index, 0x00, 0x00, 0x00, 0x00, 0x32, 0x34, 0x20, 0x20]))
             #                 ^- ping command                     ^-----^- version
 
             old_prefer = jj2server.get("prefer")
