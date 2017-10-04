@@ -130,6 +130,8 @@ class server_handler(port_handler):
                 if not new:
                     if len(data) == 0 or (data[0] == 0x00 and len(data) == 30):
                         # this usually means the server has closed
+                        if len(data) == 30:
+                            self.ls.log.info("Server sent goodbye: %s"  % repr(data))
                         self.ls.log.info("Server from %s closed; delisting" % self.key)
                     else:
                         self.ls.log.info("Server from %s was delisted; invalid/empty data received" % self.key)
