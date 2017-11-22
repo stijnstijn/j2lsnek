@@ -132,8 +132,7 @@ class server_handler(port_handler):
                         # this usually means the server has closed
                         self.ls.log.info("Server from %s closed; delisting" % self.key)
                     else:
-                        self.ls.log.info("Server from %s was delisted; invalid/empty data received" % self.key)
-                        self.error_msg("Invalid data received")
+                        self.ls.log.info("Received invalid data from server %s (%s), ignoring" % (self.key, repr(data)))
                 else:
                     self.ls.log.warning("Server from %s provided faulty listing data: not listed" % self.key)
                     self.error_msg("Invalid data received")
