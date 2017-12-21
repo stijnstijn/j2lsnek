@@ -140,12 +140,11 @@ class server_handler(port_handler):
                     self.ls.log.warning("Server from %s provided faulty listing data: not listed" % self.key)
                     self.error_msg("Invalid data received")
                     break
-            elif not pinged:
-                self.ls.log.warning("Unexpected branch for server connection to %s: delisting - received: %s" % (self.key, repr(data)))
-                break  # this never really happens, but if it does something's wrong, so delist the server
+            elif pinged:
+                self.ls.log.info("Server %s did not send data, but responded to ping properly" % self.key)
             else:
-                self.ls.log.info("Unexpected data from server %s: %s" % (self.key, repr(data)))
-                self.error_msg("Invalid data received")
+                self.ls.log.info("Could not receive data from server %s, closing. Check for socket errors?" % self.key)
+                self.error_msg("Connection interrupted")
                 break
 
 
