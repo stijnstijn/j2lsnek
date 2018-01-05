@@ -151,7 +151,7 @@ def fancy_time(time):
 
     if time > day * 7:
         weeks = math.floor(time / (day * 7))
-        time -= (weeks * days * 7)
+        time -= (weeks * day * 7)
         string += str(weeks) + "wk "
 
     if time > day or weeks > 0:
