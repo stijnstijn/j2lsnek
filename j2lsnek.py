@@ -36,6 +36,7 @@ class listserver:
     sockets = {}  # sockets the server is listening it
     mirrors = []  # ServerNet connections
     last_ping = 0  # last time this list server has sent a ping to ServerNet
+    last_sync = 0  # last time this list server asked for a full sync
     reboot_mode = "quit"  # "quit" (default), "restart" (reload everything), or "reboot" (restart complete list server)
     banlist = {}
 
@@ -142,10 +143,13 @@ class listserver:
         while self.looping:
             current_time = int(time.time())
 
-
             if self.last_ping < current_time - 150:
                 self.broadcast(action="ping", data=[{"from": self.address}])
                 self.last_ping = current_time
+
+            if self.last_sync < current_time - 3600:
+                self.broadcast(action="request", data=[{"from": self.address}])
+                self.last_sync = current_time
 
             time.sleep(config.MICROSLEEP)
 
