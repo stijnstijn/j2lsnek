@@ -30,13 +30,11 @@ class server_handler(port_handler):
             pinged = False
             try:
                 data = self.client.recv(1024)
-                print(repr(data))
             except (socket.timeout, TimeoutError):
                 # if no lifesign for 30 seconds, ping to see if the server is still alive
                 data = None
                 try:
                     ping = self.client.send(bytearray([0]))
-                    print(repr(ping))
                 except (socket.timeout, TimeoutError, ConnectionError) as e:
                     self.ls.log.info("Server %s did not respond to ping (%s), delisting" % (repr(e), self.key))
                     break
