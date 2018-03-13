@@ -36,6 +36,7 @@ class listserver:
     sockets = {}  # sockets the server is listening it
     mirrors = []  # ServerNet connections
     last_ping = 0  # last time this list server has sent a ping to ServerNet
+    last_sync = 0  # last time this list server asked for a full sync
     reboot_mode = "quit"  # "quit" (default), "restart" (reload everything), or "reboot" (restart complete list server)
     banlist = {}
 
