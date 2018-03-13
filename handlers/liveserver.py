@@ -30,11 +30,13 @@ class server_handler(port_handler):
             pinged = False
             try:
                 data = self.client.recv(1024)
+                print(repr(data))
             except (socket.timeout, TimeoutError):
                 # if no lifesign for 30 seconds, ping to see if the server is still alive
                 data = None
                 try:
                     ping = self.client.send(bytearray([0]))
+                    print(repr(ping))
                 except (socket.timeout, TimeoutError, ConnectionError) as e:
                     self.ls.log.info("Server %s did not respond to ping (%s), delisting" % (repr(e), self.key))
                     break
@@ -126,27 +128,20 @@ class server_handler(port_handler):
                     server.set("plusonly", data[1] & 1)
 
             # server wants to be delisted, goes offline or sends strange data
-            elif data is not None:
+            else:
                 if not new:
-                    if len(data) == 0 or (data[0] == 0x00 and len(data) == 30):
+                    if data is not None and ( len(data) == 0 or (data[0] == 0x00 and len(data) > 16) ):
                         # this usually means the server has closed
-                        if len(data) == 30:
+                        if len(data) > 16:
                             self.ls.log.info("Server sent goodbye: %s"  % repr(data))
                         self.ls.log.info("Server from %s closed; delisting" % self.key)
                         break
-                    else:
-                        self.ls.log.info("Received invalid data from server %s (%s), ignoring" % (self.key, repr(data)))
+                    elif data is not None:
+                        self.ls.log.info("Received empty data from server %s (%s), ignoring" % (self.key, repr(data)))
                 else:
                     self.ls.log.warning("Server from %s provided faulty listing data: not listed" % self.key)
                     self.error_msg("Invalid data received")
                     break
-            elif not pinged:
-                self.ls.log.warning("Unexpected branch for server connection to %s: delisting - received: %s" % (self.key, repr(data)))
-                break  # this never really happens, but if it does something's wrong, so delist the server
-            else:
-                self.ls.log.info("Unexpected data from server %s: %s" % (self.key, repr(data)))
-                self.error_msg("Invalid data received")
-                break
 
 
             # broadcast updates to connected mirrors
