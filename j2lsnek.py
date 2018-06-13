@@ -224,7 +224,7 @@ class listserver:
         db = dbconn.cursor()
 
         # servers is emptied on restart, so no harm in recreating the table (just in case any columns were added/changed)
-        db.execute("DROP TABLE servers")
+        db.execute("DROP TABLE IF EXISTS servers")
         db.execute(
                 "CREATE TABLE servers (id TEXT UNIQUE, ip TEXT, port INTEGER, created INTEGER DEFAULT 0, lifesign INTEGER DEFAULT 0, last_ping INTEGER DEFAULT 0, private INTEGER DEFAULT 0, remote INTEGER DEFAULT 0, origin TEXT, version TEXT DEFAULT '1.00', plusonly INTEGER DEFAULT 0, mode TEXT DEFAULT 'unknown', players INTEGER DEFAULT 0, max INTEGER DEFAULT 0, name TEXT, prefer INTEGER DEFAULT 0)")
 
