@@ -24,6 +24,7 @@ import helpers.functions
 import helpers.listener
 import helpers.interact
 import helpers.serverpinger
+import helpers.webhooks
 import helpers.jj2
 
 
@@ -63,6 +64,18 @@ class listserver:
         handler.setLevel(logging.INFO)
         handler.setFormatter(logging.Formatter("%(asctime)-15s | %(message)s", "%d-%m-%Y %H:%M:%S"))
         self.log.addHandler(handler)
+
+        # third and fourth handlers (optional): webhook handlers
+        if config.WEBHOOK_DISCORD:
+            handler = helpers.webhooks.DiscordLogHandler(config.WEBHOOK_DISCORD, self.address)
+            handler.setLevel(logging.ERROR)
+            self.log.addHandler(handler)
+
+        if config.WEBHOOK_SLACK:
+            handler = helpers.webhooks.SlackLogHandler(config.WEBHOOK_SLACK, self.address)
+            handler.setLevel(logging.WARN)
+            self.log.addHandler(handler)
+
 
         # try to get own IP
         try:

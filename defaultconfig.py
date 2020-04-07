@@ -25,3 +25,10 @@ CLIENTKEY = ""
 TICKSMAX = 10
 TICKSDECAY = 2
 TICKSMAXAGE = 86400
+
+# the next two values are for alerts
+# j2lsnek supports Slack and Discord webhooks
+# if a message of at least the log level WARNING is logged, it is additionally sent to any
+# configured webhooks
+WEBHOOK_SLACK = ""
+WEBHOOK_DISCORD = ""
