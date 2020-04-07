@@ -156,10 +156,15 @@ class listserver:
         while self.looping:
             current_time = int(time.time())
 
-
-            if self.last_ping < current_time - 150:
+            if self.last_ping < current_time - 120:
+                # let other servers know we're still alive
                 self.broadcast(action="ping", data=[{"from": self.address}])
                 self.last_ping = current_time
+
+            if self.last_sync < current_time - 900:
+                # ask for sync from all servers - in case we missed any servers being listed
+                self.broadcast(action="request", data=[{"from": self.address}])
+                self.last_sync = current_time
 
             time.sleep(config.MICROSLEEP)
 
