@@ -164,7 +164,7 @@ class listserver:
 
             if self.last_sync < current_time - 900:
                 # ask for sync from all servers - in case we missed any servers being listed
-                self.broadcast(action="request", data=[{"from": self.address}])
+                self.broadcast(action="request", data=[{"from": self.address, "fragment": "servers"}])
                 self.last_sync = current_time
 
             time.sleep(config.MICROSLEEP)

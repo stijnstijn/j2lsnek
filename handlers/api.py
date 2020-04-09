@@ -1,4 +1,5 @@
 import datetime
+import pathlib
 import socket
 import json
 import time
@@ -90,7 +91,7 @@ class servernet_handler(port_handler):
         self.ls.log.info("Received ServerNet update from %s: %s" % (self.ip, payload["action"]))
 
         # switch on the engine, pass it on
-        no_broadcast = ["hello", "request", "delist"]
+        no_broadcast = ["hello", "request", "delist", "request-log", "send-log", "request-log-from"]
         if self.port == 10059 and len(pass_on) > 0 and payload["action"] not in no_broadcast and \
                         payload["action"][0:4] != "get-" and payload["origin"] == "web":
             self.ls.broadcast(action=payload["action"], data=pass_on, ignore=[self.ip])
@@ -253,27 +254,74 @@ class servernet_handler(port_handler):
             self.cleanup()  # removes stale servers, etc
 
             # servers
-            servers = fetch_all("SELECT * FROM servers WHERE players > 0 AND origin = ?", (self.ls.address,))
-            self.ls.broadcast(action="server", data=[{key: server[key] for key in server.keys()} for server in servers],
+            if "fragment" not in data or "servers" in data["fragment"]:
+                servers = fetch_all("SELECT * FROM servers WHERE players > 0 AND origin = ?", (self.ls.address,))
+                self.ls.broadcast(action="server", data=[{key: server[key] for key in server.keys()} for server in servers],
                               recipients=[self.ip])
 
             # banlist
-            banlist = fetch_all("SELECT * FROM banlist")
-            self.ls.broadcast(action="add-banlist", data=[{key: ban[key] for key in ban.keys()} for ban in banlist],
+            if "fragment" not in data or "banlist" in data["fragment"]:
+                banlist = fetch_all("SELECT * FROM banlist")
+                self.ls.broadcast(action="add-banlist", data=[{key: ban[key] for key in ban.keys()} for ban in banlist],
                               recipients=[self.ip])
 
             # mirrors
-            mirrors = fetch_all("SELECT name, address FROM mirrors")
-            self.ls.broadcast(action="add-mirror",
+            if "fragment" not in data or "mirrors" not in data["fragment"]:
+                mirrors = fetch_all("SELECT name, address FROM mirrors")
+                self.ls.broadcast(action="add-mirror",
                               data=[{key: mirror[key] for key in mirror.keys()} for mirror in mirrors],
                               recipients=[self.ip])
 
             # motd
-            settings = fetch_all("SELECT * FROM settings WHERE item IN (?, ?)", ("motd", "motd-updated"))
-            self.ls.broadcast(action="set-motd", data=[{item["item"]: item["value"] for item in settings}],
+            if "fragment" not in data or "motd" in data["fragment"]:
+                settings = fetch_all("SELECT * FROM settings WHERE item IN (?, ?)", ("motd", "motd-updated"))
+                self.ls.broadcast(action="set-motd", data=[{item["item"]: item["value"] for item in settings}],
                               recipients=[self.ip])
 
             self.ls.log.info("Sent sync data to ServerNet connection %s" % self.ip)
+
+        elif action == "request-log-from":
+            # make the list server request logs from a mirror
+            if "from" not in data:
+                return False
+
+            try:
+                lines = int(data["lines"])
+            except (ValueError, KeyError):
+                lines = 10
+
+            self.ls.broadcast(action="request-log", data={"lines": lines}, recipients=[data["from"]])
+
+        elif action == "request-log":
+            # request recent x lines of log data from a mirror
+            try:
+                lines = int(data["lines"])
+            except (ValueError, KeyError):
+                lines = 10
+
+            lines = min(1, lines)
+
+            log_file = pathlib.Path(__file__).parent.parent.joinpath("j2lsnek.log")
+            print(str(log_file))
+            if not log_file.exists():
+                return False
+
+            log = []
+            with log_file.open() as input:
+                for line in input:
+                    if len(log) > lines:
+                        log = log[1:]
+
+                    log.append(line)
+
+            self.ls.broadcast(action="send-log", data=log, recipients=[self.ip])
+
+        elif action == "send-log":
+            # send recent lines of log data upon request
+            recv_log_file = pathlib.Path(__file__).parent.parent.joinpath("log-recv-%s-%i.log" % (self.ip, int(time.time())))
+            with recv_log_file.open("w") as output:
+                for line in data:
+                    output.write(line)
 
         # reload config, etc
         elif action == "reload":
