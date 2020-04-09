@@ -42,7 +42,7 @@ def send(action, payload):
 
 
 if len(sys.argv) < 2 or sys.argv[1] not in ["ban", "unban", "whitelist", "unwhitelist", "add-banlist", "delete-banlist",
-                                            "add-mirror", "delete-mirror", "set-motd", "reload", "request-log",
+                                            "add-mirror", "delete-mirror", "set-motd", "reload", "request-log-from",
                                             "send-log"]:
     print(" Syntax: python3 manage.py [command] [arguments]\n")
     print(" Shorthand commands:")
@@ -109,24 +109,12 @@ elif sys.argv[1] == "set-motd":
 elif sys.argv[1] == "reload":
     payload = {"from": "cli"}
 
-elif sys.argv[1] == "request-log":
-    payload = {"lines": 100}
+elif sys.argv[1] == "request-log-from":
+    if len(sys.argv) < 3:
+        print("Syntax:\n request-log-from [mirror IP]")
 
-elif sys.argv[1] == "send-log":
-    try:
-        lines = int(sys.argv[2])
-    except (IndexError, ValueError):
-        lines = 5
+    payload = {"from": sys.argv[2]}
 
-    log = []
-    with open("j2lsnek.log") as input:
-        for line in input:
-            if len(log) > lines:
-                log = log[1:]
-
-            log.append(line)
-
-    payload = log
 
 result = send(action, payload)
 

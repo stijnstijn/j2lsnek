@@ -120,13 +120,6 @@ class servernet_handler(port_handler):
                 self.ls.log.error("Received incomplete server data from ServerNet connection %s" % self.ip)
                 return False
 
-            # we can't do anything with partial data
-            if server.new and (server.get("ip") is None or server.get("port") is None):
-                self.ls.log.error(
-                    "Received incomplete server data from ServerNet connection %s" % self.ip)
-                server.forget()
-                return False
-
             try:
                 [server.set(key, data[key]) for key in data]
                 if server.new:
@@ -135,6 +128,13 @@ class servernet_handler(port_handler):
                 self.ls.log.error(
                     "Received unintelligible server data from ServerNet connection %s (unknown field in %s)" % (
                         self.ip, repr(data)))
+                server.forget()
+                return False
+
+            # we can't do anything with partial data
+            if server.new and (server.get("ip") is None or server.get("port") is None):
+                self.ls.log.error(
+                    "Received incomplete server data from ServerNet connection %s" % self.ip)
                 server.forget()
                 return False
 
