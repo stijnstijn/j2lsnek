@@ -93,9 +93,9 @@ class listserver:
         print("      \ `-` /   \  `-' j /     \   `-`  /")
         print("       `-.-`     '.____.'       `.____.'\n")
         self.log.warning("Starting list server! This one's name is: %s (%s)" % (self.address, self.ip))
-        self.log.warning("Current time: %s" % time.strftime("%d-%M-%Y %H:%M:%S"))
-        self.log.warning("Enter 'q' to quit (q + enter).")
-        self.log.warning("")
+        print("Current time: %s" % time.strftime("%d-%M-%Y %H:%M:%S"))
+        print("Enter 'q' to quit (q + enter).")
+        print("")
 
         self.prepare_database()
 
@@ -139,11 +139,12 @@ class listserver:
         :param ports: A list of ports to listen at
         :return: Nothing
         """
-        self.log.warning("Opening port listeners...")
+        self.log.info("Opening port listeners...")
         for port in ports:
             self.sockets[port] = helpers.listener.port_listener(port=port, ls=self)
             self.sockets[port].start()
-        self.log.warning("Listening.")
+        self.log.info("Listening.")
+        print("Port listeners started.")
 
         # have a separate thread wait for input so this one can go on sending pings every so often
         poller = helpers.interact.key_poller(ls=self)
@@ -178,7 +179,8 @@ class listserver:
         pinger.halt()
         pinger.join()
 
-        self.log.warning("Bye!")
+        self.log.info("j2lsnek succesfully shut down.")
+        print("Bye!")
 
         return
 

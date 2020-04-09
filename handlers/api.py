@@ -28,12 +28,12 @@ class servernet_handler(port_handler):
         # only allowed mirrors, plus localhost for 10059 since that's where admin interfaces live
         if self.port == 10059:
             if self.ip != "127.0.0.1":
-                self.ls.log.error("Outside IP %s tried connection to remote admin API" % self.ip)
+                self.ls.log.warning("Outside IP %s tried connection to remote admin API" % self.ip)
                 self.end()
                 return
         elif self.port == 10056:
             if self.ip not in all_mirrors() or self.ip == "127.0.0.1" or self.ip == self.ls.ip:
-                self.ls.log.error("Unauthorized ServerNet connection from %s:%s" % (self.ip, self.port))
+                self.ls.log.warning("Unauthorized ServerNet connection from %s:%s" % (self.ip, self.port))
                 self.end()
                 return
             query("UPDATE mirrors SET lifesign = ? WHERE address = ?", (int(time.time()), self.ip))
@@ -44,7 +44,7 @@ class servernet_handler(port_handler):
                 self.buffer.extend(self.client.recv(2048))
                 loops += 1
             except (socket.timeout, TimeoutError):
-                self.ls.log.warning("Server from %s timed out" % self.key)
+                self.ls.log.error("ServerNet connection from %s timed out while receiving data" % self.key)
                 break
 
             try:
@@ -119,19 +119,25 @@ class servernet_handler(port_handler):
                 self.ls.log.error("Received incomplete server data from ServerNet connection %s" % self.ip)
                 return False
 
+            # we can't do anything with partial data
+            if server.new and (server.get("ip") is None or server.get("port") is None):
+                self.ls.log.error(
+                    "Received incomplete server data from ServerNet connection %s" % self.ip)
+                server.forget()
+                return False
+
             try:
                 [server.set(key, data[key]) for key in data]
+                if server.new:
+                    self.ls.log.info("Added new server %s via ServerNet update" % data["id"])
             except IndexError:
                 self.ls.log.error(
-                    "Received incomplete server data from ServerNet connection %s (unknown field in %s)" % (
+                    "Received unintelligible server data from ServerNet connection %s (unknown field in %s)" % (
                         self.ip, repr(data)))
                 server.forget()
                 return False
-            server.set("remote", 1)
 
-            # we can't do anything with partial data
-            if server.new and (server.get("ip") is None or server.get("port") is None):
-                server.forget()
+            server.set("remote", 1)
 
         # ban list (and whitelist) entries
         elif action == "add-banlist":

@@ -50,7 +50,7 @@ class server_handler(port_handler):
                 break
 
             if banned(self.ip):
-                self.ls.log.info("Delisting server from banned IP %s" % self.ip)
+                self.ls.log.warning("Delisting server from banned IP %s" % self.ip)
                 break
 
             # new server wants to get listed
