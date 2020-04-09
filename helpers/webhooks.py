@@ -68,7 +68,7 @@ class WebHookLogHandler(HTTPHandler):
             h.endheaders()
             if self.method == "POST":
                 h.send(data.encode('utf-8'))
-            print(h.getresponse().read())  # can't do anything with the result
+            h.getresponse()  # can't do anything with the result
         except Exception:
             self.handleError(record)
 

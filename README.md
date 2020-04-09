@@ -10,8 +10,8 @@ probably knew that.
 What's new
 ---
 The aim of this application is to be more stable and resistant to attacks than the previous list server software. It
-has as few dependencies as possible and should run with a minimal footprint. Another goal is to be easily extensible
-with new functionality, should projects such as [JJ2+](https://jj2.plus) require it.
+has no dependencies outside the Python 3 standard library and should run with a minimal footprint. Another goal is to be 
+easily extensible with new functionality, should projects such as [JJ2+](https://jj2.plus) require it.
 
 This list server adds a number of constraints that should make it better equipped to handle abuse than the original and
 node.js-based list servers. It limits the amount of connections per IP, synchronises bans among mirrors and sanitises
