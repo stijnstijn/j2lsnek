@@ -122,23 +122,20 @@ class servernet_handler(port_handler):
 
             try:
                 [server.set(key, data[key]) for key in data]
-                if server.new:
-                    self.ls.log.info("Added new server %s via ServerNet update" % data["id"])
             except IndexError:
                 self.ls.log.error(
-                    "Received unintelligible server data from ServerNet connection %s (unknown field in %s)" % (
+                    "Received incomplete server data from ServerNet connection %s (unknown field in %s)" % (
                         self.ip, repr(data)))
                 server.forget()
                 return False
+            server.set("remote", 1)
 
             # we can't do anything with partial data
             if server.new and (server.get("ip") is None or server.get("port") is None):
                 self.ls.log.error(
-                    "Received incomplete server data from ServerNet connection %s" % self.ip)
+                    "Received incomplete server data from ServerNet connection %s" %
+                        self.ip)
                 server.forget()
-                return False
-
-            server.set("remote", 1)
 
         # ban list (and whitelist) entries
         elif action == "add-banlist":
@@ -302,7 +299,6 @@ class servernet_handler(port_handler):
             lines = min(1, lines)
 
             log_file = pathlib.Path(__file__).parent.parent.joinpath("j2lsnek.log")
-            print(str(log_file))
             if not log_file.exists():
                 return False
 
