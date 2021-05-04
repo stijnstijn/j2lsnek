@@ -5,7 +5,7 @@ import time
 
 from helpers import jj2
 from helpers.functions import fetch_one, udpchecksum, preferred, unpreferred
-
+from helpers.exceptions import ServerUnknownException
 
 class pinger(threading.Thread):
     """
@@ -57,7 +57,14 @@ class pinger(threading.Thread):
                 self.ls.log.info("No servers to request ping of")
                 continue
 
-            jj2server = jj2.jj2server(server["id"])
+            try:
+                jj2server = jj2.jj2server(server["id"], create_if_unknown=False)
+            except ServerUnknownException:
+                # this can happen if the server was delisted while it was being
+                # loaded by the server pinger, in which case, no need to ping
+                # it
+                continue
+
             jj2server.set("last_ping", current_time)
 
             querysocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -80,6 +87,7 @@ class pinger(threading.Thread):
                 querysocket.sendto(dgram, address)
                 data, srv = querysocket.recvfrom(1024)
                 private = (data[8] >> 5) & 1
+
                 if jj2server.get("private") != private:
                     jj2server.set("private", private)
                 if preferred(jj2server.get("ip"), jj2server.get("name")):

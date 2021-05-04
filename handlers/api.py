@@ -7,6 +7,7 @@ import time
 from helpers.handler import port_handler
 from helpers.jj2 import jj2server
 from helpers.functions import all_mirrors, query, fetch_all, fetch_one
+from helpers.exceptions import ServerUnknownException
 
 
 class servernet_handler(port_handler):
@@ -132,9 +133,8 @@ class servernet_handler(port_handler):
 
             # we can't do anything with partial data
             if server.new and (server.get("ip") is None or server.get("port") is None):
-                self.ls.log.error(
-                    "Received incomplete server data from ServerNet connection %s" %
-                        self.ip)
+                # this means we got a server update before the server has been first 'registered'
+                # that could happen if an earlier all-server update is missed somehow
                 server.forget()
 
         # ban list (and whitelist) entries
@@ -169,11 +169,16 @@ class servernet_handler(port_handler):
         # server delistings
         elif action == "delist":
             try:
-                server = jj2server(data["id"])
+                server = jj2server(data["id"], create_if_unknown=False)
                 if server.get("remote") == 1 or server.new:
                     server.forget()
                 else:
                     self.ls.log.error("Mirror %s tried delisting server %s, but server is not remote!" % (self.ip, data["id"]))
+            except ServerUnknownException:
+                # trying to delist a server we have no memory of? no
+                self.ls.log.error(
+                    "Mirror %s tried delisting server %s, but server is unknown" % (self.ip, data["id"]))
+                return False
             except KeyError:
                 self.ls.log.error("Received incomplete server data from ServerNet connection %s" % self.ip)
                 return False

@@ -27,7 +27,6 @@ class server_handler(port_handler):
 
         # keep connection open until server disconnects (or times out)
         while self.looping:
-            pinged = False
             try:
                 data = self.client.recv(1024)
             except (socket.timeout, TimeoutError):
@@ -40,8 +39,7 @@ class server_handler(port_handler):
                     break
                 if ping == 1:
                     self.ls.log.info("Ping from server %s" % self.key)
-                    pinged = True
-                    server.ping()
+                    server.update_lifesign()
                 else:
                     self.ls.log.info("Server from %s timed out" % self.key)
                     break
@@ -106,7 +104,7 @@ class server_handler(port_handler):
                         server.set("players", data[1])
                     else:
                         self.ls.log.info("Received ping from server %s" % self.key)
-                        server.ping()
+                        server.update_lifesign()
                 elif data[0] == 0x01:
                     self.ls.log.info("Updating game mode for server %s" % self.key)
                     server.set("mode", decode_mode(int(data[1])))
@@ -140,7 +138,6 @@ class server_handler(port_handler):
                     self.ls.log.warning("Server from %s provided faulty listing data: not listed" % self.key)
                     self.error_msg("Invalid data received")
                     break
-
 
             # broadcast updates to connected mirrors
             if broadcast:

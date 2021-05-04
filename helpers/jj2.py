@@ -6,6 +6,7 @@ import time
 import re
 
 from helpers.functions import query, fetch_all, fetch_one
+from helpers.exceptions import ServerUnknownException
 
 
 class jj2server:
@@ -17,12 +18,14 @@ class jj2server:
     new = False
     forbidden_characters = "#%&[]^{}~"  # not displayed by jj2 and should therefore never be part of server names
 
-    def __init__(self, key):
+    def __init__(self, key, create_if_unknown=True):
         """
         Set up database connection (they're not thread-safe) and retrieve server info from database. If not available
         (which is likely), create a new record
 
-        :param id: Server ID, usually in the format "127.0.0.1:86400" but could be anything
+        :param key: Server ID, usually in the format "127.0.0.1:86400" but could be anything
+        :param create_if_unknown:  Create server in database if it does not exist yet. If
+        `False`, an exception is raised instead.
         """
         self.id = key
         self.updated = {"id": key}
@@ -30,6 +33,9 @@ class jj2server:
         self.data = fetch_one("SELECT * FROM servers WHERE id = ?", (self.id,))
 
         if not self.data:
+            if not create_if_unknown:
+                raise ServerUnknownException()
+
             query("INSERT INTO servers (id, created, lifesign) VALUES (?, ?, ?)",
                   (self.id, int(time.time()), int(time.time())))
             self.data = fetch_one("SELECT * FROM servers WHERE id = ?", (self.id,))
@@ -121,7 +127,7 @@ class jj2server:
         self.updated = {"id": updates["id"]}
         return updates
 
-    def ping(self):
+    def update_lifesign(self):
         """
         Let the database know the server is still alive (updates the "last seen" property, 'lifesign')
 

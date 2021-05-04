@@ -23,9 +23,14 @@ class binary_handler(port_handler):
         binlist.extend("LIST".encode("ascii"))
         binlist.extend([1, 1])
 
-        servers = [{"port": 80, "ip": "192.0.2.2", "name": "-----------------------------"}] + servers
-        servers = [{"port": 80, "ip": "192.0.2.1", "name": "Download at |||http:jj2.plus"}] + servers
-        servers = [{"port": 80, "ip": "192.0.2.0", "name": "Get JJ2 Plus, a mod for Jazz 2!"}] + servers
+        # this will only be seen by vanilla players, because JJ2+ fetches the
+        # ascii server list from port 10057 instead, so we can use this to
+        # advertise JJ2+ to vanilla players!
+        # use fake IPs that will always remain pinging
+        servers = [{"port": 80, "ip": "192.0.2.0", "name": "Get JJ2 Plus, a mod for Jazz 2!"},
+                   {"port": 80, "ip": "192.0.2.1", "name": "Download at |||http:jj2.plus"},
+                   {"port": 80, "ip": "192.0.2.2", "name": "-----------------------------"},
+                   *servers]
 
         for server in servers:
             length = len(server["name"])
