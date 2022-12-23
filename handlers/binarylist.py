@@ -28,7 +28,7 @@ class binary_handler(port_handler):
         # advertise JJ2+ to vanilla players!
         # use fake IPs that will always remain pinging
         servers = [{"port": 80, "ip": "192.0.2.0", "name": "Get JJ2 Plus, a mod for Jazz 2!"},
-                   {"port": 80, "ip": "192.0.2.1", "name": "Download at |||http:jj2.plus"},
+                   {"port": 80, "ip": "192.0.2.1", "name": "Download at |||www.jj2.plus"},
                    {"port": 80, "ip": "192.0.2.2", "name": "-----------------------------"},
                    *servers]
 
