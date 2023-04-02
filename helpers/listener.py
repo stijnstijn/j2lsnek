@@ -152,7 +152,12 @@ class port_listener(threading.Thread):
             else:
                 raise NotImplementedError("No handler class available for port %s" % self.port)
 
-            self.connections[key].start()
+            try:
+                self.connections[key].start()
+            except RuntimeError:
+                self.ls.log.error("Cannot start listener for %s - too many threads? Discarding connection" % key)
+                del self.connections[key]
+                continue
 
             # remove IPs that haven't been seen for a long time
             for ip in self.ticker:
