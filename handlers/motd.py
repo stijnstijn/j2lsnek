@@ -21,7 +21,7 @@ class motd_handler(port_handler):
         if not expires:
             expires = {"value": time.time() + 10}
 
-        if motd and motd != "" and int(time.time()) < expires["value"]:
+        if motd and motd != "" and int(time.time()) < int(expires["value"]):
             self.msg(motd["value"] + "\n")
         else:
             self.msg("")
