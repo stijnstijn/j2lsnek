@@ -16,7 +16,7 @@ class motd_handler(port_handler):
         self.ls.log.info("Sending MOTD to %s" % self.ip)
 
         motd = fetch_one("SELECT value FROM settings WHERE item = ?", ('motd',))
-        expires = fetch_one("SELECT value FROM settings WHERE item = ?", ('motd_expires',))
+        expires = fetch_one("SELECT value FROM settings WHERE item = ?", ('motd-expires',))
 
         if not expires:
             expires = {"value": time.time() + 10}
