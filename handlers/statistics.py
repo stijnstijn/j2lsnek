@@ -15,7 +15,7 @@ class stats_handler(port_handler):
         """
         Calculate some list server statistics, show a nicely formatted list and immediately close connection
         """
-        self.ls.log.info("Sending list stats to %s" % self.ip)
+        self.ls.log.info(f"Sending list stats to {self.ip}")
 
         running_since = datetime.fromtimestamp(self.ls.start)
         self.cleanup()
@@ -46,17 +46,17 @@ class stats_handler(port_handler):
         stats += "                Jazz Jackrabbit 2 List Server statistics\n"
         stats += "\n"
         stats += "\n"
-        stats += "  This server                      : " + self.ls.address + "\n"
-        stats += "  Serving you since                : " + running_since.strftime("%d %b %Y %H:%M") + "\n"
-        stats += "  Uptime                           : " + fancy_time(int(time.time() - self.ls.start)) + "\n"
+        stats += f"  This server                      : {self.ls.address}\n"
+        stats += f"  Serving you since                : {running_since.strftime('%d %b %Y %H:%M')}\n"
+        stats += f"  Uptime                           : {fancy_time(int(time.time() - self.ls.start))}\n"
         stats += "\n"
-        stats += "  Servers listed locally           : " + str(local) + "\n"
-        stats += "  Mirrored servers                 : " + str(mirrored) + "\n"
-        stats += "  Total                            : " + str(mirrored + local) + "\n"
+        stats += f"  Servers listed locally           : {local}\n"
+        stats += f"  Mirrored servers                 : {mirrored}\n"
+        stats += f"  Total                            : {mirrored + local}\n"
         stats += "\n"
-        stats += "  Players in servers               : [" + str(players) + "/" + str(max_players) + "]\n"
+        stats += f"  Players in servers               : [{players}/{max_players}]\n"
         stats += "\n"
-        stats += "  Connected list server mirrors    : " + str(mirror_count) + " other list server" + suffix + "\n"
+        stats += f"  Connected list server mirrors    : {mirror_count} other list server{suffix}\n"
 
         for mirror in mirrors:
             if mirror["address"] == self.ls.ip:  # don't count ourselves
@@ -68,7 +68,7 @@ class stats_handler(port_handler):
                 stats += "\n"
 
         stats += "\n"
-        stats += "  Running j2lsnek v" + config.VERSION + " by stijn\n"
+        stats += f"  Running j2lsnek v{config.VERSION} by stijn\n"
         stats += "  Source available at https://github.com/stijnstijn/j2lsnek\n\n"
         stats += "  Bye!\n\n"
         stats += "+----------------------------------------------------------------------+\n"

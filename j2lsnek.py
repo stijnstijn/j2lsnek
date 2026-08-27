@@ -78,11 +78,11 @@ class listserver:
 
 
         # try to get own IP
-        try:
-            self.ip = json.loads(str(urllib.request.urlopen("http://httpbin.org/ip", timeout=5).read().decode("ascii", "ignore")))["origin"]
-        except (ValueError, urllib.error.URLError, socket.timeout) as e:
-            self.log.info("Could not retrieve own IP via online API - guessing")
-            self.ip = helpers.functions.get_own_ip()  # may be wrong, but best we got
+        if not hasattr(config, "PUBLIC_IP"):
+            print("Missing PUBLIC_IP in localconfig.py - set public IP list server is hosted on there")
+            exit(1)
+
+        self.ip = config.PUBLIC_IP
 
         # say hello
         os.system("cls" if os.name == "nt" else "clear")  # clear screen
@@ -92,8 +92,8 @@ class listserver:
         print("     ( \   / .-.  \   / 2 /   \ k \   /  /   |\\ ssssssssssssss")
         print("      \ `-` /   \  `-' j /     \   `-`  /")
         print("       `-.-`     '.____.'       `.____.'\n")
-        self.log.warning("Starting list server! This one's name is: %s (%s)" % (self.address, self.ip))
-        print("Current time: %s" % time.strftime("%d-%M-%Y %H:%M:%S"))
+        self.log.warning(f"Starting list server! This one's name is: {self.address} ({self.ip})")
+        print(f"Current time: {time.strftime('%d-%M-%Y %H:%M:%S')}")
         print("Enter 'q' to quit (q + enter).")
         print("")
 
@@ -276,14 +276,14 @@ class listserver:
         except sqlite3.OperationalError:
             self.log.info("Table 'mirrors' does not exist yet, creating.")
             db.execute("CREATE TABLE mirrors (name TEXT, address TEXT, lifesign INTEGER DEFAULT 0)")
+            master_fqdn = "list.jj2.plus"
             try:
-                master_fqdn = "list.jj2.plus"
                 master = socket.gethostbyname(master_fqdn)
                 if master != self.address:  # don't add if *this* server has that hostname
-                    self.log.info("Adding %s as mirror" % master_fqdn)
+                    self.log.info(f"Adding {master_fqdn} as mirror")
                     db.execute("INSERT INTO mirrors (name, address) VALUES (?, ?)", (master_fqdn, master))
             except socket.gaierror:
-                self.log.error("Could not retrieve IP for %s - no master list server available!" % master_fqdn)
+                self.log.error(f"Could not retrieve IP for {master_fqdn} - no master list server available!")
 
         # if this method is run, it means the list server is restarted, which breaks all open connections, so clear all
         # servers and such - banlist will be synced upon restart

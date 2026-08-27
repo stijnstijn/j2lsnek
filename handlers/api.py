@@ -30,12 +30,12 @@ class servernet_handler(port_handler):
         # only allowed mirrors, plus localhost for 10059 since that's where admin interfaces live
         if self.port == 10059:
             if self.ip != "127.0.0.1":
-                self.ls.log.warning("Outside IP %s tried connection to remote admin API" % self.ip)
+                self.ls.log.warning(f"Outside IP {self.ip} tried connection to remote admin API")
                 self.end()
                 return
         elif self.port == 10056:
             if self.ip not in all_mirrors() or self.ip == "127.0.0.1" or self.ip == self.ls.ip:
-                self.ls.log.warning("Unauthorized ServerNet connection from %s:%s" % (self.ip, self.port))
+                self.ls.log.warning(f"Unauthorized ServerNet connection from {self.ip}:{self.port}")
                 self.end()
                 return
             query("UPDATE mirrors SET lifesign = ? WHERE address = ?", (int(time.time()), self.ip))
@@ -46,7 +46,7 @@ class servernet_handler(port_handler):
                 self.buffer.extend(self.client.recv(2048))
                 loops += 1
             except (socket.timeout, TimeoutError):
-                self.ls.log.error("ServerNet connection from %s timed out while receiving data" % self.key)
+                self.ls.log.error(f"ServerNet connection from {self.key} timed out while receiving data")
                 break
 
             try:
@@ -61,14 +61,13 @@ class servernet_handler(port_handler):
         # if API call not received or readable for whatever reason, give up
         if not payload:
             if len(self.buffer) > 0:
-                self.ls.log.error("ServerNet update received from %s, but could not acquire valid payload (got %s)" % (
-                self.ip, self.buffer.decode("ascii", "ignore")))
+                self.ls.log.error(f"ServerNet update received from {self.ip}, but could not acquire valid payload (got {self.buffer.decode('ascii', 'ignore')})")
             self.end()
             return
 
         # same for incomplete call
         if "action" not in payload or "data" not in payload or "origin" not in payload:
-            self.ls.log.error("ServerNet update received from %s, but JSON was incomplete" % self.ip)
+            self.ls.log.error(f"ServerNet update received from {self.ip}, but JSON was incomplete")
             self.end()
             return
 
@@ -84,12 +83,12 @@ class servernet_handler(port_handler):
                 if self.process_data(payload["action"], item):
                     pass_on.append(item)
         except TypeError:
-            self.ls.log.error("ServerNet update received from %s, but data was not iterable" % self.ip)
+            self.ls.log.error(f"ServerNet update received from {self.ip}, but data was not iterable")
             self.end()
             return
 
         # ok, payload is valid, process it
-        self.ls.log.info("Received ServerNet update from %s: %s" % (self.ip, payload["action"]))
+        self.ls.log.info(f"Received ServerNet update from {self.ip}: {payload['action']}")
 
         # switch on the engine, pass it on
         no_broadcast = ["hello", "request", "delist", "request-log", "send-log", "request-log-from"]
@@ -118,15 +117,14 @@ class servernet_handler(port_handler):
             try:
                 server = jj2server(data["id"])
             except KeyError:
-                self.ls.log.error("Received incomplete server data from ServerNet connection %s" % self.ip)
+                self.ls.log.error(f"Received incomplete server data from ServerNet connection {self.ip}")
                 return False
 
             try:
                 [server.set(key, data[key]) for key in data]
             except IndexError:
                 self.ls.log.error(
-                    "Received incomplete server data from ServerNet connection %s (unknown field in %s)" % (
-                        self.ip, repr(data)))
+                    f"Received incomplete server data from ServerNet connection {self.ip} (unknown field in {data})")
                 server.forget()
                 return False
             server.set("remote", 1)
@@ -148,10 +146,10 @@ class servernet_handler(port_handler):
                     query("INSERT INTO banlist (address, type, note, origin, reserved) VALUES (?, ?, ?, ?, ?)",
                                (data["address"], data["type"], data["note"], data["origin"], data["reserved"]))
             except KeyError:
-                self.ls.log.error("Received incomplete banlist entry from ServerNet connection %s" % self.ip)
+                self.ls.log.error(f"Received incomplete banlist entry from ServerNet connection {self.ip}")
                 return False
 
-            self.ls.log.info("Added banlist entry via ServerNet connection %s" % self.ip)
+            self.ls.log.info(f"Added banlist entry via ServerNet connection {self.ip}")
 
         # removal of ban/whitelist entries
         elif action == "delete-banlist":
@@ -161,10 +159,10 @@ class servernet_handler(port_handler):
                 fetch_one("DELETE FROM banlist WHERE address = ? AND type = ? AND note = ? AND origin = ? AND reserved = ?",
                                (data["address"], data["type"], data["note"], data["origin"], data["reserved"]))
             except KeyError:
-                self.ls.log.error("Received incomplete banlist deletion request from ServerNet connection %s" % self.ip)
+                self.ls.log.error(f"Received incomplete banlist deletion request from ServerNet connection {self.ip}")
                 return False
 
-            self.ls.log.info("Removed banlist entry via ServerNet connection %s" % self.ip)
+            self.ls.log.info(f"Removed banlist entry via ServerNet connection {self.ip}")
 
         # server delistings
         elif action == "delist":
@@ -173,53 +171,52 @@ class servernet_handler(port_handler):
                 if server.get("remote") == 1 or server.new:
                     server.forget()
                 else:
-                    self.ls.log.error("Mirror %s tried delisting server %s, but server is not remote!" % (self.ip, data["id"]))
+                    self.ls.log.error(f"Mirror {self.ip} tried delisting server {data['id']}, but server is not remote!")
             except ServerUnknownException:
                 # trying to delist a server we have no memory of? no
                 self.ls.log.error(
-                    "Mirror %s tried delisting server %s, but server is unknown" % (self.ip, data["id"]))
+                    f"Mirror {self.ip} tried delisting server {data['id']}, but server is unknown")
                 return False
             except KeyError:
-                self.ls.log.error("Received incomplete server data from ServerNet connection %s" % self.ip)
+                self.ls.log.error(f"Received incomplete server data from ServerNet connection {self.ip}")
                 return False
 
-            self.ls.log.info("Delisted server via ServerNet connection %s" % self.ip)
+            self.ls.log.info(f"Delisted server via ServerNet connection {self.ip}")
 
         # add mirror
         elif action == "add-mirror":
             try:
                 if fetch_one("SELECT * FROM mirrors WHERE name = ? OR address = ?",
                                   (data["name"], data["address"])):
-                    self.ls.log.info("Mirror %s tried adding mirror %s, but name or address already known" % (
-                        self.ip, data["address"]))
+                    self.ls.log.info(f"Mirror {self.ip} tried adding mirror {data['address']}, but name or address already known")
                     return True
             except KeyError:
-                self.ls.log.error("Received incomplete mirror info from ServerNet connection %s" % self.ip)
+                self.ls.log.error(f"Received incomplete mirror info from ServerNet connection {self.ip}")
                 return False
 
             if data["name"] == "web":
-                self.ls.log.error("'web' is a reserved name for mirrors, %s tried using it" % self.ip)
+                self.ls.log.error(f"'web' is a reserved name for mirrors, {self.ip} tried using it")
                 return False
 
             query("INSERT INTO mirrors (name, address) VALUES (?, ?)", (data["name"], data["address"]))
             self.ls.broadcast(action="hello", data=[{"from": self.ls.address}], recipients=[data["address"]])
 
-            self.ls.log.info("Added mirror %s via ServerNet connection %s" % (data["address"], self.ip))
+            self.ls.log.info(f"Added mirror {data['address']} via ServerNet connection {self.ip}")
 
         # delete mirror
         elif action == "delete-mirror":
             try:
                 if not fetch_one("SELECT * FROM mirrors WHERE name = ? AND address = ?",
                                       (data["name"], data["address"])):
-                    self.ls.log.info("Mirror %s tried removing mirror %s, but not known" % (self.ip, data["address"]))
+                    self.ls.log.info(f"Mirror {self.ip} tried removing mirror {data['address']}, but not known")
                     return True
             except KeyError:
-                self.ls.log.error("Received incomplete mirror deletion request from ServerNet connection %s" % self.ip)
+                self.ls.log.error(f"Received incomplete mirror deletion request from ServerNet connection {self.ip}")
                 return False
 
             query("DELETE FROM mirrors WHERE name = ? AND address = ?", (data["name"], data["address"]))
 
-            self.ls.log.info("Deleted mirror %s via ServerNet connection %s" % (data["address"], self.ip))
+            self.ls.log.info(f"Deleted mirror {data['address']} via ServerNet connection {self.ip}")
 
         # motd updates
         elif action == "set-motd":
@@ -229,10 +226,10 @@ class servernet_handler(port_handler):
             try:
                 timestamp = fetch_one("SELECT value FROM settings WHERE item = ?", ("motd-updated",))
                 if timestamp and int(timestamp["value"]) > int(data["motd-updated"]):
-                    self.ls.log.info("Received MOTD update from %s, but own MOTD was more recent" % self.ip)
+                    self.ls.log.info(f"Received MOTD update from {self.ip}, but own MOTD was more recent")
                     return False
             except KeyError:
-                self.ls.log.error("Received incomplete MOTD from ServerNet connection %s" % self.ip)
+                self.ls.log.error(f"Received incomplete MOTD from ServerNet connection {self.ip}")
                 return False
 
             try:
@@ -245,7 +242,7 @@ class servernet_handler(port_handler):
             query("UPDATE settings SET value = ? WHERE item = ?", (int(time.time()), "motd-updated"))
             query("UPDATE settings SET value = ? WHERE item = ?", (int(expires), "motd-expires"))
 
-            self.ls.log.info("Updated MOTD via ServerNet connection %s" % self.ip)
+            self.ls.log.info(f"Updated MOTD via ServerNet connection {self.ip}")
 
         # sync requests: send all data
         elif action == "request" or action == "hello":
@@ -280,7 +277,7 @@ class servernet_handler(port_handler):
                 self.ls.broadcast(action="set-motd", data=[{item["item"]: item["value"] for item in settings}],
                               recipients=[self.ip])
 
-            self.ls.log.info("Sent sync data to ServerNet connection %s" % self.ip)
+            self.ls.log.info(f"Sent sync data to ServerNet connection {self.ip}")
 
         elif action == "request-log-from":
             # make the list server request logs from a mirror

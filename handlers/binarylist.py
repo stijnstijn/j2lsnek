@@ -13,7 +13,7 @@ class binary_handler(port_handler):
         """
         Show the binary server list and immediately close connection
         """
-        self.ls.log.info("Sending binary server list to %s" % self.ip)
+        self.ls.log.info(f"Sending binary server list to {self.ip}")
 
         self.cleanup()
         servers = fetch_all(
