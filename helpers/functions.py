@@ -203,22 +203,21 @@ def banned(address, type="ban", name=False):
     :param whitelisted: Check for whitelist instead of ban
     :return: True if banned/whitelisted, False if not
     """
-    lock.acquire()
+    with lock:
+        dbconn = sqlite3.connect(config.DATABASE)
+        try:
+            dbconn.row_factory = sqlite3.Row
+            cursor = dbconn.cursor()
 
-    dbconn = sqlite3.connect(config.DATABASE)
-    dbconn.row_factory = sqlite3.Row
-    cursor = dbconn.cursor()
+            mirrors = cursor.execute("SELECT * FROM mirrors").fetchall()
+            banlist = cursor.execute("SELECT * FROM banlist").fetchall()
 
-    mirrors = cursor.execute("SELECT * FROM mirrors").fetchall()
-    banlist = cursor.execute("SELECT * FROM banlist").fetchall()
+            cursor.close()
+        finally:
+            dbconn.close()
 
     mirrors = [mirrors[i]["address"] for i, value in enumerate(mirrors)]
     banlist = [dict(banlist[i]) for i, value in enumerate(banlist)]
-
-    cursor.close()
-    dbconn.close()
-
-    lock.release()
 
     if type == "prefer" or type == "unprefer":
         for ban in banlist:
@@ -343,25 +342,29 @@ def query(sqlquery, replacements=tuple(), autolock=True, mode="execute"):
     if autolock:
         acquire_lock()
 
-    dbconn = sqlite3.connect(config.DATABASE)
-    dbconn.row_factory = sqlite3.Row
+    # release the lock even if the query fails, or every other thread blocks forever
+    try:
+        dbconn = sqlite3.connect(config.DATABASE)
+        try:
+            dbconn.row_factory = sqlite3.Row
 
-    db = dbconn.cursor()
+            db = dbconn.cursor()
 
-    if mode == "fetchone":
-        result = db.execute(sqlquery, replacements).fetchone()
-    elif mode == "fetchall":
-        result = db.execute(sqlquery, replacements).fetchall()
-    else:
-        result = db.execute(sqlquery, replacements)
+            if mode == "fetchone":
+                result = db.execute(sqlquery, replacements).fetchone()
+            elif mode == "fetchall":
+                result = db.execute(sqlquery, replacements).fetchall()
+            else:
+                result = db.execute(sqlquery, replacements)
 
-    dbconn.commit()
+            dbconn.commit()
 
-    db.close()
-    dbconn.close()
-
-    if autolock:
-        release_lock()
+            db.close()
+        finally:
+            dbconn.close()
+    finally:
+        if autolock:
+            release_lock()
 
     return result
 

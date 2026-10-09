@@ -36,7 +36,7 @@ class jj2server:
             if not create_if_unknown:
                 raise ServerUnknownException()
 
-            query("INSERT INTO servers (id, created, lifesign) VALUES (?, ?, ?)",
+            query("INSERT OR IGNORE INTO servers (id, created, lifesign) VALUES (?, ?, ?)",
                   (self.id, int(time.time()), int(time.time())))
             self.data = fetch_one("SELECT * FROM servers WHERE id = ?", (self.id,))
             self.new = True
