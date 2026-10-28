@@ -49,9 +49,10 @@ class port_listener(threading.Thread):
         # in case of port 10059, we authenticate via SSL certificates, since else anyone running on localhost
         # may interact with the list server API
         if self.port == 10059:
+            context = ssl.SSLContext()
+            context.load_cert_chain(certfile=config.CERTFILE, keyfile=config.CERTKEY)
             unwrapped_server = socket.socket()
-            server = ssl.wrap_socket(unwrapped_server, server_side=True, certfile=config.CERTFILE,
-                                     ca_certs=config.CERTCHAIN, keyfile=config.CERTKEY)
+            server = context.wrap_socket(unwrapped_server)
             address = "localhost"
         else:
             server = socket.socket()
